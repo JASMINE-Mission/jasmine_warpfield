@@ -1,4 +1,4 @@
-# JASMINE image-warp demonstration code
+# JASMINE warpfield demonstration code
 An experimental code to simulate the image warp function.
 
 
