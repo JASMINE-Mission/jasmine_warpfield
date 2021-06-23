@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from glob import glob
-from setuptools import setup
+from setuptools import setup, find_packages
 import os,sys,re
 
 
@@ -27,7 +27,7 @@ classifiers = [
 if __name__ == '__main__':
   setup(
     name='jasmine_warpfield',
-    package_dir={"":"warpfield"},
+    package_dir={"jasmine_warpfield":"warpfield"},
     version=version,
     author=author,
     author_email=email,
@@ -38,5 +38,6 @@ if __name__ == '__main__':
     long_description_content_type='text/markdown',
     url='https://github.com/xr0038/jasmine_warpfield',
     license=license,
+    packages=find_packages(),
     classifiers=classifiers,
     install_requires=['numpy','scipy','astropy', 'astroquery'])
