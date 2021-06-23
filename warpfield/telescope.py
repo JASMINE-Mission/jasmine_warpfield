@@ -25,22 +25,6 @@ def identity_transformation(position):
   return np.array(position)
 
 
-def simple_distortion(position):
-  ''' An example of the distortion function.
-
-  Parameters:
-    position: A tuple of two arrays. The first element contains the
-              x-positions, while the second element contains the y-positions.
-
-  Return:
-    A numpy.ndarray of the distorted coordinates.
-  '''
-  position = np.array(position)
-  position = np.array([[0.98,0.01],[-0.01,0.99]]) @ position
-  print(position.shape)
-  return position
-
-
 @dataclass
 class Optics(object):
   ''' Definition of optical components.
