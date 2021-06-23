@@ -32,7 +32,14 @@ def retrieve_gaia_sources(
 
   query = '''
   SELECT
-    ra,dec,pmra,pmdec,parallax,ref_epoch
+    source_id,
+    ra,
+    dec,
+    phot_g_mean_mag,
+    pmra,
+    pmdec,
+    parallax,
+    ref_epoch
   FROM
     gaiaedr3.gaia_source
   WHERE
@@ -79,6 +86,7 @@ def display_sources(lon, lat, sources, frame=Frame.galactic):
 
   fig = plt.figure(figsize=(8,8))
   ax = fig.add_subplot(projection=proj)
+  ax.set_position([0.13,0.10,0.85,0.85])
   ax.scatter(sources.galactic.l, sources.galactic.b,
     transform=ax.get_transform(frame.value), marker='x', label='2016.0')
   ax.scatter(current.galactic.l, current.galactic.b,
@@ -87,7 +95,6 @@ def display_sources(lon, lat, sources, frame=Frame.galactic):
   ax.legend(bbox_to_anchor=[1,1], loc='lower right', ncol=2, frameon=False)
   ax.set_xlabel('Galactic Longitude (deg)', fontsize=14)
   ax.set_ylabel('Galactic Latitude (deg)', fontsize=14)
-  fig.tight_layout()
   plt.show()
 
 

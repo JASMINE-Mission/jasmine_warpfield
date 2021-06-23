@@ -4,7 +4,7 @@ from enum import Enum
 from astropy.wcs import WCS
 
 
-__debug__ = True
+__debug_mode__ = True
 
 
 class Frame(Enum):
@@ -31,7 +31,7 @@ def get_projection(lon, lat, frame=Frame.icrs):
     proj.wcs.ctype = ['GLON-TAN', 'GLAT-TAN']
   else:
     proj.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-  if __debug__ is True:
+  if __debug_mode__ is True:
     print(proj)
     print(proj.wcs)
 
