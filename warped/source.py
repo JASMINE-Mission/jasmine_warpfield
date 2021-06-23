@@ -4,18 +4,19 @@ from astropy.coordinates import SkyCoord, Longitude, Latitude
 from astropy.time import Time
 import astropy.units as u
 
-from .detector import get_projection
+from .util import Frame, get_projection
 
 
 def retrieve_gaia_sources(
-    lon, lat, radius=0.1, frame='galactic', snr_limit=10.0, row_limit=-1):
+    lon, lat, radius=0.1, frame=Frame.galactic,
+    snr_limit=10.0, row_limit=-1):
   ''' Retrive sources around (lon, lat) from Gaia EDR3 catalog.
 
   Parameters:
     lon (float or Longitude): the longitude of the frame center.
     lat (float or Latitude) : the latitude of the frame center.
     radius (float)          : the search radius in degree.
-    frame (string)          : the coordinate frame (icrs or galactic).
+    frame (Frame)           : the coordinate frame (icrs or galactic).
     snr_limit (float)       : the limiting SNR in the parallax.
     row_limit (int)         : the maximum number of records.
 
@@ -47,7 +48,7 @@ def retrieve_gaia_sources(
   if not isinstance(lat, Latitude):
     lat = Latitude(lat, unit=u.degree)
 
-  coo = SkyCoord(lon, lat, frame='galactic')
+  coo = SkyCoord(lon, lat, frame=frame.value)
   res = Gaia.launch_job_async(query.format(
     ra=coo.icrs.ra.deg,dec=coo.icrs.dec.deg,
     radius=radius,snr_limit=snr_limit))
@@ -61,14 +62,14 @@ def retrieve_gaia_sources(
     distance=1000/record['parallax']*u.pc, obstime=epoch)
 
 
-def display_sources(lon, lat, sources, frame='galactic'):
+def display_sources(lon, lat, sources, frame=Frame.galactic):
   ''' Display sources around the specified coordinates.
 
   Parameters:
     lon (float or Longitude): the longitude of the frame center.
     lat (float or Latitude) : the latitude of the frame center.
     radius (float)          : the search radius in degree.
-    frame (string)          : the coordinate frame (icrs or galactic).
+    frame (Frame)           : the coordinate frame.
   '''
   import matplotlib.pyplot as plt
   import numpy as np
@@ -79,9 +80,9 @@ def display_sources(lon, lat, sources, frame='galactic'):
   fig = plt.figure(figsize=(8,8))
   ax = fig.add_subplot(projection=proj)
   ax.scatter(sources.galactic.l, sources.galactic.b,
-    transform=ax.get_transform(frame), marker='x', label='2016.0')
+    transform=ax.get_transform(frame.value), marker='x', label='2016.0')
   ax.scatter(current.galactic.l, current.galactic.b,
-    transform=ax.get_transform(frame), marker='+', label='current')
+    transform=ax.get_transform(frame.value), marker='+', label='current')
   ax.grid()
   ax.legend(bbox_to_anchor=[1,1], loc='lower right', ncol=2, frameon=False)
   ax.set_xlabel('Galactic Longitude (deg)', fontsize=14)
@@ -91,14 +92,14 @@ def display_sources(lon, lat, sources, frame='galactic'):
 
 
 def display_gaia_sources(
-    lon=2.0, lat=0.0, radius=0.1, frame='galactic'):
+    lon=2.0, lat=0.0, radius=0.1, frame=Frame.galactic):
   ''' Display Gaia EDR3 sources around the coordinate.
 
   Parameters:
     lon (float or Longitude): the longitude of the frame center.
     lat (float or Latitude) : the latitude of the frame center.
     radius (float)          : the search radius in degree.
-    frame (string)          : the coordinate frame (icrs or galactic).
+    frame (Frame)           : the coordinate frame.
   '''
-  src = retrieve_gaia_sources(lon, lat, radius=radius,frame=frame)
+  src = retrieve_gaia_sources(lon, lat, radius=radius, frame=frame)
   display_sources(lon, lat, src, frame)
