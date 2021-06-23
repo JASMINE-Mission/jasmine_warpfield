@@ -50,8 +50,12 @@ class Optics(object):
   @property
   def rotation(self):
     ''' Angle set to derive an intermediate world coordinate. '''
+    ## use the ICRS frame in calculation.
     icrs = self.pointing.icrs
-    return np.array((icrs.ra.rad,-icrs.dec.rad,self.pa.rad))
+    ## calculate position angle in the ICRS frame.
+    north = self.pointing.directional_offset_by(0.0,1*u.arcsec)
+    delta = self.pointing.icrs.position_angle(north)
+    return np.array((icrs.ra.rad,-icrs.dec.rad,self.pa.rad-delta.rad))
 
   def set_distortion(self, distortion):
     ''' Assign distortion function.
@@ -79,12 +83,11 @@ class Optics(object):
     except Exception as e:
       print(str(e))
       obj = sources
-    xyz = obj.cartesian.xyz
+    xyz = obj.transform_to('icrs').cartesian.xyz
     r = Rotation.from_euler('zyx', -self.rotation)
     pqr = r.as_matrix() @ xyz
     obj = SkyCoord(pqr.T, obstime=epoch,
             representation_type='cartesian').transform_to('icrs')
-    origin = SkyCoord(0.0, 0.0, unit=('deg','deg'))
     proj = get_projection(0.0,0.0,self.scale)
     return self.distortion(obj.to_pixel(proj, origin=0))
 
