@@ -3,7 +3,13 @@ An experimental code to simulate the image warp function.
 
 
 ## Installation
-Clone this.
+Clone this repository and try the command below:
+
+``` bash
+python setup.py install
+```
+
+The module `warpfield` will be installed in your system.
 
 
 ### Dependencies
