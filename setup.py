@@ -40,4 +40,4 @@ if __name__ == '__main__':
     license=license,
     packages=find_packages(),
     classifiers=classifiers,
-    install_requires=['numpy','scipy','astropy', 'astroquery'])
+    install_requires=['numpy','scipy','astropy','astroquery','matplotlib'])
