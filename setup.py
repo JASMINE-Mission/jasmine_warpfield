@@ -6,7 +6,7 @@ import os,sys,re
 
 
 with open('README.md', 'r') as fd:
-  version = '0.2'
+  version = '0.3'
   author = 'Ryou Ohsawa'
   email = 'ohsawa@ioa.s.u-tokyo.ac.jp'
   description = 'An experimental code to simulate a warped focal plane for small-JASMINE.'
@@ -21,8 +21,17 @@ classifiers = [
   'Operating System :: POSIX :: Linux',
   'Programming Language :: Python :: 3',
   'Programming Language :: Python :: 3.7',
-  'Topic :: Scientific/Engineering :: Astronomy']
+  'Topic :: Scientific/Engineering :: Astronomy'
+]
 
+dependencies = [
+  'numpy>=1.16',
+  'scipy>=1.6',
+  'pandas>=1.0.0',
+  'astropy>=4.0',
+  'astroquery>=0.4.1',
+  'matplotlib>=3.0.0',
+]
 
 if __name__ == '__main__':
   setup(
@@ -40,4 +49,4 @@ if __name__ == '__main__':
     license=license,
     packages=find_packages(),
     classifiers=classifiers,
-    install_requires=['numpy','scipy','astropy','astroquery','matplotlib'])
+    install_requires=dependencies)

@@ -7,6 +7,9 @@ import astropy.units as u
 from .util import get_projection
 
 
+__debug_mode__ = False
+
+
 def retrieve_gaia_sources(
     pointing, radius,
     snr_limit=10.0, row_limit=-1):
@@ -55,14 +58,16 @@ def retrieve_gaia_sources(
   res = Gaia.launch_job_async(query.format(
     ra=pointing.icrs.ra.deg, dec=pointing.icrs.dec.deg,
     radius=radius.deg, snr_limit=snr_limit))
-  print(res)
+  if __debug_mode__ is True: print(res)
   record = res.get_results()
   epoch = Time(record['ref_epoch'].data, format='decimalyear')
 
-  return SkyCoord(
+  obj = SkyCoord(
     ra=record['ra'], dec=record['dec'],
     pm_ra_cosdec=record['pmra'], pm_dec=record['pmdec'],
     distance=1000/record['parallax']*u.pc, obstime=epoch)
+  obj.info.name = record['source_id']
+  return obj
 
 
 def display_sources(pointing, sources, title=None):

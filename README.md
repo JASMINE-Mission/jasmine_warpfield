@@ -27,14 +27,13 @@ pointing = SkyCoord(0.0*u.deg, 0.0*u.deg, frame="galactic")
 position_angle = Angle(5.0*u.deg)
 
 jasmine = w.Telescope(pointing, position_angle)
-gaia_sources = w.retrieve_gaia_sources(
-    pointing, radius=0.1*u.deg)
+gaia_sources = w.retrieve_gaia_sources(pointing, radius=0.4*u.deg)
 position = jasmine.observe(gaia_sources)
 
 import matplotlib.pyplot as plt
 fig = plt.figure()
 ax = fig.add_subplot()
-ax.scatter(position[0][0], position[0][1], marker='x')
+ax.scatter(position[0].x, position[0].y, marker='x')
 ax.set_xlabel('focal plane position (um)', fontsize=14)
 ax.set_ylabel('focal plane position (um)', fontsize=14)
 plt.show()

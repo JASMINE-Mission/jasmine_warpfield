@@ -8,6 +8,7 @@ from astropy.wcs import WCS
 from scipy.spatial.transform import Rotation
 import astropy.units as u
 import numpy as np
+import pandas as pd
 
 from .util import get_projection
 
@@ -78,9 +79,7 @@ class Optics(object):
       epoch (Time): the epoch of the observation.
 
     Return:
-      A numpy.ndarray with the array shape of (2, N(sources)).
-      The first array contains the x-coordinates and the second array
-      contains the y-coordinates on the focal plane in units of micron.
+      DataFrame.
     '''
     try:
       obj = sources.apply_space_motion(epoch)
@@ -93,8 +92,12 @@ class Optics(object):
     obj = SkyCoord(pqr.T, obstime=epoch,
             representation_type='cartesian').transform_to('icrs')
     proj = get_projection(self.center,self.scale)
-    return self.distortion(obj.to_pixel(proj, origin=0))
+    pos = self.distortion(obj.to_pixel(proj, origin=0))
 
+    return pd.DataFrame({
+      'x': pos[0], 'y': pos[1], 'ra': obj.ra, 'dec': obj.dec,
+      'name': sources.info.name
+    })
 
 @dataclass
 class DetectorOffset(object):
@@ -133,7 +136,7 @@ class PixelDisplacement(object):
     self.dy = np.zeros((naxis2, naxis1))
 
 
-  def evaluate(self, position):
+  def evaluate(self, x, y):
     ''' Evaluate the source position displacement.
 
     Parameters:
@@ -143,7 +146,7 @@ class PixelDisplacement(object):
     Note:
       Not implemented yet.
     '''
-    return position
+    return (x,y)
 
 
 @dataclass
@@ -179,11 +182,12 @@ class Detector(object):
   def capture(self, position):
     '''
     '''
-    x = position[0]
-    y = position[1]
+    x,y = self.displacement.evaluate(position.x,position.y)
+    position.x = x
+    position.y = y
     xf = ((self.xrange[0] < x) & (x < self.xrange[1]))
     yf = ((self.yrange[0] < y) & (y < self.yrange[1]))
-    return self.displacement.evaluate(position[:,xf&yf])
+    return position.loc[xf&yf,:]
 
 
 @dataclass
@@ -223,8 +227,8 @@ class Telescope(object):
       is the coordinates along the NAXIS2 axis.
     '''
     position = self.optics.imaging(sources, epoch)
-    ret = []
+    frame = []
     for det in self.detectors:
-      ret.append(det.capture(position))
+      frame.append(det.capture(position))
 
-    return np.array(ret)
+    return frame
