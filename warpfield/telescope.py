@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation
 import astropy.units as u
 import numpy as np
 
-from .util import Frame, get_projection
+from .util import get_projection
 
 
 def identity_transformation(position):
@@ -46,6 +46,10 @@ class Optics(object):
   def scale(self):
     ''' A conversion factor from sky to focal plane. '''
     return (1.0e-6/self.focal_length)/np.pi*180.0*3600
+
+  @property
+  def center(self):
+    return SkyCoord(0*u.deg,0*u.deg,frame='icrs')
 
   @property
   def rotation(self):
@@ -88,7 +92,7 @@ class Optics(object):
     pqr = r.as_matrix() @ xyz
     obj = SkyCoord(pqr.T, obstime=epoch,
             representation_type='cartesian').transform_to('icrs')
-    proj = get_projection(0.0,0.0,self.scale)
+    proj = get_projection(self.center,self.scale)
     return self.distortion(obj.to_pixel(proj, origin=0))
 
 
@@ -177,8 +181,6 @@ class Detector(object):
     '''
     x = position[0]
     y = position[1]
-    print(x)
-    print(self.xrange)
     xf = ((self.xrange[0] < x) & (x < self.xrange[1]))
     yf = ((self.yrange[0] < y) & (y < self.yrange[1]))
     return self.displacement.evaluate(position[:,xf&yf])

@@ -4,19 +4,17 @@ from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
 from astropy.time import Time
 import astropy.units as u
 
-from .util import Frame, get_projection
+from .util import get_projection
 
 
 def retrieve_gaia_sources(
-    lon, lat, radius, frame=Frame.galactic,
+    pointing, radius,
     snr_limit=10.0, row_limit=-1):
   ''' Retrive sources around (lon, lat) from Gaia EDR3 catalog.
 
   Parameters:
-    lon (float or Longitude): the longitude of the frame center.
-    lat (float or Latitude) : the latitude of the frame center.
+    pointing (SkyCoord)     : the center of the search point.
     radius (float or Angle) : the search radius in degree.
-    frame (Frame)           : the coordinate frame (icrs or galactic).
     snr_limit (float)       : the limiting SNR in the parallax.
     row_limit (int)         : the maximum number of records.
 
@@ -50,17 +48,13 @@ def retrieve_gaia_sources(
     parallax_over_error > {snr_limit}
   '''
 
-  if not isinstance(lon, Longitude):
-    lon = Longitude(lon, unit=u.degree)
-  if not isinstance(lat, Latitude):
-    lat = Latitude(lat, unit=u.degree)
   if not isinstance(radius, Angle):
     radius = Angle(radius, unit=u.degree)
+  pointing = pointing.transform_to('icrs')
 
-  coo = SkyCoord(lon, lat, frame=frame.value)
   res = Gaia.launch_job_async(query.format(
-    ra=coo.icrs.ra.deg,dec=coo.icrs.dec.deg,
-    radius=radius.deg,snr_limit=snr_limit))
+    ra=pointing.icrs.ra.deg, dec=pointing.icrs.dec.deg,
+    radius=radius.deg, snr_limit=snr_limit))
   print(res)
   record = res.get_results()
   epoch = Time(record['ref_epoch'].data, format='decimalyear')
@@ -71,22 +65,20 @@ def retrieve_gaia_sources(
     distance=1000/record['parallax']*u.pc, obstime=epoch)
 
 
-def display_sources(
-    lon, lat, sources, frame=Frame.galactic):
+def display_sources(pointing, sources, title=None):
   ''' Display sources around the specified coordinates.
 
   Parameters:
-    lon (float or Longitude): the longitude of the frame center.
-    lat (float or Latitude) : the latitude of the frame center.
+    pointing (SkyCoord)     : the center of the search point.
     sources (SkyCoord)      : the list of sources.
-    frame (Frame)           : the coordinate frame.
   '''
   import matplotlib.pyplot as plt
   import numpy as np
 
-  proj = get_projection(lon, lat, frame=frame)
+  proj = get_projection(pointing)
+  frame = pointing.frame.name
 
-  if frame is Frame.galactic:
+  if frame == 'galactic':
     get_lon = lambda x: getattr(x,'galactic').l
     get_lat = lambda x: getattr(x,'galactic').b
     xlabel  = 'Galactic Longitude (deg)'
@@ -101,15 +93,7 @@ def display_sources(
   ax = fig.add_subplot(projection=proj)
   ax.set_position([0.13,0.10,0.85,0.85])
   ax.scatter(get_lon(sources), get_lat(sources),
-    transform=ax.get_transform(frame.value), marker='x', label='source')
-
-  try:
-    current = sources.apply_space_motion(Time.now())
-    ax.scatter(get_lon(current), get_lat(current),
-      transform=ax.get_transform(frame.value), marker='+', label='current')
-  except Exception as e:
-    print('no space motion applied.')
-
+      transform=ax.get_transform(frame), marker='x', label=title)
   ax.grid()
   ax.legend(bbox_to_anchor=[1,1], loc='lower right', ncol=2, frameon=False)
   ax.set_xlabel(xlabel, fontsize=14)
@@ -117,15 +101,12 @@ def display_sources(
   plt.show()
 
 
-def display_gaia_sources(
-    lon=2.0, lat=0.0, radius=0.1, frame=Frame.galactic):
+def display_gaia_sources(pointing, radius=0.1):
   ''' Display Gaia EDR3 sources around the coordinate.
 
   Parameters:
-    lon (float or Longitude): the longitude of the frame center.
-    lat (float or Latitude) : the latitude of the frame center.
+    pointing (SkyCoord)     : the center of the search point.
     radius (float or Angle) : the search radius in degree.
-    frame (Frame)           : the coordinate frame.
   '''
-  src = retrieve_gaia_sources(lon, lat, radius, frame=frame)
-  display_sources(lon, lat, src, frame)
+  src = retrieve_gaia_sources(pointing, radius)
+  display_sources(pointing, src)

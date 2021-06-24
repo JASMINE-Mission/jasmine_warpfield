@@ -3,13 +3,43 @@ An experimental code to simulate the image warp function.
 
 
 ## Installation
-Clone this repository and try the command below:
+
+The package is available using the command below:
+
+``` bash
+pip install git+https://github.com/xr0038/jasmine_warpfield.git
+```
+
+Otherwise clone this repository and try the command below:
 
 ``` bash
 python setup.py install
 ```
 
-The module `warpfield` will be installed in your system.
+The module `jasmine_warpfield` will be installed in your system.
+
+
+``` python
+from astropy.coordinates import SkyCoord, Angle
+import astropy.units as u
+import warpfield as w
+
+pointing = SkyCoord(0.0*u.deg, 0.0*u.deg, frame="galactic")
+position_angle = Angle(5.0*u.deg)
+
+jasmine = w.Telescope(pointing, position_angle)
+gaia_sources = w.retrieve_gaia_sources(
+    pointing, radius=0.1*u.deg)
+position = jasmine.observe(gaia_sources)
+
+import matplotlib.pyplot as plt
+fig = plt.figure()
+ax = fig.add_subplot()
+ax.scatter(position[0][0], position[0][1], marker='x')
+ax.set_xlabel('focal plane position (um)', fontsize=14)
+ax.set_ylabel('focal plane position (um)', fontsize=14)
+plt.show()
+```
 
 
 ### Dependencies
@@ -18,9 +48,10 @@ The module `warpfield` will be installed in your system.
 - scipy
 - astropy
 - astroquery
+- matplotlib
 
 
-## Usage
+## Basic Design
 
 - Input
     - list of astronomical sources
