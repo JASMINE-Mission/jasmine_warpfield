@@ -16,8 +16,7 @@ Otherwise clone this repository and try the command below:
 python setup.py install
 ```
 
-The module `jasmine_warpfield` will be installed in your system.
-
+The module `jasmine_warpfield` will be installed in your system. A simple example is described below.
 
 ``` python
 from astropy.coordinates import SkyCoord, Angle
