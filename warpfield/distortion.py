@@ -6,7 +6,7 @@ import numpy as np
 
 
 
-def distortion_generator(K,S,T):
+def distortion_generator(K=[0,],S=[0,0],T=[0,]):
   ''' Generate a distortion function with distortion parameters.
 
   Parameters:
