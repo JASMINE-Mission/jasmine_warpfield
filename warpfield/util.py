@@ -18,7 +18,7 @@ def get_projection(pointing, scale=1.0):
   '''
   proj = WCS(naxis=2)
   proj.wcs.crpix = [0., 0.]
-  if pointing.frame.name is 'galactic':
+  if pointing.frame.name == 'galactic':
     lon = pointing.galactic.l.deg
     lat = pointing.galactic.b.deg
     proj.wcs.ctype = ['GLON-TAN', 'GLAT-TAN']
