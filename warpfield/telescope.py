@@ -25,8 +25,9 @@ def identity_transformation(position):
   respectively. This function returns the positions as they are.
 
   Parameters:
-    position: A tuple of two arrays. The first element contains the
-              x-positions, while the second element contains the y-positions.
+    position: A numpy.array with the shape of (2, Nsrc). The first element
+              contains the x-positions, while the second element contains
+              the y-positions.
 
   Return:
     A numpy.ndarray of the input coordinates.
@@ -106,7 +107,7 @@ class Optics(object):
             representation_type='cartesian').transform_to('icrs')
     obj.representation_type = 'spherical'
     proj = get_projection(self.center,self.scale)
-    pos = self.distortion(obj.to_pixel(proj, origin=0))
+    pos = self.distortion(np.array(obj.to_pixel(proj, origin=0)))
 
     return pd.DataFrame({
       'x': pos[0], 'y': pos[1], 'ra': obj.ra, 'dec': obj.dec,
@@ -274,7 +275,8 @@ class Telescope(object):
     '''
     self.optics.set_distortion(distortion)
 
-  def display_focal_plane(self, sources=None, epoch=None):
+  def display_focal_plane(self, sources=None, epoch=None,
+                          markersize=1, marker='x'):
     ''' Display the layout of the detectors.
 
     Show the layout of the detectors on the focal plane. The detectors are
@@ -290,7 +292,7 @@ class Telescope(object):
     ax.set_aspect(1.0)
     if sources is not None:
       position = self.optics.imaging(sources, epoch)
-      ax.scatter(position.x,position.y,marker='x')
+      ax.scatter(position.x,position.y,markersize,marker=marker)
     for d in self.detectors:
       ax.add_patch(d.footprint)
     ax.autoscale_view()

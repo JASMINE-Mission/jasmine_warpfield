@@ -18,15 +18,18 @@ def distortion_generator(K=[0,],S=[0,0],T=[0,]):
     A distortion function.
   '''
   K = np.array(K)
-  S = np.expand_dims(np.array(S),axis=-1)
+  if K.ndim==0: K = np.expand_dims(K, axis=0)
+  S = np.array(S).reshape((2,1))
   T = np.array(T)
+  if T.ndim==0: T = np.expand_dims(T, axis=0)
 
   def distortion(position):
     ''' Generated distortion function.
 
     Parameters:
-      position: A tuple of two arrays. The first element contains the
-                x-positions, while the second element contains the y-positions.
+      position: A numpy.array with the shape of (2, Nsrc). The first element
+                contains the x-positions, while the second element contains
+                the y-positions.
 
     Return:
       A numpy.ndarray of the input coordinates.
@@ -36,7 +39,7 @@ def distortion_generator(K=[0,],S=[0,0],T=[0,]):
     r = np.sqrt(np.square(position).sum(axis=0))
     Kr = 1+reduce(add,[k*(r/1e6)**(2+2*n) for n,k in enumerate(K)])
     Tr = 1+reduce(add,[t*(r/1e6)**(2+2*n) for n,t in enumerate(T)])
-    Px = (np.diag(S.flat)@(r**2+2*position**2) + S*xy)/5e6
+    Px = (np.diag(S.flat)@(r**2+2*position**2) + 2*S[::-1,:]*xy)/5e6
     return position*Kr + Px*Tr
 
   return distortion
