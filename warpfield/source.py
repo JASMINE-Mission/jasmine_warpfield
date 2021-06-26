@@ -96,6 +96,7 @@ def display_sources(pointing, sources, title=None):
 
   fig = plt.figure(figsize=(8,8))
   ax = fig.add_subplot(projection=proj)
+  ax.set_aspect(1.0)
   ax.set_position([0.13,0.10,0.85,0.85])
   ax.scatter(get_lon(sources), get_lat(sources),
       transform=ax.get_transform(frame), marker='x', label=title)
