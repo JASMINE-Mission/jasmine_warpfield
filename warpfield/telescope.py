@@ -105,7 +105,7 @@ class Optics(object):
     obj = SkyCoord(pqr.T, obstime=epoch,
             representation_type='cartesian').transform_to('icrs')
     obj.representation_type = 'spherical'
-    proj = get_projection(self.center,self.scale,lhcs=False)
+    proj = get_projection(self.center,self.scale)
     pos = self.distortion(obj.to_pixel(proj, origin=0))
 
     return pd.DataFrame({
