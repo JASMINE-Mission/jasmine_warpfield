@@ -292,6 +292,7 @@ class Telescope(object):
       ax.scatter(position.x,position.y,marker='x')
     for d in self.detectors:
       ax.add_patch(d.footprint)
+    ax.autoscale_view()
     ax.grid()
     ax.set_xlabel('Displacement on the focal plane ($\mu$m)', fontsize=14)
     ax.set_ylabel('Displacement on the focal plane ($\mu$m)', fontsize=14)
