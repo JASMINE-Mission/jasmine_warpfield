@@ -86,13 +86,13 @@ def display_sources(pointing, sources, title=None):
   if frame == 'galactic':
     get_lon = lambda x: getattr(x,'galactic').l
     get_lat = lambda x: getattr(x,'galactic').b
-    xlabel  = 'Galactic Longitude (deg)'
-    ylabel  = 'Galactic Latitude (deg)'
+    xlabel  = 'Galactic Longitude'
+    ylabel  = 'Galactic Latitude'
   else:
     get_lon = lambda x: getattr(x,'icrs').ra
     get_lat = lambda x: getattr(x,'icrs').dec
-    xlabel  = 'Right Ascension (deg)'
-    ylabel  = 'Declination (deg)'
+    xlabel  = 'Right Ascension'
+    ylabel  = 'Declination'
 
   fig = plt.figure(figsize=(8,8))
   ax = fig.add_subplot(projection=proj)
@@ -100,7 +100,8 @@ def display_sources(pointing, sources, title=None):
   ax.scatter(get_lon(sources), get_lat(sources),
       transform=ax.get_transform(frame), marker='x', label=title)
   ax.grid()
-  ax.legend(bbox_to_anchor=[1,1], loc='lower right', ncol=2, frameon=False)
+  if title is not None:
+    ax.legend(bbox_to_anchor=[1,1], loc='lower right', ncol=2, frameon=False)
   ax.set_xlabel(xlabel, fontsize=14)
   ax.set_ylabel(ylabel, fontsize=14)
   plt.show()
