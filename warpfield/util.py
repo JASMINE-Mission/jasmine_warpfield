@@ -8,13 +8,14 @@ from astropy.wcs import WCS
 __debug_mode__ = False
 
 
-def get_projection(pointing, scale=1.0):
+def get_projection(pointing, scale=1.0, lhcs=True):
   ''' Obtain the gnomonic projection instance.
 
   Parameters:
     pointing (SkyCoord): the center of the search point.
     scale (float)      : the conversion factor to calculate the position on
                          the focal plane from the angular distance on the sky.
+    lhcs (bool)        : the coordinate is left-handded if True.
   '''
   proj = WCS(naxis=2)
   proj.wcs.crpix = [0., 0.]
@@ -27,7 +28,10 @@ def get_projection(pointing, scale=1.0):
     lat = pointing.icrs.dec.deg
     proj.wcs.ctype = ['RA---TAN', 'DEC--TAN']
   proj.wcs.crval = [lon, lat]
-  proj.wcs.cdelt = [-scale/3600., scale/3600.]
+  if lhcs is True:
+    proj.wcs.cdelt = [-scale/3600., scale/3600.]
+  else:
+    proj.wcs.cdelt = [scale/3600., scale/3600.]
   proj.wcs.cunit = ['deg', 'deg']
 
   if __debug_mode__ is True:
