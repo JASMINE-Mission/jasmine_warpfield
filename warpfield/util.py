@@ -27,7 +27,7 @@ def get_projection(pointing, scale=1.0):
     lat = pointing.icrs.dec.deg
     proj.wcs.ctype = ['RA---TAN', 'DEC--TAN']
   proj.wcs.crval = [lon, lat]
-  proj.wcs.cdelt = [scale/3600., scale/3600.]
+  proj.wcs.cdelt = [-scale/3600., scale/3600.]
   proj.wcs.cunit = ['deg', 'deg']
 
   if __debug_mode__ is True:
