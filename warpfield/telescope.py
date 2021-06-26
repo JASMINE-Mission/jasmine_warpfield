@@ -167,7 +167,7 @@ class Detector(object):
   '''
   naxis1: int = 4096
   naxis2: int = 4096
-  pixel_scale: float = 15
+  pixel_scale: float = 10
   offset_dx: float = 0
   offset_dy: float = 0
   position_angle: Angle = Angle(0.0, unit='degree')
