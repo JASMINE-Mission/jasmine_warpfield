@@ -101,7 +101,7 @@ def display_sources(pointing, sources, title=None):
       transform=ax.get_transform(frame), marker='x', label=title)
   ax.grid()
   if title is not None:
-    ax.legend(bbox_to_anchor=[1,1], loc='lower right', ncol=2, frameon=False)
+    ax.legend(bbox_to_anchor=[1,1], loc='lower right', frameon=False)
   ax.set_xlabel(xlabel, fontsize=14)
   ax.set_ylabel(ylabel, fontsize=14)
   plt.show()
