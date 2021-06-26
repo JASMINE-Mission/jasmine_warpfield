@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
+from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle, Distance
 from astropy.time import Time
 import astropy.units as u
 
@@ -65,8 +65,8 @@ def retrieve_gaia_sources(
   obj = SkyCoord(
     ra=record['ra'], dec=record['dec'],
     pm_ra_cosdec=record['pmra'], pm_dec=record['pmdec'],
-    distance=1000/record['parallax']*u.pc, obstime=epoch)
-  obj.info.name = record['source_id']
+    distance=Distance(parallax=record['parallax'].data*u.mas),
+    obstime=epoch)
   return obj
 
 
