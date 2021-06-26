@@ -82,7 +82,7 @@ class Optics(object):
     '''
     self.distortion = distortion
 
-  def imaging(self, sources, epoch=Time.now()):
+  def imaging(self, sources, epoch=None):
     ''' Map celestial positions onto the focal plane.
 
     Parameters:
@@ -94,16 +94,17 @@ class Optics(object):
       and "dec" columns are the original celestial positions in the ICRS frame.
     '''
     try:
-      obj = sources.apply_space_motion(epoch)
+      if epoch is not None:
+        sources = sources.apply_space_motion(epoch)
     except Exception as e:
       print('No proper motion information is available.', file=sys.stderr)
       print('The positions are not updated to new epoch.', file=sys.stderr)
-      obj = sources
-    xyz = obj.transform_to('icrs').cartesian.xyz
+    xyz = sources.transform_to('icrs').cartesian.xyz
     r = Rotation.from_euler('zyx', -self.pointing_angle)
     pqr = r.as_matrix() @ xyz
     obj = SkyCoord(pqr.T, obstime=epoch,
             representation_type='cartesian').transform_to('icrs')
+    obj.representation_type = 'spherical'
     proj = get_projection(self.center,self.scale)
     pos = self.distortion(obj.to_pixel(proj, origin=0))
 
@@ -273,7 +274,7 @@ class Telescope(object):
     '''
     self.optics.set_distortion(distortion)
 
-  def display_focal_plane(self, sources=None, epoch=Time.now()):
+  def display_focal_plane(self, sources=None, epoch=None):
     ''' Display the layout of the detectors.
 
     Show the layout of the detectors on the focal plane. The detectors are
@@ -300,7 +301,7 @@ class Telescope(object):
     plt.show()
 
 
-  def observe(self, sources, epoch=Time.now()):
+  def observe(self, sources, epoch=None):
     ''' Observe astronomical sources.
 
     Map the sky coordinates of astronomical sources into the physical
