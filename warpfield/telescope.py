@@ -100,7 +100,8 @@ class Optics(object):
     except Exception as e:
       print('No proper motion information is available.', file=sys.stderr)
       print('The positions are not updated to new epoch.', file=sys.stderr)
-    xyz = sources.transform_to('icrs').cartesian.xyz
+    icrs = sources.transform_to('icrs')
+    xyz = icrs.cartesian.xyz
     r = Rotation.from_euler('zyx', -self.pointing_angle)
     pqr = r.as_matrix() @ xyz
     obj = SkyCoord(pqr.T, obstime=epoch,
@@ -110,7 +111,7 @@ class Optics(object):
     pos = self.distortion(np.array(obj.to_pixel(proj, origin=0)))
 
     return pd.DataFrame({
-      'x': pos[0], 'y': pos[1], 'ra': obj.ra, 'dec': obj.dec,
+      'x': pos[0], 'y': pos[1], 'ra': icrs.ra, 'dec': icrs.dec,
     })
 
 
@@ -241,7 +242,7 @@ class Detector(object):
     position.y = y
     xf = ((self.xrange[0] < x) & (x < self.xrange[1]))
     yf = ((self.yrange[0] < y) & (y < self.yrange[1]))
-    return position.loc[xf&yf,:].reset_index(drop=True,inplace=True)
+    return position.loc[xf&yf,:].reset_index(drop=True)
 
 
 @dataclass
