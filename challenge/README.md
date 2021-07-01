@@ -14,10 +14,14 @@ The data of the astrometry challenge Case-1: The telescope is set distortion-fre
 
 
 ## Case 2
-- w/o distortion
-- w/o star coordinates
-- with star list
-- solve field center and position angle
+The data of the astrometry challenge Case-2: The telescope is set distortion-free. Astronomical sources are retrieved from the Gaia EDR3 catalog. A list of source positions on the focal plane is provided, while the corresponding stellar coordinates are not provided. Instead, a list of the coordinates is given as a separate file. The data tables are given in the [IPAC][IPAC] format. Solve the field center and the position angle. The answers are found as keywords in the meta section in the tables.
+
+
+- [case2_challenge_00.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case2/case2_challenge_1-00.txt)
+- [case2_challenge_01.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case2/case2_challenge_1-01.txt)
+- [case2_challenge_02.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case2/case2_challenge_1-02.txt)
+- [case2_challenge_03.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case2/case2_challenge_1-03.txt)
+- [case2_challenge_04.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case2/case2_challenge_1-04.txt)
 
 
 ## Case 3
