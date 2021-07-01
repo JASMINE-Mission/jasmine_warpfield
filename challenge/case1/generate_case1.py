@@ -50,7 +50,7 @@ def generate_challenge(filename):
       'comments': [description,]
     })
   print(table)
-  table.write(filename, format='ascii.ipac',overwrite=True)
+  table.write(filename, format='ascii.ipac', overwrite=True)
 
 
 if __name__ == '__main__':
@@ -62,5 +62,5 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   for n in range(args.num):
-    filename=f'challenge_{n:02d}.txt'
+    filename=f'case1_challenge_{n:02d}.txt'
     generate_challenge(filename)
