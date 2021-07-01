@@ -2,9 +2,14 @@
 
 
 ## Case 1
-- w/o distortion,
-- with star coordinates,
-- solve field center and position angle
+The telescope is distortion-free. Astronomical sources are retrieved from the Gaia EDR3 catalog. A list of the source positions on the focal plane and the ICRS coordinates is provided. Solve the field center and the position angle. The data tables are given in the [IPAC][IPAC] format. The answers are found in the meta-information section in the tables.
+
+- [challenge_00.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case1/challenge_00.txt)
+- [challenge_01.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case1/challenge_01.txt)
+- [challenge_02.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case1/challenge_02.txt)
+- [challenge_03.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case1/challenge_03.txt)
+- [challenge_04.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case1/challenge_04.txt)
+
 
 
 ## Case 2
@@ -32,3 +37,6 @@
 - sparse star distribution,
 - multiple frames,
 - solve distortion parameters
+
+
+[IPAC]: https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html
