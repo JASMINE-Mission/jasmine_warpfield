@@ -241,7 +241,7 @@ class Detector(object):
     position.y = y
     xf = ((self.xrange[0] < x) & (x < self.xrange[1]))
     yf = ((self.yrange[0] < y) & (y < self.yrange[1]))
-    return position.loc[xf&yf,:].reset_index()
+    return position.loc[xf&yf,:].reset_index(drop=True,inplace=True)
 
 
 @dataclass
