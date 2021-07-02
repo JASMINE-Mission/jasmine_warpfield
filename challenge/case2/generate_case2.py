@@ -45,7 +45,7 @@ def generate_source_catalog(pointing, radius, filename):
 
 
 def generate_challenge(pointing, radius, catalog, filename):
-  separation = (radius-0.23*u.deg)*np.random.uniform(0,1)
+  separation = (radius-0.3*u.deg)*np.random.uniform(0,1)
   direction = Angle(np.random.uniform(0,360)*u.deg)
   pa = Angle(np.random.uniform(0,360)*u.deg)
 
