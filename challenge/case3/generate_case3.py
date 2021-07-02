@@ -70,7 +70,7 @@ def generate_challenge(filename):
 
 
 if __name__ == '__main__':
-  parser = ap(description='Generate Case-1 challenges')
+  parser = ap(description='Generate Case-3 challenges')
   parser.add_argument(
     '-n', '--num', type=int, default=5,
     help='the number of challenges')
