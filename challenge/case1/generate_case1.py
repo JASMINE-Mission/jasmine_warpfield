@@ -28,7 +28,7 @@ def generate_challenge(filename):
   pointing = SkyCoord(lon, lat, frame='icrs')
   jasmine = w.Telescope(pointing, pa)
 
-  radius = Angle(0.25*u.deg)
+  radius = Angle(0.3*u.deg)
   sources = w.retrieve_gaia_sources(pointing,radius)
 
   position = jasmine.observe(sources)[0]
