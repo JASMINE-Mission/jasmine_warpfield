@@ -10,9 +10,9 @@ import warpfield as w
 description='''
 This script generates Case-4 astrometry challenges. The telescope used
 in this challenge is affected by distortion. Astronomical sources are retrived
-from the Gaia EDR3 catalog. A list of source positions on the focal plane and
-original ICRS coordinates is provided.
-Solve the position angle and distortion parameters.
+from the Gaia EDR3 catalog. Observation fields are set up around the Galactic
+center region. A list of source positions on the focal plane and original ICRS
+coordinates is provided. Solve the position angle and distortion parameters.
 '''.strip()
 
 

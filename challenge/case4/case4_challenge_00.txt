@@ -1,8 +1,8 @@
 \ This script generates Case-4 astrometry challenges. The telescope used in this
 \ challenge is affected by distortion. Astronomical sources are retrived from
-\ the Gaia EDR3 catalog. A list of source positions on the focal plane and
-\ original ICRS coordinates is provided. Solve the position angle and distortion
-\ parameters.
+\ the Gaia EDR3 catalog. Observation fields are set up around the Galactic
+\ center region. A list of source positions on the focal plane and original ICRS
+\ coordinates is provided. Solve the position angle and distortion parameters.
 \pointing_ra=359.7490802376947
 \pointing_dec=0.45071430640991617
 \position_angle=263.51781905210584
