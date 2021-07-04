@@ -6,7 +6,7 @@ import os,sys,re
 
 
 with open('README.md', 'r') as fd:
-  version = '0.9.4'
+  version = '0.9.5'
   author = 'Ryou Ohsawa'
   email = 'ohsawa@ioa.s.u-tokyo.ac.jp'
   description = 'An experimental code to simulate a warped focal plane for small-JASMINE.'
@@ -25,12 +25,12 @@ classifiers = [
 ]
 
 dependencies = [
-  'numpy>=1.16',
+  'numpy>=1.20',
   'scipy>=1.6',
-  'pandas>=1.0.0',
-  'astropy>=4.0',
-  'astroquery>=0.4.1',
-  'matplotlib>=3.0.0',
+  'pandas>=1.1',
+  'astropy>=4.2',
+  'astroquery>=0.4',
+  'matplotlib>=3.3',
 ]
 
 if __name__ == '__main__':
