@@ -289,7 +289,7 @@ class Telescope(object):
       epoch (Time)      : the observation epoch.
     '''
     fig = plt.figure(figsize=(8,8))
-    ax = fig.add_subplot()
+    ax = fig.add_subplot(111)
     ax.set_aspect(1.0)
     if sources is not None:
       position = self.optics.imaging(sources, epoch)
