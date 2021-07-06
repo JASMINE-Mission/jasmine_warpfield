@@ -1,6 +1,6 @@
 # Jasmine Astrometry Challenge
 ## Case 1
-The data of the astrometry challenge Case-1: The telescope is set distortion-free. Astronomical sources are retrieved from the Gaia EDR3 catalog. A list of the source positions on the focal plane and the ICRS coordinates is provided. Solve the field center and the position angle. The answers are found as keywords in the meta section in the tables.
+The data of the astrometry challenge Case-1: The telescope is set distortion-free. Astronomical sources are retrieved from the Gaia EDR3 catalog. Lists of the source positions on the focal plane and the ICRS coordinates are provided. Solve the field center and the position angle. The answers are found as keywords in the meta section in the tables.
 
 
 - [case1_challenge_00.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case1/case1_challenge_00.txt)

@@ -1,0 +1,11 @@
+# Jasmine Astrometry Challenge
+## Case 6
+The data of the astrometry challenge Case 6: In this challenge, the telescope is free from distortion. Astronomical sources are fetched from the Gaia EDR3 catalog. The Galactic center region is selected as a test field. The sources are stored in the source list file. Observation fields are randomly selected from the test field. Lists of source positions on the focal plane and unique source ID numbers are provided. Each table contains the data of 25 fields obtained in a 5&times;5 tiling pattern. Solve the relative positions of the fields and the plate scale without the IRCS coordinates of the sources. The field parameters are available in separate tables. The telescope pointing coordinates of the first frame are found as keywords in the meta section in the tables.
+
+
+- [case6_source_list.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_source_list.txt)
+- [case6_challenge_00.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_00.txt) / [case6_challenge_00_pointing.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_00_pointing.txt)
+- [case6_challenge_01.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_01.txt) / [case6_challenge_01_pointing.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_01_pointing.txt)
+- [case6_challenge_02.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_02.txt) / [case6_challenge_02_pointing.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_02_pointing.txt)
+- [case6_challenge_03.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_03.txt) / [case6_challenge_03_pointing.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_03_pointing.txt)
+- [case6_challenge_04.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_04.txt) / [case6_challenge_04_pointing.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case6/case6_challenge_04_pointing.txt)
