@@ -98,9 +98,9 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
     names = ('x','y','catalog_id','ra','dec','field'),
     meta = {
       'keywords': {
-        'pointing_ra'   : {'value': tel_ra[0]},
-        'pointing_dec'  : {'value': tel_dec[0]},
-        'position_angle': {'value': tel_pa[0]},
+        'pointing_ra'   : {'value': tel_ra[12]},
+        'pointing_dec'  : {'value': tel_dec[12]},
+        'position_angle': {'value': tel_pa[12]},
       },
       'comments': [description,]
     })
