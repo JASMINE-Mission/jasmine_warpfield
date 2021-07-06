@@ -12,3 +12,4 @@ This directory contains data tables for astrometry exercises. In the JASMINE pro
 |Case 3|Solve the field and distortion using grid sources.|
 |Case 4|Solve the field and distortion using astronomical sources.|
 |Case 5|Solve the field and distortion using multiple frames.|
+|Case 6|Solve the relative positions of multiple frames without absolute stellar positions.|
