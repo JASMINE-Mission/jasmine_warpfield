@@ -8,3 +8,19 @@ The data of the astrometry challenge Case 3: In this challenge, the telescope is
 - [case3_challenge_02.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_02.txt)
 - [case3_challenge_03.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_03.txt)
 - [case3_challenge_04.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_04.txt)
+
+
+A different distortion function is used in the following data tables. The positions on the focal plane are distorted as
+
+$$
+\delta{x} = x + \sum_{m,n} c_{m,n}x^{m}y^{n}, \quad
+\delta{y} = y + \sum_{m,n} d_{m,n}x^{m}y^{n},
+$$
+
+where $c_{0,0} = c_{1,0} = c_{0,1} = 0$ and $d_{0,0} = d_{1,0} = d_{0,1} = 0$.
+
+- [case3_challenge_05.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_05.txt)
+- [case3_challenge_06.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_06.txt)
+- [case3_challenge_07.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_07.txt)
+- [case3_challenge_08.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_08.txt)
+- [case3_challenge_09.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_09.txt)
