@@ -44,26 +44,9 @@ plt.show()
 
 ### Dependencies
 
-- numpy
-- scipy
-- astropy
-- astroquery
-- matplotlib
-
-
-## Basic Design
-
-- Input
-    - list of astronomical sources
-    - optics parameters
-        - pointing
-        - position angle
-        - focal length
-        - distortion function
-    - detector parameters
-        - number of detectors
-        - offsets
-        - dimension
-        - pixel displacement
-- Output
-    - object positions on the focal plane.
+- `numpy>=1.20`
+- `scipy>=1.6`
+- `pandas>=1.1`
+- `astropy>=4.2`
+- `astroquery>=0.4`
+- `matplotlib>=3.3`
