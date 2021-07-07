@@ -42,7 +42,7 @@ def generate_challenge(filename):
   distortion = w.distortion_generator(K,S,T,scale=scale)
   jasmine.set_distortion(distortion)
 
-  jasmine.display_focal_plane(sources)
+  # jasmine.display_focal_plane(sources)
   position = jasmine.observe(sources)[0]
 
   table = QTable(
