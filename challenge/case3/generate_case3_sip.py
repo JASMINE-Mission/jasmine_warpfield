@@ -63,10 +63,11 @@ def generate_challenge(filename):
   dec = [y*u.deg for y in yy.flat]
   sources = SkyCoord(ra, dec, frame='icrs')
 
-  sip_x = np.random.normal(0,3e-15,size=(3,3))
-  sip_y = np.random.normal(0,3e-15,size=(3,3))
-  print(sip_x)
-  print(sip_y)
+  sip_n = np.zeros((3,3))
+  for m,n in np.ndindex(sip_n.shape):
+    sip_n[m,n] = 10**(-4*(m+n))
+  sip_x = np.random.normal(0,10,size=(3,3))*sip_n
+  sip_y = np.random.normal(0,10,size=(3,3))*sip_n
   distortion = sip_distortion_generator(sip_x,sip_y)
   jasmine.set_distortion(distortion)
 
