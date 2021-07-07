@@ -12,11 +12,11 @@ The data of the astrometry challenge Case 3: In this challenge, the telescope is
 
 A different distortion function is used in the following data tables. The positions on the focal plane are distorted as
 
-> &Delta;x = x + &sum;<sub>m,n</sub>c<sub>m,n</sub>x<sup>m</sup>y<sup>n</sup>
+> &Delta;x = &sum;<sub>m,n</sub>c<sub>m,n</sub>x<sup>m</sup>y<sup>n</sup>
 > and
-> &Delta;y = y + &sum;<sub>m,n</sub>d<sub>m,n</sub>x<sup>m</sup>y<sup>n</sup>,
+> &Delta;y = &sum;<sub>m,n</sub>d<sub>m,n</sub>x<sup>m</sup>y<sup>n</sup>,
 
-where c<sub>0,0</sub>, c<sub>1,0</sub> c<sub>0,1</sub>, d<sub>0,0</sub>, d<sub>1,0</sub>, d<sub>0,1</sub> are regarded as zeros.
+where c<sub>0,0</sub>, c<sub>1,0</sub> c<sub>0,1</sub>, d<sub>0,0</sub>, d<sub>1,0</sub>, d<sub>0,1</sub> are regarded as zeros. The distortion parameters are found in the meta section in the tables.
 
 - [case3_challenge_05.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_05.txt)
 - [case3_challenge_06.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_06.txt)
