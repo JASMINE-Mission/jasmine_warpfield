@@ -9,7 +9,7 @@
 \position_angle=0.49268648380040525
 |                  x|                  y|catalog_id|                ra|                dec|field|
 |             double|             double|      long|            double|             double| long|
-|                   |                   |          |                  |                   |     |
+|                 um|                 um|          |               deg|                deg|     |
 |               null|               null|      null|              null|               null| null|
     19216.3630873249 -20101.237265900934      21227 266.65034699404066  -30.53282755815353     0 
   20356.560452314592 -16223.147069671228      52464 266.61479262527973  -30.52454391276034     0 

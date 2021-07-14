@@ -33,8 +33,8 @@ def generate_source_catalog(pointing, radius, filename):
 
   table = QTable(
     [
-      sources.ra.deg*u.deg,
-      sources.dec.deg*u.deg,
+      sources.ra.deg.array*u.deg,
+      sources.dec.deg.array*u.deg,
     ],
     names = ('ra','dec'),
     meta = {
@@ -58,8 +58,8 @@ def generate_challenge(pointing, radius, catalog, filename):
 
   table = QTable(
     [
-      position.x*u.um,
-      position.y*u.um,
+      position.x.array*u.um,
+      position.y.array*u.um,
     ],
     names = ('x','y'),
     meta = {

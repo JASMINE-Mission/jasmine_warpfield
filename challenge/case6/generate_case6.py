@@ -88,12 +88,12 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
 
   table = QTable(
     [
-      catalog.x*u.um,
-      catalog.y*u.um,
-      catalog.catalog_id,
-      catalog.ra*u.deg,
-      catalog.dec*u.deg,
-      catalog.field,
+      catalog.x.array*u.um,
+      catalog.y.array*u.um,
+      catalog.catalog_id.array,
+      catalog.ra.array*u.deg,
+      catalog.dec.array*u.deg,
+      catalog.field.array,
     ],
     names = ('x','y','catalog_id','ra','dec','field'),
     meta = {

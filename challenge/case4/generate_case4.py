@@ -43,10 +43,10 @@ def generate_challenge(filename):
 
   table = QTable(
     [
-      position.x*u.um,
-      position.y*u.um,
-      position.ra*u.deg,
-      position.dec*u.deg,
+      position.x.array*u.um,
+      position.y.array*u.um,
+      position.ra.array*u.deg,
+      position.dec.array*u.deg,
     ],
     names = ('x','y','ra','dec'),
     meta = {

@@ -61,11 +61,11 @@ def generate_challenge(filename):
 
   table = QTable(
     [
-      catalog.x*u.um,
-      catalog.y*u.um,
-      catalog.ra*u.deg,
-      catalog.dec*u.deg,
-      catalog.field,
+      catalog.x.array*u.um,
+      catalog.y.array*u.um,
+      catalog.ra.array*u.deg,
+      catalog.dec.array*u.deg,
+      catalog.field.array,
     ],
     names = ('x','y','ra','dec','field'),
     meta = {
