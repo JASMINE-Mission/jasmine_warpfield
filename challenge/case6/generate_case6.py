@@ -124,7 +124,7 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
 
 
 if __name__ == '__main__':
-  parser = ap(description='Generate Case-5 challenges')
+  parser = ap(description='Generate Case-6 challenges')
   parser.add_argument(
     '-n', '--num', type=int, default=5,
     help='the number of challenges')
