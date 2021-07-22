@@ -70,7 +70,7 @@ class Optics(object):
     ## calculate position angle in the ICRS frame.
     north = self.pointing.directional_offset_by(0.0,1*u.arcsec)
     delta = self.pointing.icrs.position_angle(north)
-    position_angle = self.position_angle.rad-delta.rad
+    position_angle = -self.position_angle.rad-delta.rad
     return np.array((icrs.ra.rad,-icrs.dec.rad,position_angle))
 
   def set_distortion(self, distortion):
