@@ -21,6 +21,10 @@ seed = 42
 np.random.seed(seed)
 
 
+class PositionAngle(Longitude):
+  pass
+
+
 def generate_challenge(filename):
   lon = Longitude(np.random.uniform(-1.0,1.0)*u.deg)
   lat = Latitude(np.random.uniform(-0.5,0.5)*u.deg)
@@ -28,6 +32,10 @@ def generate_challenge(filename):
 
   pointing = SkyCoord(lon, lat, frame='galactic')
   jasmine = w.Telescope(pointing, pa)
+
+  ## calculate the position angle offset due to the cooridinate conversion.
+  pos = pointing.directional_offset_by(0.0*u.deg, 0.1*u.deg)
+  pa0 = pointing.icrs.position_angle(pos)
 
   radius = Angle(0.3*u.deg)
   sources = w.retrieve_gaia_sources(pointing,radius)
@@ -51,9 +59,9 @@ def generate_challenge(filename):
     names = ('x','y','ra','dec'),
     meta = {
       'keywords': {
-        'pointing_ra'   : {'value': lon.deg},
-        'pointing_dec'  : {'value': lat.deg},
-        'position_angle': {'value': pa.deg},
+        'pointing_ra'   : {'value': pointing.icrs.ra.deg},
+        'pointing_dec'  : {'value': pointing.icrs.dec.deg},
+        'position_angle': {'value': PositionAngle(pa0+pa).deg},
         'distortion_K': {'value': tuple(K)},
         'distortion_S': {'value': tuple(S)},
         'distortion_T': {'value': tuple(T)},

@@ -73,16 +73,20 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
     pa = Angle(np.random.normal(0,1)*u.degree)
 
     jasmine = w.Telescope(center, pa)
+
+    ## calculate the position angle offset due to the cooridinate conversion.
+    pos = pointing.directional_offset_by(0.0*u.deg, 0.1*u.deg)
+    pa0 = pointing.icrs.position_angle(pos)
+
     position = jasmine.observe(sources)[0]
     position['catalog_id'] = position.index.to_series()
     position['field'] = n
     position = position.reset_index(drop=True)
-
     catalog.append(position)
     fields.append(n)
     tel_ra.append(center.icrs.ra.deg)
     tel_dec.append(center.icrs.dec.deg)
-    tel_pa.append(pa.deg)
+    tel_pa.append(Angle(pa0+pa).deg)
 
   catalog = pd.concat(catalog)
 
@@ -148,6 +152,6 @@ if __name__ == '__main__':
 
   for n in range(args.num):
     catalog = args.catalog
-    stride = Angle(0.1*(n+1)*u.deg)
+    stride = Angle(0.05*(n+1)*u.deg)
     filename=f'case6_challenge_{n:02d}.txt'
     generate_challenge(pointing, radius, catalog, stride, filename)

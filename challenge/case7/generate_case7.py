@@ -23,6 +23,10 @@ seed = 42
 np.random.seed(seed)
 
 
+class PositionAngle(Longitude):
+  pass
+
+
 def sip_distortion_generator(sip_x, sip_y):
   ''' Generate a distortion function compatible with the SIP notation.
 
@@ -78,8 +82,10 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
   table = QTable.read(catalog, format='ascii.ipac')
   sources = SkyCoord(table['ra'],table['dec'], frame='icrs')
 
+  ## calculate the position angle offset due to the cooridinate conversion.
   pos = pointing.directional_offset_by(0.0*u.deg, 0.1*u.deg)
   pa0 = pointing.icrs.position_angle(pos)
+
   separation = (radius-3*u.arcmin)*np.random.uniform(0,1)
   direction = Angle(np.random.uniform(0,360)*u.deg)
   pointing = pointing.directional_offset_by(direction, separation)
@@ -107,9 +113,11 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
     lon = Longitude(pointing.galactic.l+l*u.deg+dl)
     lat = Latitude(pointing.galactic.b+b*u.deg+db)
     center = SkyCoord(lon, lat, frame='galactic')
+    pa  = Angle(np.random.normal(0,1)*u.degree)
+
+    ## calculate the position angle offset due to the cooridinate conversion.
     pos = center.directional_offset_by(0.0*u.deg, 0.1*u.deg)
     dpa = center.icrs.position_angle(pos)
-    pa  = Angle(np.random.normal(0,1)*u.degree)
 
     jasmine = w.Telescope(center, pa)
     jasmine.set_distortion(distortion)
@@ -122,7 +130,7 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
     fields.append(n)
     tel_ra.append(center.icrs.ra.deg)
     tel_dec.append(center.icrs.dec.deg)
-    tel_pa.append(dpa.deg+pa.deg)
+    tel_pa.append(PositionAngle(pa+dpa).deg)
 
   catalog = pd.concat(catalog)
 
