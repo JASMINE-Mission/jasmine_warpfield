@@ -6,8 +6,6 @@ from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
 from astropy.time import Time
 from astropy.wcs import WCS
 from scipy.spatial.transform import Rotation
-from matplotlib.patches import Rectangle
-import matplotlib.pyplot as plt
 import astropy.units as u
 import numpy as np
 import pandas as pd
@@ -288,6 +286,9 @@ class Telescope(object):
       sources (SkyCoord): the coordinates of astronomical sources.
       epoch (Time)      : the observation epoch.
     '''
+    from matplotlib.patches import Rectangle
+    import matplotlib.pyplot as plt
+
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(111)
     ax.set_aspect(1.0)
