@@ -23,6 +23,10 @@ seed = 42
 np.random.seed(seed)
 
 
+class PositionAngle(Longitude):
+  pass
+
+
 def generate_challenge(filename):
   lon = Longitude(np.random.uniform(0,36.0)*u.deg)
   lat = Latitude(np.random.uniform(-90,90)*u.deg)
@@ -47,6 +51,10 @@ def generate_challenge(filename):
     jasmine = w.Telescope(pointing, pa)
     jasmine.set_distortion(distortion)
 
+    ## calculate the position angle offset due to the cooridinate conversion.
+    pos = pointing.directional_offset_by(0.0*u.deg, 0.1*u.deg)
+    pa0 = pointing.icrs.position_angle(pos)
+
     radius = Angle(0.3*u.deg)
     sources = w.retrieve_gaia_sources(pointing,radius)
 
@@ -55,7 +63,7 @@ def generate_challenge(filename):
     catalog.append(position)
     tel_ra.append(pointing.icrs.ra.deg)
     tel_dec.append(pointing.icrs.ra.deg)
-    tel_pa.append(pa.deg)
+    tel_pa.append(PositionAngle(pa0+pa).deg)
 
   catalog = pd.concat(catalog)
 

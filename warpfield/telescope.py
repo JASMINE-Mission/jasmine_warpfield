@@ -6,8 +6,6 @@ from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
 from astropy.time import Time
 from astropy.wcs import WCS
 from scipy.spatial.transform import Rotation
-from matplotlib.patches import Rectangle
-import matplotlib.pyplot as plt
 import astropy.units as u
 import numpy as np
 import pandas as pd
@@ -70,7 +68,7 @@ class Optics(object):
     ## calculate position angle in the ICRS frame.
     north = self.pointing.directional_offset_by(0.0,1*u.arcsec)
     delta = self.pointing.icrs.position_angle(north)
-    position_angle = self.position_angle.rad-delta.rad
+    position_angle = -self.position_angle.rad-delta.rad
     return np.array((icrs.ra.rad,-icrs.dec.rad,position_angle))
 
   def set_distortion(self, distortion):
@@ -288,6 +286,9 @@ class Telescope(object):
       sources (SkyCoord): the coordinates of astronomical sources.
       epoch (Time)      : the observation epoch.
     '''
+    from matplotlib.patches import Rectangle
+    import matplotlib.pyplot as plt
+
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(111)
     ax.set_aspect(1.0)
