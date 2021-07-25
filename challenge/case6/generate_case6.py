@@ -52,7 +52,6 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
 
   separation = (radius-0.3*u.deg)*np.random.uniform(0,1)
   direction = Angle(np.random.uniform(0,360)*u.deg)
-  pa = Angle(np.random.uniform(0,360)*u.deg)
   pointing = pointing.directional_offset_by(direction, separation)
 
   arr = (stride.deg)*np.arange(-2,3)
