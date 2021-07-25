@@ -102,6 +102,7 @@ class Optics(object):
     xyz = icrs.cartesian.xyz
     r = Rotation.from_euler('zyx', -self.pointing_angle)
     pqr = r.as_matrix() @ xyz
+    if pqr.ndim==1: pqr = np.expand_dims(pqr,axis=1)
     obj = SkyCoord(pqr.T, obstime=epoch,
             representation_type='cartesian').transform_to('icrs')
     obj.representation_type = 'spherical'
