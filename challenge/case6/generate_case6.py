@@ -74,8 +74,8 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
     jasmine = w.Telescope(center, pa)
 
     ## calculate the position angle offset due to the cooridinate conversion.
-    pos = pointing.directional_offset_by(0.0*u.deg, 0.1*u.deg)
-    pa0 = pointing.icrs.position_angle(pos)
+    pos = center.directional_offset_by(0.0*u.deg, 0.1*u.deg)
+    pa0 = center.icrs.position_angle(pos)
 
     position = jasmine.observe(sources)[0]
     position['catalog_id'] = position.index.to_series()
