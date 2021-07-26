@@ -6,7 +6,7 @@
 \ provided. Solve the position angle and distortion parameters.
 \pointing_ra=266.9100815934609
 \pointing_dec=-29.237491322952387
-\position_angle=299.98712288859116
+\position_angle=299.9869824153547
 |                  x|                  y|catalog_id|                ra|                dec|field|
 |             double|             double|      long|            double|             double| long|
 |                 um|                 um|          |               deg|                deg|     |
