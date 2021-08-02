@@ -1,7 +1,7 @@
 \ This script generates Case-6 astrometry challenges. The telescope used in this
 \ challenge is affected by distortion. Astronomical sources are retrived from
 \ the Gaia EDR3 catalog, while observations fields are not in the Galactic
-\ center region. In total, 10 fields are obtained for each distortion pattern. A
+\ center region. In total, 25 fields are obtained for each distortion pattern. A
 \ list of source positions on the focal plane and original ICRS coordinates is
 \ provided. Solve the position angle and distortion parameters.
 \pointing_ra=266.9100815934609
