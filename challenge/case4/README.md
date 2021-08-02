@@ -8,3 +8,14 @@ The data of the astrometry challenge Case 4: In this challenge, the telescope is
 - [case4_challenge_02.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case4/case4_challenge_02.txt)
 - [case4_challenge_03.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case4/case4_challenge_03.txt)
 - [case4_challenge_04.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case4/case4_challenge_04.txt)
+
+
+### Table Explanation
+#### Exercises
+
+|Column|Unit|Explanation|
+|------|-----|-----|
+|x|&mu;m|x-positions on the focal plane|
+|y|&mu;m|y-positions on the focal plane|
+|ra|degree|right ascension of the sources (ICRS)|
+|dec|degree|declination of the sources (ICRS)|

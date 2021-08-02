@@ -9,3 +9,35 @@ The data of the astrometry challenge Case 7: In this challenge, the telescope is
 - [case7_challenge_02.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case7/case7_challenge_02.txt) / [case7_challenge_02_pointing.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case7/case7_challenge_02_pointing.txt)
 - [case7_challenge_03.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case7/case7_challenge_03.txt) / [case7_challenge_03_pointing.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case7/case7_challenge_03_pointing.txt)
 - [case7_challenge_04.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case7/case7_challenge_04.txt) / [case7_challenge_04_pointing.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case7/case7_challenge_04_pointing.txt)
+
+
+### Table Explanation
+#### Exercises
+
+|Column|Unit|Explanation|
+|------|-----|-----|
+|x|&mu;m|x-positions on the focal plane|
+|y|&mu;m|y-positions on the focal plane|
+|catalog_id||the index of the source in the source list|
+|ra|degree|right ascension of the sources (ICRS)|
+|dec|degree|declination of the sources (ICRS)|
+|field||the index of the observation field|
+
+
+#### Source List
+
+|Column|Unit|Explanation|
+|------|-----|-----|
+|catalog_id||the index of the source in the source list|
+|ra|degree|right ascension of the sources (ICRS)|
+|dec|degree|declination of the sources (ICRS)|
+
+
+#### Pointing Table
+
+|Column|Unit|Explanation|
+|------|-----|-----|
+|field||the index of the observation field|
+|ra|degree|right ascension of the pointing center (ICRS)|
+|dec|degree|declination of the pointing center (ICRS)|
+|pa|degree|position angle of the telescope|

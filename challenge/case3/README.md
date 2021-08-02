@@ -23,3 +23,14 @@ where c<sub>0,0</sub>, c<sub>1,0</sub> c<sub>0,1</sub>, d<sub>0,0</sub>, d<sub>1
 - [case3_challenge_07.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_07.txt)
 - [case3_challenge_08.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_08.txt)
 - [case3_challenge_09.txt](https://github.com/xr0038/jasmine_warpfield/raw/master/challenge/case3/case3_challenge_09.txt)
+
+
+### Table Explanation
+#### Exercises
+
+|Column|Unit|Explanation|
+|------|-----|-----|
+|x|&mu;m|x-positions on the focal plane|
+|y|&mu;m|y-positions on the focal plane|
+|ra|degree|right ascension of the sources (ICRS)|
+|dec|degree|declination of the sources (ICRS)|
