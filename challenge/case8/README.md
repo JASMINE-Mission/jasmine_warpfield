@@ -16,9 +16,11 @@ The data of the astrometry challenge Case 8: In this challenge, the telescope is
 
 |Column|Unit|Explanation|
 |------|-----|-----|
-|x|&mu;m|x-positions on the focal plane|
-|y|&mu;m|y-positions on the focal plane|
+|x|&mu;m|x-positions on the focal plane with distortion|
+|y|&mu;m|y-positions on the focal plane with distortion|
 |catalog_id||the index of the source in the source list|
+|x_orig|&mu;m|x-positions on the focal plane w/o distortion|
+|y_orig|&mu;m|y-positions on the focal plane w/o distortion|
 |ra|degree|right ascension of the sources (ICRS)|
 |dec|degree|declination of the sources (ICRS)|
 |field||the index of the observation field|
