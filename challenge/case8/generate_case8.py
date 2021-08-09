@@ -31,8 +31,8 @@ def distortion_generator(c, K):
   from functools import reduce
   from operator import add
   cx,cy = c
-  r0 = max((cx-20000)**2+(cy-20000)**2, (cx+20000)**2+(cy-20000)**2,
-           (cx-20000)**2+(cy+20000)**2, (cx+20000)**2+(cy+20000)**2)
+  r0 = max((cx-20000.)**2+(cy-20000.)**2, (cx+20000.)**2+(cy-20000.)**2,
+           (cx-20000.)**2+(cy+20000.)**2, (cx+20000.)**2+(cy+20000.)**2)
   def distortion(position):
     position = np.array(position)
     center = np.array(c).reshape((2,1))
