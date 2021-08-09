@@ -83,7 +83,7 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
 
 
   c = np.random.uniform(-50000,50000,size=2)
-  K = np.random.normal(0, 0.1, size=6)
+  K = np.random.normal(0, 0.01, size=6)
   distortion = distortion_generator(c, K)
 
   fields  = []
