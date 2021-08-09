@@ -30,12 +30,14 @@ class PositionAngle(Longitude):
 def distortion_generator(c, K):
   from functools import reduce
   from operator import add
+  cx,cy = c
+  r0 = max((cx-20000.)**2+(cy-20000.)**2, (cx+20000.)**2+(cy-20000.)**2,
+           (cx-20000.)**2+(cy+20000.)**2, (cx+20000.)**2+(cy+20000.)**2)
   def distortion(position):
     position = np.array(position)
     center = np.array(c).reshape((2,1))
     ka = K.reshape((-1,2))
-    r2 = np.square(position-center).sum(axis=0,keepdims=True)
-    r2 /= r2.max()
+    r2 = np.square(position-center).sum(axis=0,keepdims=True)/r0
     Kp = 1-reduce(add,[k.reshape((2,1))*(r2**(n+1)) for n,k in enumerate(ka)])
     return (position-center)/Kp+center
   return distortion
@@ -81,7 +83,7 @@ def generate_challenge(pointing, radius, catalog, stride, filename):
 
 
   c = np.random.uniform(-50000,50000,size=2)
-  K = np.random.normal(0, 0.1, size=6)
+  K = np.random.normal(0, 0.01, size=6)
   distortion = distortion_generator(c, K)
 
   fields  = []
