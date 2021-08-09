@@ -42,12 +42,14 @@ class Optics(object):
     position_angle (Angle): the position angle of the telescope.
     focal_length (float)  : the focal length of the telescope in meter.
     diameter (float)      : the diameter of the telescope in meter.
+    fov_radius (float)    : the radius of the focal plane.
     distortion (function) : a function to distort the focal plane image.
   '''
   pointing: SkyCoord
   position_angle: Angle = Angle(0.0, unit='degree')
   focal_length: float   = 7.3
   diameter: float       = 0.4
+  fov_radius: float     = 30000*u.um
   distortion: Callable  = identity_transformation
 
   @property
@@ -81,6 +83,18 @@ class Optics(object):
     '''
     self.distortion = distortion
 
+  def block(self, position):
+    ''' Block sources by a certain radius.
+
+    Parameters:
+      position (ndarray): source positions on the focal plane w/o distortion.
+
+    Return:
+      A boolean array to indicate which sources are inside the field-of-view.
+    '''
+    r2 = position[0]**2+position[1]**2
+    return r2>self.fov_radius.to_value(u.um)**2
+
   def imaging(self, sources, epoch=None):
     ''' Map celestial positions onto the focal plane.
 
@@ -107,10 +121,14 @@ class Optics(object):
             representation_type='cartesian').transform_to('icrs')
     obj.representation_type = 'spherical'
     proj = get_projection(self.center,self.scale)
-    pos = self.distortion(np.array(obj.to_pixel(proj, origin=0)))
+    pos = np.array(obj.to_pixel(proj, origin=0))
+    blocked = self.block(pos)
+    pos = self.distortion(pos)
 
     return pd.DataFrame({
-      'x': pos[0], 'y': pos[1], 'ra': icrs.ra, 'dec': icrs.dec,
+      'x': pos[0], 'y': pos[1],
+      'ra': icrs.ra, 'dec': icrs.dec,
+      'blocked': blocked
     })
 
 
@@ -239,9 +257,10 @@ class Detector(object):
     x,y = self.displacement.evaluate(x,y)
     position.x = x
     position.y = y
+    bf = ~position.blocked
     xf = ((self.xrange[0] < x) & (x < self.xrange[1]))
     yf = ((self.yrange[0] < y) & (y < self.yrange[1]))
-    return position.loc[xf&yf,:]
+    return position.loc[xf&yf&bf,:]
 
 
 @dataclass
