@@ -3,8 +3,8 @@
 from dataclasses import dataclass, field
 from functools import reduce
 from operator import add
+from scipy.optimize import least_squares
 import numpy as np
-
 
 
 def distortion_generator(K=[0,],S=[0,0],T=[0,],scale=1.0):
@@ -24,13 +24,14 @@ def distortion_generator(K=[0,],S=[0,0],T=[0,],scale=1.0):
   T = np.array(T)
   if T.ndim==0: T = np.expand_dims(T, axis=0)
 
-  def distortion(position):
+  def distortion(position: np.ndarray):
     ''' Generated distortion function.
 
     Parameters:
-      position: A numpy.array with the shape of (2, Nsrc). The first element
-                contains the x-positions, while the second element contains
-                the y-positions.
+      position (ndarray):
+          A numpy.array with the shape of (2, Nsrc). The first element
+          contains the x-positions, while the second element contains
+          the y-positions.
 
     Return:
       A numpy.ndarray of the input coordinates.
@@ -130,3 +131,34 @@ class SipMod(Sip):
   def __post_init__(self):
     assert self.center.size == 2
     self.center = self.center.flatten()
+
+
+class __BaseSipDistortion(object):
+  def __call__(self, position: np.ndarray):
+    ''' Distortion Function with SIP convention
+
+    Parameters:
+      position (ndarray):
+          A numpy.array with the shape of (2, Nsrc). The first element
+          contains the x-positions, while the second element contains
+          the y-positions.
+
+    Return:
+      A numpy.ndarray of the input coordinates.
+    '''
+    p0 = position.flatten()
+    func = lambda x: p0-self.apply(x.reshape((-1,2))).flatten()
+    result = least_squares(func, p0, loss='linear')
+
+    assert result.success is True, \
+      'failed to perform a SIP inverse conversion.'
+
+    return result.x.reshape((-1,2))
+
+
+class SipDistortion(Sip,__BaseSipDistortion):
+  pass
+
+
+class SipModDistortion(SipMod,__BaseSipDistortion):
+  pass
