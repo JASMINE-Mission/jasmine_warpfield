@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import astropy.units as u
 import warpfield as w
+from warpfield.HgCdTe import get_jasmine
 
 description='''
 This script generates Case-5 astrometry challenges. The telescope used
@@ -48,7 +49,7 @@ def generate_challenge(filename):
     direction = Angle(np.random.uniform(0,360)*u.deg)
     pa = Angle(np.random.uniform(0,360)*u.deg)
     pointing = center.directional_offset_by(direction, separation)
-    jasmine = w.Telescope(pointing, pa)
+    jasmine = get_jasmine(pointing, pa)
     jasmine.set_distortion(distortion)
 
     ## calculate the position angle offset due to the cooridinate conversion.
