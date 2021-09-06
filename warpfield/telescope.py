@@ -4,8 +4,10 @@ from dataclasses import dataclass, field
 from typing import Callable, List
 from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
 from astropy.time import Time
+from astropy.units.quantity import Quantity
 from astropy.wcs import WCS
 from scipy.spatial.transform import Rotation
+from matplotlib.patches import Rectangle
 import astropy.units as u
 import numpy as np
 import pandas as pd
@@ -38,24 +40,24 @@ class Optics(object):
   ''' Definition of optical components.
 
   Attributes:
-    pointing (SkyCoord)   : the latitude of the telescope pointing.
-    position_angle (Angle): the position angle of the telescope.
-    focal_length (float)  : the focal length of the telescope in meter.
-    diameter (float)      : the diameter of the telescope in meter.
-    fov_radius (float)    : the radius of the focal plane.
-    distortion (function) : a function to distort the focal plane image.
+    pointing (SkyCoord)    : the latitude of the telescope pointing.
+    position_angle (Angle) : the position angle of the telescope.
+    focal_length (Quantity): the focal length of the telescope in meter.
+    diameter (Quantity)    : the diameter of the telescope in meter.
+    fov_radius (Quantity)  : the radius of the focal plane.
+    distortion (function)  : a function to distort the focal plane image.
   '''
   pointing: SkyCoord
-  position_angle: Angle = Angle(0.0, unit='degree')
-  focal_length: float   = 7.3
-  diameter: float       = 0.4
-  fov_radius: float     = 30000*u.um
-  distortion: Callable  = identity_transformation
+  position_angle: Angle  = Angle(0.0, unit='degree')
+  focal_length: Quantity = 7.3*u.m
+  diameter: Quantity     = 0.4*u.m
+  fov_radius: Quantity   = 30000*u.um
+  distortion: Callable   = identity_transformation
 
   @property
   def scale(self):
-    ''' A conversion factor from sky to focal plane. '''
-    return (1.0e-6/self.focal_length)/np.pi*180.0*3600
+    ''' A conversion factor from sky to focal plane in degree/um. '''
+    return (1.0*u.rad/self.focal_length).to(u.deg/u.um)
 
   @property
   def center(self):
@@ -120,7 +122,7 @@ class Optics(object):
     obj = SkyCoord(pqr.T, obstime=epoch,
             representation_type='cartesian').transform_to('icrs')
     obj.representation_type = 'spherical'
-    proj = get_projection(self.center,self.scale)
+    proj = get_projection(self.center,self.scale.to_value())
     pos = np.array(obj.to_pixel(proj, origin=0))
     blocked = self.block(pos)
     pos = self.distortion(pos)
@@ -175,11 +177,11 @@ class Detector(object):
   ''' Definition of a detector.
 
   Attributes:
-    naxis1 (int)       : detector pixels along with NAXIS1.
-    naxis2 (int)       : detector pixels along with NAXIS2.
-    pixel_scale (float): nominal detector pixel scale (um).
-    offset_dx (float): the offset along with the x-axis in micron.
-    offset_dy (float): the offste along with the y-axis in micron.
+    naxis1 (int)          : detector pixels along with NAXIS1.
+    naxis2 (int)          : detector pixels along with NAXIS2.
+    pixel_scale (Quantity): nominal detector pixel scale.
+    offset_dx (Quantity)  : the offset along with the x-axis.
+    offset_dy (Quantity)  : the offste along with the y-axis.
     position_angle (Angle): the position angle of the detector.
     displacement (PixelDisplacement):
       an instance to define the displacements of the sources due to
@@ -187,9 +189,9 @@ class Detector(object):
   '''
   naxis1: int = 4096
   naxis2: int = 4096
-  pixel_scale: float = 10
-  offset_dx: float = 0
-  offset_dy: float = 0
+  pixel_scale: Quantity = 10*u.um
+  offset_dx: Quantity = 0*u.um
+  offset_dy: Quantity = 0*u.um
   position_angle: Angle = Angle(0.0, unit='degree')
   displacement: PixelDisplacement = None
 
@@ -201,11 +203,11 @@ class Detector(object):
   @property
   def width(self):
     ''' The physical width of the detector. '''
-    return self.naxis1*self.pixel_scale
+    return self.naxis1*self.pixel_scale.to_value(u.um)
   @property
   def height(self):
     ''' The physical height of the detector. '''
-    return self.naxis2*self.pixel_scale
+    return self.naxis2*self.pixel_scale.to_value(u.um)
   @property
   def xrange(self):
     ''' The x-axis range of the detector. '''
@@ -218,7 +220,7 @@ class Detector(object):
   def footprint(self):
     ''' The footprint of the detector on the focal plane. '''
     c,s = np.cos(self.position_angle.rad),np.sin(self.position_angle.rad)
-    x0,y0 = self.offset_dx,self.offset_dy
+    x0,y0 = self.offset_dx.to_value(u.um),self.offset_dy.to_value(u.um)
     x1 = x0 - (self.width*c - self.height*s)/2
     y1 = y0 - (self.width*s + self.height*c)/2
     return Rectangle((x1,y1), width=self.width, height=self.height,
@@ -236,7 +238,7 @@ class Detector(object):
       onto the detector coordinates.
     '''
     c,s = np.cos(-self.position_angle.rad),np.sin(-self.position_angle.rad)
-    dx,dy = x-self.offset_dx, y-self.offset_dy
+    dx,dy = x-self.offset_dx.to_value(u.um), y-self.offset_dy.to_value(u.um)
     return c*dx-s*dy, s*dx+c*dy
 
   def capture(self, position):
@@ -276,15 +278,21 @@ class Telescope(object):
     pointing (SkyCoord)
     position_angle (Angle):
   '''
-  pointing: SkyCoord
-  position_angle: Angle
-  optics: Optics            = field(init=False)
+  pointing: SkyCoord        = None
+  position_angle: Angle     = None
+  optics: Optics            = None
   detectors: List[Detector] = None
 
   def __post_init__(self):
-    self.optics = Optics(self.pointing, self.position_angle)
+    if self.optics is None:
+      self.optics = Optics(self.pointing, self.position_angle)
+    else:
+      self.pointing = self.optics.pointing
+      self.position_angle = self.optics.position_angle
     if self.detectors is None:
       self.detectors = [Detector(),]
+    assert self.optics is not None
+    assert self.detectors is not None
 
   def set_distortion(self, distortion):
     ''' Set a distortion function to the optics.
@@ -306,7 +314,6 @@ class Telescope(object):
       sources (SkyCoord): the coordinates of astronomical sources.
       epoch (Time)      : the observation epoch.
     '''
-    from matplotlib.patches import Rectangle
     import matplotlib.pyplot as plt
 
     fig = plt.figure(figsize=(8,8))

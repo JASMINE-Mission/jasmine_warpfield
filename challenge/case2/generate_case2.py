@@ -6,6 +6,7 @@ from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
 import numpy as np
 import astropy.units as u
 import warpfield as w
+from warpfield.HgCdTe import get_jasmine
 
 description='''
 This script generates Case-2 astrometry challenges. The telescope used
@@ -50,7 +51,7 @@ def generate_challenge(pointing, radius, catalog, filename):
   pa = Angle(np.random.uniform(0,360)*u.deg)
 
   pointing = pointing.directional_offset_by(direction, separation)
-  jasmine = w.Telescope(pointing, pa)
+  jasmine = get_jasmine(pointing, pa)
 
   table = QTable.read(catalog, format='ascii.ipac')
   sources = SkyCoord(table['ra'], table['dec'], frame='icrs')

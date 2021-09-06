@@ -6,6 +6,7 @@ from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
 import numpy as np
 import astropy.units as u
 import warpfield as w
+from warpfield.HgCdTe import get_jasmine
 
 description='''
 This script generates Case-4 astrometry challenges. The telescope used
@@ -31,7 +32,7 @@ def generate_challenge(filename):
   pa = Angle(np.random.uniform(0,360)*u.deg)
 
   pointing = SkyCoord(lon, lat, frame='galactic')
-  jasmine = w.Telescope(pointing, pa)
+  jasmine = get_jasmine(pointing, pa)
 
   ## calculate the position angle offset due to the cooridinate conversion.
   pos = pointing.directional_offset_by(0.0*u.deg, 0.1*u.deg)

@@ -6,6 +6,7 @@ from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
 import numpy as np
 import astropy.units as u
 import warpfield as w
+from warpfield.HgCdTe import get_jasmine
 
 description='''
 This script generates Case-1 astrometry challenges. The telescope used
@@ -26,7 +27,7 @@ def generate_challenge(filename):
   pa = Angle(np.random.uniform(0,360)*u.deg)
 
   pointing = SkyCoord(lon, lat, frame='icrs')
-  jasmine = w.Telescope(pointing, pa)
+  jasmine = get_jasmine(pointing, pa)
 
   radius = Angle(0.3*u.deg)
   sources = w.retrieve_gaia_sources(pointing,radius)
