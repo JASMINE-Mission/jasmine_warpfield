@@ -81,34 +81,34 @@ class Sip(object):
     Parameters:
       position (ndarray):
           An array contains the list of coordinates. The shape of the array
-          should be (N, 2), where N is the number of sources.
+          should be (2, Nsrc), where Nsrc is the number of sources.
 
     Return:
       An ndarray instance contains modified coordinates.
     '''
-    position = np.array(position).reshape((-1,2))
-    N = position.shape[0]
+    position = np.array(position).reshape((2,-1))
+    N = position.shape[1]
     cx,cy = self.center
-    x = position[:,0] - cx
-    y = position[:,1] - cy
+    x = position[0] - cx
+    y = position[1] - cy
 
     dx = np.zeros_like(x)
-    tmp = np.zeros((N,self.order+1))
+    tmp = np.zeros((self.order+1,N))
     for m in np.arange(self.order+1):
       n = self.order+1 - m
-      tmp[:,m] = np.sum([self.A[m,i]*y**i for i in np.arange(n)],axis=0)
+      tmp[m] = np.sum([self.A[m,i]*y**i for i in np.arange(n)],axis=0)
     for m in np.arange(self.order+1):
-      dx += tmp[:,m]*x**m
+      dx += tmp[m]*x**m
 
     dy = np.zeros_like(x)
-    tmp = np.zeros((N,self.order+1))
+    tmp = np.zeros((self.order+1,N))
     for m in np.arange(self.order+1):
       n = self.order+1 - m
-      tmp[:,m] = np.sum([self.B[m,i]*y**i for i in np.arange(n)],axis=0)
+      tmp[m] = np.sum([self.B[m,i]*y**i for i in np.arange(n)],axis=0)
     for m in np.arange(self.order+1):
-      dy += tmp[:,m]*x**m
+      dy += tmp[m]*x**m
 
-    return np.vstack((x+dx+cx,y+dy+cy)).T
+    return np.vstack((x+dx+cx,y+dy+cy))
 
 
 @dataclass
@@ -138,6 +138,9 @@ class __BaseSipDistortion(object):
   def __call__(self, position: np.ndarray):
     ''' Distortion Function with SIP convention
 
+    This function converts _correct_ coordinates into _distorted_ coordinates.
+    The distorted coordinates are obtained by an interative method.
+
     Parameters:
       position (ndarray):
           A numpy.array with the shape of (2, Nsrc). The first element
@@ -147,22 +150,39 @@ class __BaseSipDistortion(object):
     Return:
       A numpy.ndarray of the input coordinates.
     '''
-    from multiprocessing import Pool
-    from os import cpu_count
-    position = np.array(position).reshape((-1,2))
-    n = position.shape[0]
-    P = Pool(cpu_count())
-    position = np.array_split(position, 1+n//512)
-    return np.vstack(P.map(self.__solve__, position))
+    position = np.array(position).reshape((2,-1))
+    p0,x0 = position, position.copy()
+    for n in range(1000):
+      x1 = x0 + (p0-self.apply(x0))
+      delta,x0 = np.mean(np.square(x1-x0)),x1
+      if delta < 1e-24: break
+    else:
+      raise RuntimeError('Iteration not converged.')
+    return x0
 
-  def __solve__(self, position):
-    p0 = position.flatten()
-    func = lambda x: p0-self.apply(x.reshape((-1,2))).flatten()
-    result = least_squares(func, p0, loss='linear')
+  def __solve__(self, position: np.ndarray):
+    ''' Distortion Function with SIP convention
+
+    This function converts _correct_ coordinates into _distorted_ coordinates.
+    The distorted coordinates are obtained by a least square minimization.
+    Note that this method fails if the number of positions is too large.
+
+    Parameters:
+      position (ndarray):
+          A numpy.array with the shape of (2, Nsrc). The first element
+          contains the x-positions, while the second element contains
+          the y-positions.
+
+    Return:
+      A numpy.ndarray of the input coordinates.
+    '''
+    p0 = np.array(position).flatten()
+    func = lambda x: p0-self.apply(x.reshape((2,-1))).flatten()
+    result = least_squares(func, p0,
+        loss='linear', ftol=1e-15, xtol=1e-15, gtol=1e-15)
     assert result.success is True, \
       'failed to perform a SIP inverse conversion.'
-    return result.x.reshape((-1,2))
-
+    return result.x.reshape((2,-1))
 
 
 class SipDistortion(Sip,__BaseSipDistortion):
