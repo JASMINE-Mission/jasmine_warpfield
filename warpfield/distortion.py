@@ -86,6 +86,7 @@ class Sip(object):
     Return:
       An ndarray instance contains modified coordinates.
     '''
+    position = np.array(position).reshape((-1,2))
     N = position.shape[0]
     cx,cy = self.center
     x = position[:,0] - cx
@@ -146,14 +147,22 @@ class __BaseSipDistortion(object):
     Return:
       A numpy.ndarray of the input coordinates.
     '''
+    from multiprocessing import Pool
+    from os import cpu_count
+    position = np.array(position).reshape((-1,2))
+    n = position.shape[0]
+    P = Pool(cpu_count())
+    position = np.array_split(position, 1+n//512)
+    return np.vstack(P.map(self.__solve__, position))
+
+  def __solve__(self, position):
     p0 = position.flatten()
     func = lambda x: p0-self.apply(x.reshape((-1,2))).flatten()
     result = least_squares(func, p0, loss='linear')
-
     assert result.success is True, \
       'failed to perform a SIP inverse conversion.'
-
     return result.x.reshape((-1,2))
+
 
 
 class SipDistortion(Sip,__BaseSipDistortion):
