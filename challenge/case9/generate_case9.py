@@ -103,7 +103,7 @@ def generate_challenge(pointing, radius, catalog, plate, stride, filename):
       jasmine.set_distortion(distortion)
       distorted = jasmine.observe(sources)[0]
       distorted['catalog_id'] = distorted.index.to_series()
-      distorted['field'] = n
+      distorted['field'] = m+n*plate
       distorted = distorted.reset_index(drop=True)
       position = distorted.merge(
         vanilla, on='catalog_id', suffixes=('','_orig'))
@@ -114,7 +114,7 @@ def generate_challenge(pointing, radius, catalog, plate, stride, filename):
       print(dy.max(),dy.min(),dy.mean(),dy.median(),dy.std())
 
       catalog.append(position)
-      fields.append(n)
+      fields.append(m+n*plate)
       tel_ra.append(center.icrs.ra.deg)
       tel_dec.append(center.icrs.dec.deg)
       tel_pa.append(PositionAngle(pa+dpa).deg)
