@@ -96,7 +96,7 @@ class Sip(object):
     tmp = np.zeros((self.order+1,N))
     for m in np.arange(self.order+1):
       n = self.order+1 - m
-      tmp[m] = np.sum([self.A[i,m]*y**i for i in np.arange(n)],axis=0)
+      tmp[m] = np.sum([self.A[m,i]*y**i for i in np.arange(n)],axis=0)
     for m in np.arange(self.order+1):
       dx += tmp[m]*x**m
 
@@ -104,7 +104,7 @@ class Sip(object):
     tmp = np.zeros((self.order+1,N))
     for m in np.arange(self.order+1):
       n = self.order+1 - m
-      tmp[m] = np.sum([self.B[i,m]*y**i for i in np.arange(n)],axis=0)
+      tmp[m] = np.sum([self.B[m,i]*y**i for i in np.arange(n)],axis=0)
     for m in np.arange(self.order+1):
       dy += tmp[m]*x**m
 
