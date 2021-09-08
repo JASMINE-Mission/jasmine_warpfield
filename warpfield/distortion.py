@@ -96,7 +96,7 @@ class Sip(object):
     tmp = np.zeros((self.order+1,N))
     for m in np.arange(self.order+1):
       n = self.order+1 - m
-      tmp[m] = np.sum([self.A[m,i]*y**i for i in np.arange(n)],axis=0)
+      tmp[m] = np.sum([self.A[i,m]*y**i for i in np.arange(n)],axis=0)
     for m in np.arange(self.order+1):
       dx += tmp[m]*x**m
 
@@ -104,7 +104,7 @@ class Sip(object):
     tmp = np.zeros((self.order+1,N))
     for m in np.arange(self.order+1):
       n = self.order+1 - m
-      tmp[m] = np.sum([self.B[m,i]*y**i for i in np.arange(n)],axis=0)
+      tmp[m] = np.sum([self.B[i,m]*y**i for i in np.arange(n)],axis=0)
     for m in np.arange(self.order+1):
       dy += tmp[m]*x**m
 
@@ -154,8 +154,8 @@ class __BaseSipDistortion(object):
     p0,x0 = position, position.copy()
     for n in range(1000):
       x1 = x0 + (p0-self.apply(x0))
-      delta,x0 = np.mean(np.square(x1-x0)),x1
-      if delta < 1e-24: break
+      d,x0 = np.square(x1-x0).mean(),x1
+      if d < 1e-24: break
     else:
       raise RuntimeError('Iteration not converged.')
     return x0
