@@ -15,3 +15,4 @@ This directory contains data tables for astrometry exercises. In the JASMINE pro
 |Case 6|Solve the fields without absolute stellar positions.|
 |Case 7|Solve the fields and (SIP) distortion without absolute stellar positions.|
 |Case 8|Solve the fields and general distortion without absolute stellar positions.|
+|Case 9|Solve the fields and (SIP) distortion without absolute stellar positions.|
