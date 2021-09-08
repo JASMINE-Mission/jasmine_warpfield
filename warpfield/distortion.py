@@ -151,11 +151,12 @@ class __BaseSipDistortion(object):
       A numpy.ndarray of the input coordinates.
     '''
     position = np.array(position).reshape((2,-1))
-    p0,x0 = position, position.copy()
-    for n in range(1000):
+    p0,x0,d = position, position.copy(),np.infty
+    for n in range(100):
       x1 = x0 + (p0-self.apply(x0))
-      d,x0 = np.square(x1-x0).mean(),x1
+      f,d,x0 = d,np.square(x1-x0).mean(),x1
       if d < 1e-24: break
+      if f/d < 1.0: break
     else:
       raise RuntimeError('Iteration not converged.')
     return x0
