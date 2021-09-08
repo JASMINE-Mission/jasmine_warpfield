@@ -191,7 +191,7 @@ if __name__ == '__main__':
     exit()
 
   for n in range(args.num):
-    plate = int(2**(n+1))
+    plate = int(2**n)
     catalog = args.catalog
     stride = Angle(4*u.arcmin)
     filename=f'case9_challenge_{n:02d}.txt'
