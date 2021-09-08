@@ -34,13 +34,13 @@ def distortion_generator(c, K):
   cx,cy = c
   r0 = max((cx-20000.)**2+(cy-20000.)**2, (cx+20000.)**2+(cy-20000.)**2,
            (cx-20000.)**2+(cy+20000.)**2, (cx+20000.)**2+(cy+20000.)**2)
+  d0 = np.array(c).reshape((2,1))
   def distortion(position):
     position = np.array(position)
-    center = np.array(c).reshape((2,1))
     ka = K.reshape((-1,2))
-    r2 = np.square(position-center).sum(axis=0,keepdims=True)/r0
+    r2 = np.square(position-d0).sum(axis=0,keepdims=True)/r0
     Kp = 1-reduce(add,[k.reshape((2,1))*(r2**(n+1)) for n,k in enumerate(ka)])
-    return (position-center)/Kp+center
+    return (position-d0)/Kp+d0
   return distortion
 
 
