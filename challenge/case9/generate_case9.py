@@ -125,17 +125,12 @@ def generate_challenge(pointing, radius, catalog, plate, stride, filename):
     'pointing_ra'   : {'value': pointing.icrs.ra.deg},
     'pointing_dec'  : {'value': pointing.icrs.dec.deg},
     'position_angle': {'value': pa0.deg},
+    'sip_c[0]': {'value': sip_c[0]},
+    'sip_c[1]': {'value': sip_c[1]},
   }
   for m,n in np.ndindex(sip_x.shape):
-    # if m==0 and n==0: continue
-    # if m==0 and n==1: continue
-    # if m==1 and n==0: continue
-    keywords[f'sip_c[{m},{n}]'] = {'value': sip_x[m,n]}
-  for m,n in np.ndindex(sip_y.shape):
-    # if m==0 and n==0: continue
-    # if m==0 and n==1: continue
-    # if m==1 and n==0: continue
-    keywords[f'sip_d[{m},{n}]'] = {'value': sip_y[m,n]}
+    keywords[f'sip_a[{m},{n}]'] = {'value': sip_x[m,n]}
+    keywords[f'sip_b[{m},{n}]'] = {'value': sip_y[m,n]}
 
   table = QTable(
     [
