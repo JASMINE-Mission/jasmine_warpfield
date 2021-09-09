@@ -15,8 +15,8 @@ def get_jasmine(
   optics = Optics(
     pointing,
     position_angle,
-    focal_length = 3.86*u.m,
-    diameter     = 0.3*u.m,
+    focal_length = 7.3*u.m,
+    diameter     = 0.4*u.m,
     fov_radius   = 30000*u.um,
     distortion   = distortion)
   detectors = [
