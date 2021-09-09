@@ -8,7 +8,7 @@ import pandas as pd
 import astropy.units as u
 import warpfield as w
 from warpfield.distortion import SipModDistortion
-from warpfield.HgCdTe import get_jasmine
+from warpfield.DUMMY import get_jasmine
 
 description='''
 This script generates Case-9 astrometry challenges. The telescope used
