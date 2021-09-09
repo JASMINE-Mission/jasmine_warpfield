@@ -16,15 +16,15 @@ def get_jasmine(
   optics = Optics(
     pointing,
     position_angle,
-    focal_length = 3.86*u.m,
-    diameter     = 0.3*u.m,
+    focal_length = 7.3*u.m,
+    diameter     = 0.4*u.m,
     fov_radius   = 30000*u.um,
     distortion   = distortion)
 
-  arr = np.arange(-1,2,)*18000*u.um
+  arr = np.arange(-1,2,)*20000*u.um
   xx,yy = np.meshgrid(arr,arr)
   detectors = [
-    Detector(1024, 1024, pixel_scale=15*u.um, offset_dx=x, offset_dy=y)
+    Detector(1280, 1280, pixel_scale=15*u.um, offset_dx=x, offset_dy=y)
     for x,y in zip(xx.flat,yy.flat)
   ]
 
