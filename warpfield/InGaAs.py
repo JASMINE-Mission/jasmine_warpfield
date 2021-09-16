@@ -21,7 +21,7 @@ def get_jasmine(
     fov_radius   = 30000*u.um,
     distortion   = distortion)
 
-  arr = np.arange(-1,1,)*20000*u.um
+  arr = 10000*u.um+np.arange(-1,1)*20000*u.um
   xx,yy = np.meshgrid(arr,arr)
   detectors = [
     Detector(1920, 1920, pixel_scale=10*u.um, offset_dx=x, offset_dy=y)
