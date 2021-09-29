@@ -8,6 +8,10 @@ from astropy.units.quantity import Quantity
 from astropy.wcs import WCS
 from scipy.spatial.transform import Rotation
 from matplotlib.patches import Rectangle
+from shapely.geometry import Polygon, Point
+from shapely.geometry import MultiPoint
+from shapely.prepared import prep
+from descartes.patch import PolygonPatch
 import astropy.units as u
 import numpy as np
 import pandas as pd
@@ -44,14 +48,14 @@ class Optics(object):
     position_angle (Angle) : the position angle of the telescope.
     focal_length (Quantity): the focal length of the telescope in meter.
     diameter (Quantity)    : the diameter of the telescope in meter.
-    fov_radius (Quantity)  : the radius of the focal plane.
+    valid_region (Polygon) : the valid region of the focal plane.
     distortion (function)  : a function to distort the focal plane image.
   '''
   pointing: SkyCoord
   position_angle: Angle  = Angle(0.0, unit='degree')
   focal_length: Quantity = 7.3*u.m
   diameter: Quantity     = 0.4*u.m
-  fov_radius: Quantity   = 30000*u.um
+  valid_region: Polygon  = Point(0,0).buffer(30000)
   distortion: Callable   = identity_transformation
 
   @property
@@ -94,8 +98,9 @@ class Optics(object):
     Return:
       A boolean array to indicate which sources are inside the field-of-view.
     '''
-    r2 = position[0]**2+position[1]**2
-    return r2>self.fov_radius.to_value(u.um)**2
+    mp = MultiPoint(position.T)
+    polygon = prep(self.valid_region)
+    return np.array([not polygon.contains(p) for p in mp])
 
   def imaging(self, sources, epoch=None):
     ''' Map celestial positions onto the focal plane.
@@ -319,6 +324,8 @@ class Telescope(object):
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(111)
     ax.set_aspect(1.0)
+    ax.add_patch(PolygonPatch(
+      self.optics.valid_region, color=(0.8,0.8,0.8), alpha=0.2))
     if sources is not None:
       position = self.optics.imaging(sources, epoch)
       ax.scatter(position.x,position.y,markersize,marker=marker)
