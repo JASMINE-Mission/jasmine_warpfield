@@ -3,6 +3,7 @@
 from typing import Callable, List
 from astropy.coordinates import SkyCoord, Angle
 from astropy.units.quantity import Quantity
+from shapely.geometry import Point
 import astropy.units as u
 
 from .telescope import Optics,Detector,Telescope
@@ -17,7 +18,7 @@ def get_jasmine(
     position_angle,
     focal_length = 3.86*u.m,
     diameter     = 0.3*u.m,
-    fov_radius   = 30000*u.um,
+    valid_region = Point(0,0).buffer(30000),
     distortion   = distortion)
   detectors = [
     Detector(4096, 4096, pixel_scale = 10*u.um),

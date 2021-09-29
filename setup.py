@@ -6,7 +6,7 @@ import os,sys,re
 
 
 with open('README.md', 'r') as fd:
-  version = '0.9.18'
+  version = '0.9.19'
   author = 'Ryou Ohsawa'
   email = 'ohsawa@ioa.s.u-tokyo.ac.jp'
   description = 'An experimental code to simulate a warped focal plane for small-JASMINE.'
