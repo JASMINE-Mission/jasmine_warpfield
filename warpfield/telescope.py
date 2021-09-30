@@ -12,6 +12,7 @@ from shapely.geometry import Polygon, Point
 from shapely.geometry import MultiPoint
 from shapely.prepared import prep
 from descartes.patch import PolygonPatch
+from scipy.optimize import least_squares
 import astropy.units as u
 import numpy as np
 import pandas as pd
@@ -49,6 +50,7 @@ class Optics(object):
     focal_length (Quantity): the focal length of the telescope in meter.
     diameter (Quantity)    : the diameter of the telescope in meter.
     valid_region (Polygon) : the valid region of the focal plane.
+    margin (Quantity)      : the margin of the valid region (buffle).
     distortion (function)  : a function to distort the focal plane image.
   '''
   pointing: SkyCoord
@@ -56,6 +58,7 @@ class Optics(object):
   focal_length: Quantity = 7.3*u.m
   diameter: Quantity     = 0.4*u.m
   valid_region: Polygon  = Point(0,0).buffer(30000)
+  margin: Quantity       = 5000*u.um
   distortion: Callable   = identity_transformation
 
   @property
@@ -80,9 +83,11 @@ class Optics(object):
     return np.array((icrs.ra.rad,-icrs.dec.rad,position_angle))
 
   def set_distortion(self, distortion):
-    ''' Assign distortion function.
+    ''' Assign a distortion function.
 
-    The argument of the distortion function should be a
+    The argument of the distortion function should be a numpy.array with
+    the shape of (2, Nsrc). The first element contains the x-positions,
+    while the second element contains the y-positions.
 
     Parameters:
       distortion (function): a function to distort focal plane image.
@@ -99,13 +104,14 @@ class Optics(object):
       A boolean array to indicate which sources are inside the field-of-view.
     '''
     mp = MultiPoint(position.T)
-    polygon = prep(self.valid_region)
+    polygon = prep(self.valid_region.buffer(self.margin.to_value(u.um)))
     return np.array([not polygon.contains(p) for p in mp])
 
   def imaging(self, sources, epoch=None):
     ''' Map celestial positions onto the focal plane.
 
     Parameters:
+      sources (SkyCoord): the coordinates of sources.
       epoch (Time): the epoch of the observation.
 
     Return:
@@ -222,14 +228,28 @@ class Detector(object):
     ''' The y-axis range of the detector. '''
     return np.array((-self.height/2,self.height/2))
   @property
+  def patch(self):
+    ''' The footprint of the detector on the focal plane as a patch. '''
+    c,s = np.cos(self.position_angle.rad),np.sin(self.position_angle.rad)
+    x0,y0 = self.offset_dx.to_value(u.um),self.offset_dy.to_value(u.um)
+    x1 = x0 - (+ self.width*c - self.height*s)/2
+    y1 = y0 - (+ self.width*s + self.height*c)/2
+    return Rectangle((x1,y1), width=self.width, height=self.height,
+        angle=self.position_angle.deg, ec='r', linewidth=2, fill=False)
+  @property
   def footprint(self):
     ''' The footprint of the detector on the focal plane. '''
     c,s = np.cos(self.position_angle.rad),np.sin(self.position_angle.rad)
     x0,y0 = self.offset_dx.to_value(u.um),self.offset_dy.to_value(u.um)
-    x1 = x0 - (self.width*c - self.height*s)/2
-    y1 = y0 - (self.width*s + self.height*c)/2
-    return Rectangle((x1,y1), width=self.width, height=self.height,
-        angle=self.position_angle.deg, ec='r', linewidth=2, fill=False)
+    x1 = x0 - (+ self.width*c - self.height*s)/2
+    y1 = y0 - (+ self.width*s + self.height*c)/2
+    x2 = x0 - (- self.width*c - self.height*s)/2
+    y2 = y0 - (- self.width*s + self.height*c)/2
+    x3 = x0 - (- self.width*c + self.height*s)/2
+    y3 = y0 - (- self.width*s - self.height*c)/2
+    x4 = x0 - (+ self.width*c + self.height*s)/2
+    y4 = y0 - (+ self.width*s - self.height*c)/2
+    return Polygon(([x1,y1],[x2,y2],[x3,y3],[x4,y4]))
 
   def align(self, x, y):
     ''' Align the source position to the detector.
@@ -307,6 +327,38 @@ class Telescope(object):
     '''
     self.optics.set_distortion(distortion)
 
+  def get_footprint(self, limit=True, patch=False, **options):
+    ''' Obtain detector footprints on the sky.
+
+    Parameters:
+      limit (bool): limit the footprints within the valid region.
+    '''
+    if self.pointing.frame.name == 'galactic':
+      l0 = self.pointing.galactic.l
+      b0 = self.pointing.galactic.b
+    else:
+      l0 = self.pointing.icrs.ra
+      b0 = self.pointing.icrs.dec
+    def generate(e):
+      frame = self.pointing.frame
+      def func(x):
+        pos = x.reshape((-1,2))
+        p0 = SkyCoord(pos[:,0], pos[:,1], frame=frame, unit=u.deg)
+        res = self.optics.imaging(p0)
+        return (e-res[['x','y']].to_numpy()).flatten()
+      return func
+    footprints = []
+    valid_region = self.optics.valid_region
+    for d in self.detectors:
+      fp = valid_region.intersection(d.footprint) if limit else d.footprint
+      edge = np.array(fp.boundary.coords[0:-1])
+      p0 = np.tile([l0.deg,b0.deg],edge.shape[0])
+      func = generate(edge)
+      res = least_squares(func, p0)
+      p = Polygon(res.x.reshape((-1,2)))
+      footprints.append(PolygonPatch(p, **options) if patch else p)
+    return footprints
+
   def display_focal_plane(self, sources=None, epoch=None,
                           markersize=1, marker='x'):
     ''' Display the layout of the detectors.
@@ -330,7 +382,7 @@ class Telescope(object):
       position = self.optics.imaging(sources, epoch)
       ax.scatter(position.x,position.y,markersize,marker=marker)
     for d in self.detectors:
-      ax.add_patch(d.footprint)
+      ax.add_patch(d.patch)
     ax.autoscale_view()
     ax.grid()
     ax.set_xlabel('Displacement on the focal plane ($\mu$m)', fontsize=14)

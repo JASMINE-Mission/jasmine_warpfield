@@ -28,6 +28,7 @@ def get_jasmine(
     focal_length = 4.86*u.m,
     diameter     = 0.4*u.m,
     valid_region = square.intersection(smask) if octagonal else square,
+    margin       = 5000*u.um,
     distortion   = distortion)
 
   arr = np.array([-1,1])*(1920*5*u.um+1.5*u.mm)
