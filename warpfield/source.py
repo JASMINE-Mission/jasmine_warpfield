@@ -105,7 +105,7 @@ def display_sources(pointing, sources, title=None):
     ax.legend(bbox_to_anchor=[1,1], loc='lower right', frameon=False)
   ax.set_xlabel(xlabel, fontsize=14)
   ax.set_ylabel(ylabel, fontsize=14)
-  plt.show()
+  return fig
 
 
 def display_gaia_sources(pointing, radius=0.1):
