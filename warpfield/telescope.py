@@ -327,12 +327,17 @@ class Telescope(object):
     '''
     self.optics.set_distortion(distortion)
 
-  def get_footprint(self, limit=True, patch=False, **options):
+  def get_footprints(self, **options):
     ''' Obtain detector footprints on the sky.
 
-    Parameters:
+    Options:
+      frame (string): specify the coordinate of the footprint.
       limit (bool): limit the footprints within the valid region.
+      patch (bool): obtain PolygonPatch instead of Polygon.
     '''
+    frame = options.pop('frame', self.pointing.frame.name)
+    limit = options.pop('limit', True)
+    patch = options.pop('patch', False)
     if self.pointing.frame.name == 'galactic':
       l0 = self.pointing.galactic.l
       b0 = self.pointing.galactic.b
@@ -355,12 +360,41 @@ class Telescope(object):
       p0 = np.tile([l0.deg,b0.deg],edge.shape[0])
       func = generate(edge)
       res = least_squares(func, p0)
-      p = Polygon(res.x.reshape((-1,2)))
-      footprints.append(PolygonPatch(p, **options) if patch else p)
+      pos = res.x.reshape((-1,2))
+      sky = SkyCoord(pos[:,0]*u.deg,pos[:,1]*u.deg,
+                     frame=self.pointing.frame.name)
+      if frame == 'galactic':
+        sky = sky.galactic
+        pos = Polygon(np.stack([sky.l.deg,sky.b.deg]).T)
+      else:
+        sky = sky.icrs
+        pos = Polygon(np.stack([sky.ra.deg,sky.dec.deg]).T)
+      footprints.append(PolygonPatch(pos, **options) if patch else pos)
     return footprints
 
-  def display_focal_plane(self, sources=None, epoch=None,
-                          markersize=1, marker='x'):
+  def overlay_footprints(self, axis, **options):
+    ''' Display the footprints on the given axis.
+
+    Parameters:
+      axis (WCSAxesSubplot):
+          An axis instance with a WCS projection.
+
+    Options:
+      frame (string): the coodinate frame.
+      label (string): the label of the footprints.
+      color (Color): color of the footprint edges.
+    '''
+    label = options.pop('label', None)
+    color = options.pop('color','C2')
+    frame = options.pop('frame', self.pointing.frame.name)
+    for footprint in self.get_footprints(frame=frame, **options):
+      v = np.array(footprint.boundary.coords)
+      axis.plot(v[:,0], v[:,1], c=color, label=label,
+                transform=axis.get_transform(frame), **options)
+    return axis
+
+  def display_focal_plane(
+      self, sources=None, epoch=None, axis=None, **options):
     ''' Display the layout of the detectors.
 
     Show the layout of the detectors on the focal plane. The detectors are
@@ -373,22 +407,25 @@ class Telescope(object):
     '''
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(figsize=(8,8))
-    ax = fig.add_subplot(111)
-    ax.set_aspect(1.0)
-    ax.add_patch(PolygonPatch(
+    markersize = options.pop('markersize', 1)
+    marker     = options.pop('marker', 'x')
+    figsize    = options.pop('figsize', (8,8))
+    if axis is None:
+      fig = plt.figure(figsize=figsize)
+      axis = fig.add_subplot(111)
+    axis.set_aspect(1.0)
+    axis.add_patch(PolygonPatch(
       self.optics.valid_region, color=(0.8,0.8,0.8), alpha=0.2))
     if sources is not None:
       position = self.optics.imaging(sources, epoch)
-      ax.scatter(position.x,position.y,markersize,marker=marker)
+      axis.scatter(position.x,position.y,markersize,marker=marker)
     for d in self.detectors:
-      ax.add_patch(d.patch)
-    ax.autoscale_view()
-    ax.grid()
-    ax.set_xlabel('Displacement on the focal plane ($\mu$m)', fontsize=14)
-    ax.set_ylabel('Displacement on the focal plane ($\mu$m)', fontsize=14)
-    fig.tight_layout()
-    plt.show()
+      axis.add_patch(d.patch)
+    axis.autoscale_view()
+    axis.grid()
+    axis.set_xlabel('Displacement on the focal plane ($\mu$m)', fontsize=14)
+    axis.set_ylabel('Displacement on the focal plane ($\mu$m)', fontsize=14)
+    if axis is None: fig.tight_layout()
 
 
   def observe(self, sources, epoch=None):
