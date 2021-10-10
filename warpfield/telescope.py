@@ -6,6 +6,7 @@ from astropy.coordinates import SkyCoord, Longitude, Latitude, Angle
 from astropy.time import Time
 from astropy.units.quantity import Quantity
 from astropy.wcs import WCS
+from astropy.visualization.wcsaxes import WCSAxesSubplot
 from scipy.spatial.transform import Rotation
 from matplotlib.patches import Rectangle
 from shapely.geometry import Polygon, Point
@@ -13,6 +14,7 @@ from shapely.geometry import MultiPoint
 from shapely.prepared import prep
 from descartes.patch import PolygonPatch
 from scipy.optimize import least_squares
+import matplotlib.pyplot as plt
 import astropy.units as u
 import numpy as np
 import pandas as pd
@@ -105,7 +107,7 @@ class Optics(object):
     '''
     mp = MultiPoint(position.T)
     polygon = prep(self.valid_region.buffer(self.margin.to_value(u.um)))
-    return np.array([not polygon.contains(p) for p in mp])
+    return np.array([not polygon.contains(p) for p in mp.geoms])
 
   def imaging(self, sources, epoch=None):
     ''' Map celestial positions onto the focal plane.
@@ -387,10 +389,11 @@ class Telescope(object):
     label = options.pop('label', None)
     color = options.pop('color','C2')
     frame = options.pop('frame', self.pointing.frame.name)
+    if isinstance(axis, WCSAxesSubplot):
+      options['tranform'] = axis.get_transform(frame)
     for footprint in self.get_footprints(frame=frame, **options):
       v = np.array(footprint.boundary.coords)
-      axis.plot(v[:,0], v[:,1], c=color, label=label,
-                transform=axis.get_transform(frame), **options)
+      axis.plot(v[:,0], v[:,1], c=color, label=label, **options)
     return axis
 
   def display_focal_plane(
@@ -405,8 +408,6 @@ class Telescope(object):
       sources (SkyCoord): the coordinates of astronomical sources.
       epoch (Time)      : the observation epoch.
     '''
-    import matplotlib.pyplot as plt
-
     markersize = options.pop('markersize', 1)
     marker     = options.pop('marker', 'x')
     figsize    = options.pop('figsize', (8,8))
