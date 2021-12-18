@@ -89,8 +89,7 @@ class Sip(object):
     position = np.array(position).reshape((2,-1))
     N = position.shape[1]
     cx,cy = self.center
-    x = position[0] - cx
-    y = position[1] - cy
+    x,y = position[0]-cx, position[1]-cy
 
     dx = np.zeros_like(x)
     tmp = np.zeros((self.order+1,N))
@@ -108,7 +107,7 @@ class Sip(object):
     for m in np.arange(self.order+1):
       dy += tmp[m]*x**m
 
-    return np.vstack((x+dx+cx,y+dy+cy))
+    return np.vstack((x+dx,y+dy))
 
 
 @dataclass
@@ -130,7 +129,8 @@ class SipMod(Sip):
   center: np.ndarray
 
   def __post_init__(self):
-    assert self.center.size == 2
+    assert self.center.size == 2, \
+      'The center position should have two elements.'
     self.center = self.center.flatten()
 
 
