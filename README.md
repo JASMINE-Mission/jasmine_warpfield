@@ -10,7 +10,7 @@ The package is available using the command below:
 pip install git+https://github.com/xr0038/jasmine_warpfield.git
 ```
 
-Otherwise clone this repository and try the command below:
+Otherwise, clone this repository and try the command below:
 
 ``` bash
 python setup.py install
