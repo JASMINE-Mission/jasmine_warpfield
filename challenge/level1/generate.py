@@ -50,7 +50,7 @@ def generate_challenge(pointing, catalog, plate, stride, filename):
   n_sip = 5
   sip_z = np.zeros((n_sip+1,n_sip+1))
   for m,n in np.ndindex(sip_z.shape):
-    sip_z[m,n] = 10**(3-6*(m+n)) if (0 < m+n < n_sip+1) else 0.0
+    sip_z[m,n] = 10**(3-6*(m+n)) if (1 < m+n < n_sip+1) else 0.0
   sip_x = np.random.normal(0,1,size=(n_sip+1,n_sip+1))*sip_z
   sip_y = np.random.normal(0,1,size=(n_sip+1,n_sip+1))*sip_z
   sip_c = np.random.uniform(-3000,3000,2)
@@ -154,7 +154,7 @@ def generate_challenge(pointing, catalog, plate, stride, filename):
   table.write(filename, format='ascii.ipac', overwrite=True)
 
   with open('sip.npz', 'wb') as f:
-    np.savez(f, sip_c, sip_x, sip_y)
+    np.savez(f, sip_c=sip_c, sip_x=sip_x, sip_y=sip_y)
 
 
 if __name__ == '__main__':
