@@ -89,7 +89,8 @@ class Sip(object):
     position = np.array(position).reshape((2,-1))
     N = position.shape[1]
     cx,cy = self.center
-    x,y = position[0]-cx, position[1]-cy
+    x0,y0 = position[0], position[1]
+    x,y = x0-cx, y0-cy
 
     dx = np.zeros_like(x)
     tmp = np.zeros((self.order+1,N))
@@ -107,7 +108,7 @@ class Sip(object):
     for m in np.arange(self.order+1):
       dy += tmp[m]*x**m
 
-    return np.vstack((x+dx,y+dy))
+    return np.vstack((x0+dx,y0+dy))
 
 
 @dataclass
