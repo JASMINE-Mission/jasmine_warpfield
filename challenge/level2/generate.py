@@ -41,14 +41,14 @@ def generate_challenge(pointing, catalog, plate, stride, filename):
   ll,bb = np.meshgrid(arr,arr)
 
   n_sip = 5
-  sip_x0 = np.zeros((n_sip+1,n_sip+1))
-  sip_y0 = np.zeros((n_sip+1,n_sip+1))
-  sip_c0 = np.random.uniform(-100,100,2)
+  sip_x = np.zeros((n_sip+1,n_sip+1))
+  sip_y = np.zeros((n_sip+1,n_sip+1))
+  sip_c = np.random.uniform(-10,10,2)
 
-  s1 = -3e-3*np.random.normal()
-  s3 = 1e-8*np.random.normal()
-  sip_x0[1,0] = sip_y0[0,1] = s1
-  sip_x0[2,0] = sip_y0[0,2] = s3
+  s1 = 3e-3*np.random.normal()
+  s3 = 5e-9*np.random.normal()
+  sip_x[1,0] = sip_y[0,1] = s1
+  sip_x[2,0] = sip_y[0,2] = s3
 
   fields  = []
   blocks  = []
@@ -76,12 +76,8 @@ def generate_challenge(pointing, catalog, plate, stride, filename):
       vanilla['catalog_id'] = vanilla.index.to_series()
       vanilla = vanilla.loc[:,['x','y','catalog_id']]
 
-      r_efl = 1 + 1e-2*np.random.normal()
-      sip_x = sip_x0.copy()
-      sip_y = sip_y0.copy()
-      sip_c = sip_c0.copy() * r_efl
-      sip_x[1,0] *= r_efl
-      sip_x[0,1] *= r_efl
+      r_efl = 1 + 1e-4*np.random.normal()
+      jasmine.optics.focal_length *= r_efl
       distortion = SipModDistortion(n_sip,sip_c,sip_x,sip_y)
       jasmine.set_distortion(distortion)
       distorted = jasmine.observe(sources)[0]
