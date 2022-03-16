@@ -107,7 +107,7 @@ class Sip(object):
     for m in np.arange(self.order+1):
       dy += tmp[m]*x**m
 
-    return np.vstack((x-dx,y-dy))
+    return np.vstack((x+dx,y+dy))
 
 
 @dataclass
