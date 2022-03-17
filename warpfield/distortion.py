@@ -157,9 +157,11 @@ class __BaseSipDistortion(object):
       x1 = x0 + (p0-self.apply(x0))
       f,d,x0 = d,np.square(x1-x0).mean(),x1
       if d < 1e-24: break
-      if f/d < 1.0: break
+      if abs(1-f/d) < 1e-3 and d < 1e-16: break
+      assert np.isfinite(d), \
+        'Floating value overflow detected.'
     else:
-      raise RuntimeError('Iteration not converged.')
+      raise RuntimeError(f'Iteration not converged ({d})')
     return x0
 
   def __solve__(self, position: np.ndarray):
