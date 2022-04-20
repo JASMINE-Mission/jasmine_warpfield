@@ -1,14 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+''' gnomonic projection '''
+
 import jax.numpy as jnp
-import numpy as np
-
 from jax import vmap
-from numpyro.infer import NUTS, MCMC
-import numpyro
 
 
-def proj(a0, d0, t0, a, d, s):
+def projection(a0, d0, t0, a, d, s):
+  ''' gnomonic projection of the spherical coordinates.
+
+  Args:
+    a0: right ascension of the telescope center.
+    d0: declinatoin of the telescope center.
+    t0: position angle of the telescope.
+    a: right ascension of the target.
+    d: declination of the target.
+    s: physical scale of the focal plane (mm/deg).
+
+  Returns:
+    converted coordinates on the focal plane
+  '''
   d2r = jnp.pi/180.0
   a0,d0,a,d,t0 = a0*d2r,d0*d2r,a*d2r,d*d2r,t0*d2r
   A = jnp.array([
@@ -21,4 +32,4 @@ def proj(a0, d0, t0, a, d, s):
   X,Y =  R*jnp.cos(phi),-R*jnp.sin(phi)
   return (A@jnp.stack([X,Y])).T*s
 
-projection = vmap(proj, (0,0,0,0,0,0),0)
+gnomonic = vmap(projection, (0,0,0,0,0,0),0)
