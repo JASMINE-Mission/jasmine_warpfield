@@ -47,7 +47,7 @@ def gnomonic_conversion(tel_ra, tel_dec, ra, dec):
 def gnomonic(tel_ra, tel_dec, tel_pa, ra, dec, scale):
     ''' gnomonic projection of the spherical coordinates.
 
-    Args:
+    Arguments:
       tel_ra: right ascension of the telescope center.
       tel_dec: declinatoin of the telescope center.
       tel_pa: position angle of the telescope.

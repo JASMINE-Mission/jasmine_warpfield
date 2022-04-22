@@ -9,7 +9,7 @@ import jax.numpy as jnp
 def polymap(coeff, xy):
     ''' calculate a two-dimensional polynomical expansion
 
-    Args:
+    Arguments:
       coeff: coefficients of a polynomial expansion.
       xy: original coordinates on the focal plane.
 
@@ -20,7 +20,7 @@ def polymap(coeff, xy):
     def inner(order, coeff):
         ''' inner function to calculate a polynomical expansion
 
-        Args:
+        Arguments:
           order: (m,n) integer power index pair.
           coeff: scale coefficient.
 
@@ -45,7 +45,7 @@ def distortion(sip_a, sip_b, xy):
     - elements 7-11:  fourth order coefficients
     - elements 12-17: fifth order coefficients
 
-    Args:
+    Arguments:
       sip_a: 5th-order SIP coefficients.
       sip_b: 5th-order SIP coefficients.
       xy: coordinates on the focal plane.
