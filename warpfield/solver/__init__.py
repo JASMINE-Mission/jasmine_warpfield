@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' distortion solver module
+''' warpfield: distortion solver module
 '''
 
 from jax.config import config

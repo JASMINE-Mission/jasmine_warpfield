@@ -36,7 +36,7 @@ def generate(source, reference, params={}):
         sig: positional uncertainty in degree.
 
 
-    Args:
+    Arguments:
       source: pandas DataFrame of measurements.
       reference: pandas DataFrame of reference stars.
       params: dictionary of the initial condition.
