@@ -89,8 +89,8 @@ class Sip(object):
     position = np.array(position).reshape((2,-1))
     N = position.shape[1]
     cx,cy = self.center
-    x = position[0] - cx
-    y = position[1] - cy
+    x0,y0 = position[0], position[1]
+    x,y = x0-cx, y0-cy
 
     dx = np.zeros_like(x)
     tmp = np.zeros((self.order+1,N))
@@ -108,7 +108,7 @@ class Sip(object):
     for m in np.arange(self.order+1):
       dy += tmp[m]*x**m
 
-    return np.vstack((x+dx+cx,y+dy+cy))
+    return np.vstack((x0+dx,y0+dy))
 
 
 @dataclass
@@ -130,7 +130,8 @@ class SipMod(Sip):
   center: np.ndarray
 
   def __post_init__(self):
-    assert self.center.size == 2
+    assert self.center.size == 2, \
+      'The center position should have two elements.'
     self.center = self.center.flatten()
 
 
@@ -156,9 +157,11 @@ class __BaseSipDistortion(object):
       x1 = x0 + (p0-self.apply(x0))
       f,d,x0 = d,np.square(x1-x0).mean(),x1
       if d < 1e-24: break
-      if f/d < 1.0: break
+      if abs(1-f/d) < 1e-3 and d < 1e-16: break
+      assert np.isfinite(d), \
+        'Floating value overflow detected.'
     else:
-      raise RuntimeError('Iteration not converged.')
+      raise RuntimeError(f'Iteration not converged ({d})')
     return x0
 
   def __solve__(self, position: np.ndarray):
