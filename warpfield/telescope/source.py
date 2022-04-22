@@ -68,7 +68,8 @@ def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
 
     res = Gaia.launch_job_async(query)
 
-    if __debug_mode__ is True: print(res)
+    if __debug_mode__ is True:
+        print(res)
 
     record = res.get_results()
     epoch = Time(record['ref_epoch'].data, format='decimalyear')
@@ -112,21 +113,21 @@ def display_sources(pointing, sources, **options):
     title = options.pop('title', None)
     marker = options.pop('marker', 'x')
     fig = plt.figure(figsize=(8, 8))
-    ax = fig.add_subplot(111, projection=proj)
-    ax.set_aspect(1.0)
-    ax.set_position([0.13, 0.10, 0.85, 0.85])
-    ax.scatter(get_lon(sources),
+    axis = fig.add_subplot(111, projection=proj)
+    axis.set_aspect(1.0)
+    axis.set_position([0.13, 0.10, 0.85, 0.85])
+    axis.scatter(get_lon(sources),
                get_lat(sources),
-               transform=ax.get_transform(frame),
+               transform=axis.get_transform(frame),
                marker=marker,
                label=title,
                **options)
-    ax.grid()
+    axis.grid()
     if title is not None:
-        ax.legend(bbox_to_anchor=[1, 1], loc='lower right', frameon=False)
-    ax.set_xlabel(xlabel, fontsize=14)
-    ax.set_ylabel(ylabel, fontsize=14)
-    return fig, ax
+        axis.legend(bbox_to_anchor=[1, 1], loc='lower right', frameon=False)
+    axis.set_xlabel(xlabel, fontsize=14)
+    axis.set_ylabel(ylabel, fontsize=14)
+    return fig, axis
 
 
 def display_gaia_sources(pointing, radius=0.1):
