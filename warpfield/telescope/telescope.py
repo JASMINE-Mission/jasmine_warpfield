@@ -83,12 +83,13 @@ class Optics:
         ''' block sources outside the field of view
 
         Arguments:
-          position (ndarray): source positions on the focal plane w/o distortion.
+          position (ndarray):
+              Source positions on the focal plane w/o distortion.
 
         Returns:
-          A boolean array to indicate which sources are inside the field-of-view.
+          A boolean array, where True if a source is lcated inside the field-of-view.
         '''
-        mp = MultiPoint(position.T)
+        mp = MultiPoint(position.reshape((-1,2)))
         polygon = prep(self.field_of_view.buffer(self.margin.to_value(u.um)))
         return np.array([not polygon.contains(p) for p in mp.geoms])
 
@@ -100,9 +101,12 @@ class Optics:
           epoch (Time): the epoch of the observation.
 
         Returns:
-          A `DataFrame` instance. The DataFrame contains four columns: the "x" and
-          "y" columns are the positions on the focal plane in micron, and the "ra"
-          and "dec" columns are the original celestial positions in the ICRS frame.
+          A `DataFrame` instance.
+          The DataFrame contains four columns: the "x" and "y" columns are
+          the positions on the focal plane in micron, and the "ra" and "dec"
+          columns are the original celestial positions in the ICRS frame.
+          The "blocked" column indicates if the sources are located within
+          the field of view or not.
         '''
         try:
             if epoch is not None:
@@ -116,23 +120,20 @@ class Optics:
         icrs = sources.transform_to('icrs')
         xyz = icrs.cartesian.xyz
         r = Rotation.from_euler('zyx', -self.pointing_angle)
-        pqr = r.as_matrix() @ xyz
-        if pqr.ndim == 1:
-            pqr = np.expand_dims(pqr, axis=1)
+        pqr = np.atleast_2d(r.as_matrix() @ xyz)
         obj = SkyCoord(pqr.T, obstime=epoch,
                        representation_type='cartesian').transform_to('icrs')
         obj.representation_type = 'spherical'
         proj = get_projection(self.center, self.scale.to_value())
         pos = np.array(obj.to_pixel(proj, origin=0))
-        blocked = self.block(pos)
-        pos = self.distortion(pos)
+        pos = self.distortion(pos.copy())
 
         return pd.DataFrame({
             'x': pos[0],
             'y': pos[1],
             'ra': icrs.ra,
             'dec': icrs.dec,
-            'blocked': blocked
+            'blocked': self.block(pos)
         })
 
 
