@@ -170,12 +170,12 @@ class Detector:
     @property
     def xrange(self):
         ''' the x-axis range of the detector '''
-        return np.array((-self.width / 2, self.width / 2))
+        return np.array((-self.naxis1 / 2, self.naxis1 / 2))
 
     @property
     def yrange(self):
         ''' the y-axis range of the detector '''
-        return np.array((-self.height / 2, self.height / 2))
+        return np.array((-self.naxis2 / 2, self.naxis2 / 2))
 
     @property
     def detector_origin(self):
@@ -215,25 +215,25 @@ class Detector:
         y4 = y0 - (+self.width * s - self.height * c) / 2
         return Polygon(([x1, y1], [x2, y2], [x3, y3], [x4, y4]))
 
-    def align(self, x, y):
+    def align(self, position):
         ''' align the source position to the detector
 
         Arguments:
-          x (Series): the x-coordinates on the focal plane.
-          y (Series): the y-coordinates on the focal plane.
+          position (DataFrame): the xy-coordinates on the focal plane.
 
         Returns:
-          The tuple of the x- and y-positions of the sources, which are remapped
-          onto the detector coordinates.
+          A numpy array of the xy-positions of the sources,
+          which are remapped onto the detector coordinates.
         '''
+        x,y = position.x, position.y
         c = np.cos(-self.position_angle.rad)
         s = np.sin(-self.position_angle.rad)
         dx = x - self.offset_dx.to_value(u.um)
         dy = y - self.offset_dy.to_value(u.um)
-        return (
+        return np.stack([
             (c * dx - s * dy) / self.pixel_scale,
             (s * dx + c * dy) / self.pixel_scale,
-        )
+        ]).T
 
     def capture(self, position):
         ''' calculate the positions of the sources on the detector
@@ -250,13 +250,13 @@ class Detector:
           The "x" and "y" columns are the positions on each detector. The "ra"
           and "dec" columns are the original positions in the ICRS frame.
         '''
-        x, y = self.align(position.x, position.y)
-        x, y = self.displacement(x, y)
-        position.x = x
-        position.y = y
+        xy = self.align(position)
+        xy = self.displacement(xy)
+        position.x = xy[:,0]
+        position.y = xy[:,1]
         bf = ~position.blocked
-        xf = ((self.xrange[0] < x) & (x < self.xrange[1]))
-        yf = ((self.yrange[0] < y) & (y < self.yrange[1]))
+        xf = ((self.xrange[0] < position.x) & (position.x < self.xrange[1]))
+        yf = ((self.yrange[0] < position.y) & (position.y < self.yrange[1]))
         return position.loc[xf & yf & bf, :]
 
 
@@ -334,8 +334,8 @@ class Telescope:
         field_of_view = self.optics.field_of_view
         for d in self.detectors:
             fp = field_of_view.intersection(
-                d.footprint) if limit else d.footprint
-            edge = np.array(fp.boundary.coords[0:-1])
+                d.footprint_as_polygon) if limit else d.footprint_as_polygon
+            edge = np.array(fp.boundary.coords)[0:-1]
             p0 = np.tile([l0.deg, b0.deg], edge.shape[0])
             func = generate(edge)
             res = least_squares(func, p0)
@@ -367,8 +367,8 @@ class Telescope:
         label = options.pop('label', None)
         color = options.pop('color', 'C2')
         frame = options.pop('frame', self.pointing.frame.name)
-        if isinstance(axis, WCSAxesSubplot):
-            options['tranform'] = axis.get_transform(frame)
+        if hasattr(axis, 'get_transform'):
+            options['transform'] = axis.get_transform(frame)
         for footprint in self.get_footprints(frame=frame, **options):
             v = np.array(footprint.boundary.coords)
             axis.plot(v[:, 0], v[:, 1], c=color, label=label, **options)
@@ -409,7 +409,7 @@ class Telescope:
             position = self.optics.imaging(sources, epoch)
             axis.scatter(position.x, position.y, markersize, marker=marker)
         for d in self.detectors:
-            axis.add_patch(d.patch)
+            axis.add_patch(d.footprint_as_patch)
         axis.autoscale_view()
         axis.grid()
         axis.set_xlabel(r'Displacement on the focal plane ($\mu$m)',

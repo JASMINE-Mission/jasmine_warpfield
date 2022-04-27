@@ -14,17 +14,21 @@ from .telescope import Optics, Detector, Telescope
 from .telescope import identity_transformation
 
 
-def octagonal_mask():
-    c45 = np.cos(np.pi / 4)
+def square_mask():
     side = (1920 * 10 * u.um + 1.5 * u.mm).to_value(u.um)
-    square = Polygon([
+    return Polygon([
         [-side, -side],
         [+side, -side],
         [+side, +side],
         [-side, +side],
     ])
+
+
+def octagonal_mask():
+    c45 = np.cos(np.pi / 4)
+    square = square_mask()
     affine_matrix = 1.0225 * np.array([c45, -c45, c45, c45, 0, 0])
-    return affine_transform(square, affine_matrix)
+    return square.intersection(affine_transform(square, affine_matrix))
 
 
 def get_jasmine( \
@@ -46,11 +50,11 @@ def get_jasmine( \
     optics = Optics( \
       pointing,
       position_angle,
-      focal_length = 4.86*u.m,
-      diameter     = 0.4*u.m,
-      valid_region = square.intersection(octagonal_mask()) if octagonal else square,
-      margin       = 5000*u.um,
-      distortion   = distortion)
+      focal_length  = 4.86*u.m,
+      diameter      = 0.4*u.m,
+      field_of_view = octagonal_mask() if octagonal else square_mask(),
+      margin        = 5000*u.um,
+      distortion    = distortion)
 
     arr = np.array([-1, 1]) * (1920 * 5 * u.um + 1.5 * u.mm)
     xx, yy = np.meshgrid(arr, arr)
