@@ -3,4 +3,4 @@
 """ warpfield: JASMINE image stitching experiment module """
 
 from warpfield import telescope as telescope
-from warpfield import solver as solver
+from warpfield import analysis as analysis
