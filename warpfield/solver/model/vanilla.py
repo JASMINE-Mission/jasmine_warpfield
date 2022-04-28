@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" vanilla model """
+""" Vanilla model """
 
 import jax.numpy as jnp
 import numpy as np
@@ -14,7 +14,7 @@ from ..projection.gnomonic import projection
 
 
 def generate(source, reference, params={}):
-    """ generate model and guide functions
+    """ Generate model and guide functions
 
 
     This function generates model and guide functions for inference
@@ -22,30 +22,30 @@ def generate(source, reference, params={}):
     should contains the following columns:
 
       source:
-        x: x-coordinates of sources on the focal plane in mm.
-        y: y-coordinates of sources on the focal plane in mm.
-        object_id: unique ID numbers of objects.
+        x: X-coordinates on the focal plane in mm.
+        y: Y-coordinates on the focal plane in mm.
+        object_id: Unique ID numbers of objects.
         plate_id: ID numbers of observation plates (pointings).
 
     The reference table should contains the folloinwg columns:
 
       reference:
-        object_id: unique ID numbers of objects.
-        ra: right acensions of objects in degree.
-        dec: declinations of objects in degree.
-        sig: positional uncertainty in degree.
+        object_id: Unique ID numbers of objects.
+        ra: Right acensions of objects in degree.
+        dec: Declinations of objects in degree.
+        sig: Positional uncertainty in degree.
 
 
     Arguments:
-      source: pandas DataFrame of measurements.
-      reference: pandas DataFrame of reference stars.
-      params: dictionary of the initial condition.
+      source: A pandas DataFrame of measurements.
+      reference: A pandas DataFrame of reference stars.
+      params: A dictionary of the initial condition.
 
     Returns:
-      a function pair (model, guide) is generated.
+      A function pair (model, guide) is generated.
 
-        model: the obervation model function.
-        guide: a guide function for SVI.
+        model: The obervation model function.
+        guide: A guide function for SVI.
 
     """
     T = source.shape[0]
