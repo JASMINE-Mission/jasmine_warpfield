@@ -3,10 +3,12 @@
 """ Distortion function defined by the SIP convention """
 
 from jax.lax import scan
+from jax import jit
 import jax.numpy as jnp
+import numpy as np
 
 
-def polymap(coeff, xy):
+def _polymap(coeff, xy):
     """ Calculate a two-dimensional polynomical expansion
 
     Arguments:
@@ -33,8 +35,10 @@ def polymap(coeff, xy):
     _, pq = scan(inner, [len(coeff) - 1, 0], coeff)
     return pq.sum(axis=0)
 
+polymap = jit(_polymap)
 
-def distortion(sip_a, sip_b, xy):
+
+def _distortion(sip_a, sip_b, xy):
     """ Distort the coordinates using the SIP coefficients
 
     The SIP coefficients sip_a and sip_b should contains 18 coefficients.
@@ -53,7 +57,7 @@ def distortion(sip_a, sip_b, xy):
     Returns:
       Distorted coordinates on the focal plane.
     """
-    scale = jnp.exp(
+    scale = np.exp(
         -np.log(10) * 4 *
         np.array([2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]))
     sip_a *= scale
@@ -63,3 +67,20 @@ def distortion(sip_a, sip_b, xy):
     dy = polymap(sip_b[0:3], xy) + polymap(sip_b[3:7], xy) \
       + polymap(sip_b[7:12], xy) + polymap(sip_b[12:18], xy)
     return xy + jnp.stack([dx, dy]).T
+
+distortion = jit(_distortion)
+
+
+if __name__ == '__main__':
+    from timeit import timeit
+
+    x = jnp.linspace(-1, 1, 101)
+    xy = jnp.stack([x, x]).T
+    c = jnp.array([0.0, 0.0, 0.4])
+
+    print(timeit(lambda: polymap(c, xy), number=100))
+
+    sip_a = jnp.zeros(18)
+    sip_b = jnp.zeros(18)
+
+    print(timeit(lambda: distortion(sip_a, sip_b, xy), number=100))
