@@ -7,6 +7,7 @@ import numpy as np
 
 
 class BaseDistortion:
+
     def __call__(self, position: np.ndarray):
         ''' Distortion function with SIP convention
 

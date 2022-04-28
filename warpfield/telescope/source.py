@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 
 from .util import get_projection
 
-
 __debug_mode__ = False
 
 
@@ -117,11 +116,11 @@ def display_sources(pointing, sources, **options):
     axis.set_aspect(1.0)
     axis.set_position([0.13, 0.10, 0.85, 0.85])
     axis.scatter(get_lon(sources),
-               get_lat(sources),
-               transform=axis.get_transform(frame),
-               marker=marker,
-               label=title,
-               **options)
+                 get_lat(sources),
+                 transform=axis.get_transform(frame),
+                 marker=marker,
+                 label=title,
+                 **options)
     axis.grid()
     if title is not None:
         axis.legend(bbox_to_anchor=[1, 1], loc='lower right', frameon=False)

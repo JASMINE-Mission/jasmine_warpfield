@@ -27,7 +27,7 @@ class Sip:
     B: np.ndarray
 
     def __post_init__(self):
-        self.center = np.array((0, 0)).reshape((2,1))
+        self.center = np.array((0, 0)).reshape((2, 1))
         assert self.order >= 0, \
           f'The polynomical order should be non-negative.'
         assert self.A.shape == (self.order+1,self.order+1), \
@@ -96,7 +96,7 @@ class AltSip(Sip):
     def __post_init__(self):
         assert self.center.size == 2, \
           'The center position should have two elements.'
-        self.center = np.array(self.center).reshape((2,1))
+        self.center = np.array(self.center).reshape((2, 1))
 
 
 class SipDistortion(Sip, BaseDistortion):
