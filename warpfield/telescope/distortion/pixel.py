@@ -1,3 +1,3 @@
 #!/usr/bin/env pythn
 # -*- coding: utf-8 -*-
-""" define pixel level distortions """
+""" Define pixel level distortions """

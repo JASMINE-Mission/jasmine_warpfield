@@ -85,23 +85,23 @@ class AltLegendre(Legendre):
 
 
 class LegendreDistortion(Legendre, BaseDistortion):
-    """ distortion function with the Legendre (simple imaging polynomical) convention
+    """ Distortion function with the Legendre polynomials
 
     Attributes:
       order (int):
-          The polynomial order of the Legendre convention.
+          The maximum order of the Legendre polynomials.
       A (ndarray):
-          The Legendre coefficient matrix for the x-coordinate.
+          The coefficient matrix for the x-coordinate.
           The shape of the matrix should be (order+1, order+1).
       B (ndarray):
-          The Legendre coefficient matrix for the y-coordinate.
+          The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
     """
     pass
 
 
 class AltLegendreDistortion(AltLegendre, BaseDistortion):
-    """ Distortion function with the displaced Legendre polynomials
+    """ Distortion function with the Legendre polynomials
 
     Attributes:
       order (int):

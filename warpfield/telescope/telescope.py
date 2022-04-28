@@ -1,6 +1,6 @@
 #!/usri/bin/env python
 # -*- coding: utf-8 -*-
-""" definition of Telescope class """
+""" Definition of Telescope class """
 
 import sys
 
@@ -27,16 +27,16 @@ from .distortion import identity_transformation
 
 @dataclass
 class Optics:
-    """ definition of optical components
+    """ Definition of optical components
 
     Attributes:
-      pointing (SkyCoord)    : the latitude of the telescope pointing.
-      position_angle (Angle) : the position angle of the telescope.
-      focal_length (Quantity): the focal length of the telescope in meter.
-      diameter (Quantity)    : the diameter of the telescope in meter.
-      field_of_view (Polygon) : the valid region of the focal plane.
-      margin (Quantity)      : the margin of the valid region (buffle).
-      distortion (function)  : a function to distort the focal plane image.
+      pointing (SkyCoord)    : The latitude of the telescope pointing.
+      position_angle (Angle) : The position angle of the telescope.
+      focal_length (Quantity): The focal length of the telescope in meter.
+      diameter (Quantity)    : The diameter of the telescope in meter.
+      field_of_view (Polygon) : The valid region of the focal plane.
+      margin (Quantity)      : The margin of the valid region (buffle).
+      distortion (function)  : A function to distort the focal plane image.
     """
     pointing: SkyCoord
     position_angle: Angle = Angle(0.0, unit='degree')
@@ -48,17 +48,17 @@ class Optics:
 
     @property
     def scale(self):
-        """ a conversion factor from sky to focal plane in degree/um """
+        """ A conversion factor from sky to focal plane in degree/um """
         return (1.0 * u.rad / self.focal_length).to(u.deg / u.um)
 
     @property
     def center(self):
-        """ a dummy position to defiine the center of the focal plane """
+        """ A dummy position to defiine the center of the focal plane """
         return SkyCoord(0 * u.deg, 0 * u.deg, frame='icrs')
 
     @property
     def pointing_angle(self):
-        """ angles to define the pointing position and orientation """
+        """ Angles to define the pointing position and orientation """
         ## use the ICRS frame in calculation.
         icrs = self.pointing.icrs
         ## calculate position angle in the ICRS frame.
@@ -68,19 +68,19 @@ class Optics:
         return np.array((icrs.ra.rad, -icrs.dec.rad, position_angle))
 
     def set_distortion(self, distortion):
-        """ assign a distortion function
+        """ Assign a distortion function
 
         The argument of the distortion function should be a numpy.array with
         the shape of (2, Nsrc). The first element contains the x-positions,
         while the second element contains the y-positions.
 
         Arguments:
-          distortion (function): a function to distort focal plane image.
+          distortion (function): A function to distort focal plane image.
         """
         self.distortion = distortion
 
     def block(self, position):
-        """ block sources outside the field of view
+        """ Block sources outside the field of view
 
         Arguments:
           position (ndarray):
@@ -95,11 +95,11 @@ class Optics:
         return np.array([not polygon.contains(p) for p in mp.geoms])
 
     def imaging(self, sources, epoch=None):
-        """ map celestial positions onto the focal plane
+        """ Map celestial positions onto the focal plane
 
         Arguments:
-          sources (SkyCoord): the coordinates of sources.
-          epoch (Time): the epoch of the observation.
+          sources (SkyCoord): The coordinates of sources.
+          epoch (Time): The epoch of the observation.
 
         Returns:
           A `DataFrame` instance.
@@ -140,16 +140,16 @@ class Optics:
 
 @dataclass
 class Detector:
-    """ definition of a detector
+    """ Definition of a detector
 
     Attributes:
-      naxis1 (int)           : detector pixels along with NAXIS1.
-      naxis2 (int)           : detector pixels along with NAXIS2.
-      pixel_scale (Quantity) : nominal detector pixel scale.
-      offset_dx (Quantity)   : the offset along with the x-axis.
-      offset_dy (Quantity)   : the offste along with the y-axis.
-      position_angle (Angle) : the position angle of the detector.
-      displacement (function): a function to distort image.
+      naxis1 (int)           : The number of pixels along with NAXIS1.
+      naxis2 (int)           : The number of pixels along with NAXIS2.
+      pixel_scale (Quantity) : A nominal detector pixel scale.
+      offset_dx (Quantity)   : An offset along with the x-axis.
+      offset_dy (Quantity)   : An offste along with the y-axis.
+      position_angle (Angle) : A position angle of the detector.
+      displacement (function): A function to distort image.
     """
     naxis1: int = 4096
     naxis2: int = 4096
@@ -161,27 +161,27 @@ class Detector:
 
     @property
     def width(self):
-        """ the physical width of the detector """
+        """ The physical width of the detector """
         return self.naxis1 * self.pixel_scale.to_value(u.um)
 
     @property
     def height(self):
-        """ the physical height of the detector """
+        """ The physical height of the detector """
         return self.naxis2 * self.pixel_scale.to_value(u.um)
 
     @property
     def xrange(self):
-        """ the x-axis range of the detector """
+        """ The x-axis range (limits) of the detector """
         return np.array((-self.naxis1 / 2, self.naxis1 / 2))
 
     @property
     def yrange(self):
-        """ the y-axis range of the detector """
+        """ The y-axis range (limits) of the detector """
         return np.array((-self.naxis2 / 2, self.naxis2 / 2))
 
     @property
     def detector_origin(self):
-        """ returns the location of the lower left corner """
+        """ Returns the location of the lower left corner """
         c = np.cos(self.position_angle.rad)
         s = np.sin(self.position_angle.rad)
         x0 = self.offset_dx.to_value(u.um)
@@ -193,7 +193,7 @@ class Detector:
 
     @property
     def footprint_as_patch(self):
-        """ the footprint of the detector on the focal plane as a patch """
+        """ The focal-plane footprint as a patch """
         return Rectangle(self.detector_origin,
                          width=self.width,
                          height=self.height,
@@ -204,7 +204,7 @@ class Detector:
 
     @property
     def footprint_as_polygon(self):
-        """ the footprint of the detector on the focal plane """
+        """ The focal-plane footprint as a polygon """
         c, s = np.cos(self.position_angle.rad), np.sin(self.position_angle.rad)
         x0, y0 = self.offset_dx.to_value(u.um), self.offset_dy.to_value(u.um)
         x1 = x0 - (+self.width * c - self.height * s) / 2
@@ -218,10 +218,10 @@ class Detector:
         return Polygon(([x1, y1], [x2, y2], [x3, y3], [x4, y4]))
 
     def align(self, position):
-        """ align the source position to the detector
+        """ Align the source position to the detector
 
         Arguments:
-          position (DataFrame): the xy-coordinates on the focal plane.
+          position (DataFrame): The xy-coordinates on the focal plane.
 
         Returns:
           A numpy array of the xy-positions of the sources,
@@ -238,11 +238,11 @@ class Detector:
         ]).T
 
     def capture(self, position):
-        """ calculate the positions of the sources on the detector
+        """ Calculate the positions of the sources on the detector
 
         Arguments:
           position (DataFrame):
-              the positions of the sources on the focal plane. the "x" and "y"
+              The positions of the sources on the focal plane. the "x" and "y"
               columns are respectively the x- and y-positions of the sources
               in units of micron.
 
@@ -264,7 +264,7 @@ class Detector:
 
 @dataclass
 class Telescope:
-    """ an imaginary telescope instance
+    """ An imaginary telescope instance
 
     The `Telescope` class is composed of an `Optics` instance and a list of
     `Detector` instances. This instance organizes the alignment of the detectors
@@ -272,10 +272,10 @@ class Telescope:
     on the detectors.
 
     Attributes:
-      pointing (SkyCoord)
-      position_angle (Angle):
-      optics (Optics)
-      detectors (List of Detector)
+      pointing (SkyCoord)         : A pointing direction of the telescope.
+      position_angle (Angle)      : A position angle of the telescope.
+      optics (Optics)             : An optics.
+      detectors (List of Detector): A list of detectors.
     """
     pointing: SkyCoord = None
     position_angle: Angle = None
@@ -286,30 +286,35 @@ class Telescope:
         if self.optics is None:
             self.optics = Optics(self.pointing, self.position_angle)
         else:
+            assert self.pointing is None, \
+                'pointing and optics are given at the same time.'
             self.pointing = self.optics.pointing
             self.position_angle = self.optics.position_angle
         if self.detectors is None:
             self.detectors = [Detector()]
-        assert self.optics is not None
-        assert self.detectors is not None
+        assert self.optics is not None, 'no optics found'
+        assert self.detectors is not None, 'no detector found'
 
     def set_distortion(self, distortion):
-        """ set a distortion function to the optics
+        """ Set a distortion function to the optics
 
         See `Optics.set_distortion` for details.
 
         Arguments:
-          distortion (function): a function to distort focal plane image.
+          distortion (function): A function to distort focal plane image.
         """
         self.optics.set_distortion(distortion)
 
     def get_footprints(self, **options):
-        """ obtain detector footprints on the sky
+        """ Obtain detector footprints on the sky
 
         Options:
-          frame (string): specify the coordinate of the footprint.
-          limit (bool): limit the footprints within the valid region.
-          patch (bool): obtain PolygonPatch instead of Polygon.
+          frame (string):
+              Specify the coordinate of the footprint.
+          limit (bool):
+              Limit the footprints within the valid region if True.
+          patch (bool):
+              Obtain PolygonPatch instead of Polygon.
         """
         frame = options.pop('frame', self.pointing.frame.name)
         limit = options.pop('limit', True)
@@ -355,16 +360,16 @@ class Telescope:
         return footprints
 
     def overlay_footprints(self, axis, **options):
-        """ display the footprints on the given axis
+        """ Display the footprints on the given axis
 
         Arguments:
           axis (WCSAxesSubplot):
             An axis instance with a WCS projection.
 
         Options:
-          frame (string): the coodinate frame.
-          label (string): the label of the footprints.
-          color (Color): color of the footprint edges.
+          frame (string): The coodinate frame.
+          label (string): The label of the footprints.
+          color (Color): Color of the footprint edges.
         """
         label = options.pop('label', None)
         color = options.pop('color', 'C2')
@@ -381,20 +386,20 @@ class Telescope:
                             epoch=None,
                             axis=None,
                             **options):
-        """ display the layout of the detectors
+        """ Display the layout of the detectors
 
         Show the layout of the detectors on the focal plane. The detectors are
         illustrated by the red rectangles. If the `sources` are provided, the
         detectors are overlaid on the sources on the focal plane.
 
         Arguments:
-          sources (SkyCoord): the coordinates of astronomical sources.
-          epoch (Time)      : the observation epoch.
+          sources (SkyCoord): A list of astronomical sources.
+          epoch (Time)      : The observation epoch.
 
         Options:
-          figsize (tuple(int,int)): the figure size.
-          marker (string): marker style to show sources.
-          markersize (float): size of markers.
+          figsize (tuple(int,int)): The figure size.
+          marker (string): A marker style to show sources.
+          markersize (float): The size of markers.
         """
         markersize = options.pop('markersize', 1)
         marker = options.pop('marker', 'x')
@@ -421,14 +426,14 @@ class Telescope:
         if axis is None: fig.tight_layout()
 
     def observe(self, sources, epoch=None):
-        """ observe astronomical sources
+        """ Observe astronomical sources
 
         Map the sky coordinates of astronomical sources into the physical
         positions on the detectors of the telescope.
 
         Arguments:
-          sources (SkyCoord): a list of astronomical sources.
-          epoch (Time): the datetime of the observation.
+          sources (SkyCoord): A list of astronomical sources.
+          epoch (Time): The datetime of the observation.
 
         Returns:
           A numpy.ndarray with the shape of (N(detector), 2, N(source)).

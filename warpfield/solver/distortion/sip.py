@@ -1,31 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" distortion function defined by the SIP convention """
+""" Distortion function defined by the SIP convention """
 
 from jax.lax import scan
 import jax.numpy as jnp
 
 
 def polymap(coeff, xy):
-    """ calculate a two-dimensional polynomical expansion
+    """ Calculate a two-dimensional polynomical expansion
 
     Arguments:
-      coeff: coefficients of a polynomial expansion.
-      xy: original coordinates on the focal plane.
+      coeff: Coefficients of a polynomial expansion.
+      xy: Original coordinates on the focal plane.
 
     Returns:
-      (N,2) list of converted coordinates.
+      A (N,2) list of converted coordinates.
     """
 
     def inner(order, coeff):
-        """ inner function to calculate a polynomical expansion
+        """ Inner function to calculate a polynomical expansion
 
         Arguments:
-          order: (m,n) integer power index pair.
-          coeff: scale coefficient.
+          order: A (m,n) integer power index pair.
+          coeff: A scale coefficient.
 
         Returns:
-          calclated cordinates (p * x**m * y**n).
+          A list of calclated cordinates (p * x**m * y**n).
         """
         m, n = order
         return [m - 1, n + 1], coeff * xy[:, 0]**m * xy[:, 1]**n
@@ -35,7 +35,7 @@ def polymap(coeff, xy):
 
 
 def distortion(sip_a, sip_b, xy):
-    """ distort the coordinates using the SIP coefficients
+    """ Distort the coordinates using the SIP coefficients
 
     The SIP coefficients sip_a and sip_b should contains 18 coefficients.
     The coefficients do not contain the Affine-transformation term.
@@ -46,14 +46,16 @@ def distortion(sip_a, sip_b, xy):
     - elements 12-17: fifth order coefficients
 
     Arguments:
-      sip_a: 5th-order SIP coefficients.
-      sip_b: 5th-order SIP coefficients.
-      xy: coordinates on the focal plane.
+      sip_a: A list of 5th-order SIP coefficients for x-axis.
+      sip_b: A list of 5th-order SIP coefficients for y-axis.
+      xy: Original coordinates on the focal plane.
 
     Returns:
-      distorted coordinates on the focal plane.
+      Distorted coordinates on the focal plane.
     """
-    scale = jnp.exp(-np.log(10)*4*np.array([2,2,2,3,3,3,3,4,4,4,4,4,5,5,5,5,5,5]))
+    scale = jnp.exp(
+        -np.log(10) * 4 *
+        np.array([2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]))
     sip_a *= scale
     sip_b *= scale
     dx = polymap(sip_a[0:3], xy) + polymap(sip_a[3:7], xy) \

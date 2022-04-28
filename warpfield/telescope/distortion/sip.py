@@ -116,7 +116,7 @@ class SipDistortion(Sip, BaseDistortion):
 
 
 class AltSipDistortion(AltSip, BaseDistortion):
-    """ Distortion function with the displaced SIP convention
+    """ Distortion function with the SIP convention
 
     Attributes:
       order (int):

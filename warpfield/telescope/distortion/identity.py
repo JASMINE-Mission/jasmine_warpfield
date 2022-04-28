@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" define identity transformation for distortion """
+""" Define identity transformation for distortion """
 
 import numpy as np
 
