@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' warpfield telescope module
-'''
+""" warpfield telescope module
+"""
 
 from .util import get_projection
 from .source import retrieve_gaia_sources

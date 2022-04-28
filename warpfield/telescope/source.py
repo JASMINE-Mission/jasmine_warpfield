@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' handling astronomical sources '''
+""" handling astronomical sources """
 
 from astropy.coordinates import SkyCoord, Angle, Distance
 from astropy.time import Time
@@ -14,8 +14,8 @@ __debug_mode__ = False
 
 
 def gaia_query_builder(pointing, radius, snr_limit, catalog='gaiaedr3'):
-    ''' construct a query string '''
-    return f'''
+    """ construct a query string """
+    return f"""
     SELECT
         source_id,
         ra,
@@ -33,11 +33,11 @@ def gaia_query_builder(pointing, radius, snr_limit, catalog='gaiaedr3'):
           CIRCLE('ICRS', ra, dec, {radius.deg}))
     AND
         parallax_over_error > {snr_limit}
-    '''
+    """
 
 
 def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
-    ''' retrive sources around (lon, lat) from Gaia EDR3 catalog
+    """ retrive sources around (lon, lat) from Gaia EDR3 catalog
 
     Arguments:
       pointing (SkyCoord):
@@ -51,7 +51,7 @@ def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
 
     Return:
       A list of neighbour souces (SkyCoord).
-    '''
+    """
 
     ## Get an acceess to the Gaia TAP+.
     ##   - Set the target table to Gaia EDR3.
@@ -83,7 +83,7 @@ def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
 
 
 def display_sources(pointing, sources, **options):
-    ''' display sources around the specified coordinates
+    """ display sources around the specified coordinates
 
     Arguments:
       pointing (SkyCoord):
@@ -93,7 +93,7 @@ def display_sources(pointing, sources, **options):
 
     Returns:
       a tuble of (figure, axis).
-    '''
+    """
 
     proj = get_projection(pointing)
     frame = pointing.frame.name
@@ -130,7 +130,7 @@ def display_sources(pointing, sources, **options):
 
 
 def display_gaia_sources(pointing, radius=0.1):
-    ''' display Gaia EDR3 sources around the coordinate
+    """ display Gaia EDR3 sources around the coordinate
 
     Arguments:
       pointing (SkyCoord):
@@ -140,6 +140,6 @@ def display_gaia_sources(pointing, radius=0.1):
 
     Returns:
       a tuble of (figure, axis).
-    '''
+    """
     src = retrieve_gaia_sources(pointing, radius)
     return display_sources(pointing, src)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' miscellaneous tools
-'''
+""" miscellaneous tools
+"""
 
 from astropy.wcs import WCS
 
@@ -9,7 +9,7 @@ __debug_mode__ = False
 
 
 def get_projection(pointing, scale=1.0 / 3600., lhcs=True):
-    ''' Obtain the gnomonic projection instance.
+    """ Obtain the gnomonic projection instance.
 
     Arguments:
       pointing (SkyCoord):
@@ -22,7 +22,7 @@ def get_projection(pointing, scale=1.0 / 3600., lhcs=True):
 
     Returns:
       an object (astropy.wcs.WCS) for coordinate conversion.
-    '''
+    """
 
     # This projection instance is used to map celestrical coordinates onto
     # a telescope focal plane. The conversion function `SkyCoord.to_pixel()`
