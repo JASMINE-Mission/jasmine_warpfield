@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' define nominal JASMINE telescope design '''
+""" define nominal JASMINE telescope design """
 
 from typing import Callable, List
 from astropy.coordinates import SkyCoord, Angle
@@ -36,7 +36,7 @@ def get_jasmine( \
       position_angle: Angle,
       distortion: Callable = identity_transformation,
       octagonal: bool = False):
-    ''' obtain JASMINE telescope
+    """ obtain JASMINE telescope
 
     Arguments:
       pointing (SkyCoord):
@@ -46,7 +46,7 @@ def get_jasmine( \
 
     Returns:
       a telescope instance defined by the nominal JASMINE design.
-    '''
+    """
     optics = Optics( \
       pointing,
       position_angle,

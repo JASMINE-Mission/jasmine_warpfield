@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' distortion function defined by the SIP convention '''
+""" distortion function defined by the SIP convention """
 
 from jax.lax import scan
 import jax.numpy as jnp
 
 
 def polymap(coeff, xy):
-    ''' calculate a two-dimensional polynomical expansion
+    """ calculate a two-dimensional polynomical expansion
 
     Arguments:
       coeff: coefficients of a polynomial expansion.
@@ -15,10 +15,10 @@ def polymap(coeff, xy):
 
     Returns:
       (N,2) list of converted coordinates.
-    '''
+    """
 
     def inner(order, coeff):
-        ''' inner function to calculate a polynomical expansion
+        """ inner function to calculate a polynomical expansion
 
         Arguments:
           order: (m,n) integer power index pair.
@@ -26,7 +26,7 @@ def polymap(coeff, xy):
 
         Returns:
           calclated cordinates (p * x**m * y**n).
-        '''
+        """
         m, n = order
         return [m - 1, n + 1], coeff * xy[:, 0]**m * xy[:, 1]**n
 
@@ -35,7 +35,7 @@ def polymap(coeff, xy):
 
 
 def distortion(sip_a, sip_b, xy):
-    ''' distort the coordinates using the SIP coefficients
+    """ distort the coordinates using the SIP coefficients
 
     The SIP coefficients sip_a and sip_b should contains 18 coefficients.
     The coefficients do not contain the Affine-transformation term.
@@ -52,7 +52,7 @@ def distortion(sip_a, sip_b, xy):
 
     Returns:
       distorted coordinates on the focal plane.
-    '''
+    """
     scale = jnp.exp(-np.log(10)*4*np.array([2,2,2,3,3,3,3,4,4,4,4,4,5,5,5,5,5,5]))
     sip_a *= scale
     sip_b *= scale

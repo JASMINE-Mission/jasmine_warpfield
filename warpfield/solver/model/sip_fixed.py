@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' fixed SIP-distortion model '''
+""" fixed SIP-distortion model """
 
 import jax.numpy as jnp
 import numpy as np
@@ -14,7 +14,7 @@ from ..projection.gnomonic import projection
 
 
 def generate(source, reference, params={}):
-    ''' generate model and guide functions
+    """ generate model and guide functions
 
 
     This function generates model and guide functions for inference
@@ -47,7 +47,7 @@ def generate(source, reference, params={}):
         model: the obervation model function.
         guide: a guide function for SVI.
 
-    '''
+    """
     T = source.shape[0]
     N = source.plate_id.unique().size
     M = reference.shape[0]

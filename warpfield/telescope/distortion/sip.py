@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Define distortion function by the SIP convention '''
+""" Define distortion function by the SIP convention """
 
 from dataclasses import dataclass, field
 from .base import BaseDistortion
@@ -9,7 +9,7 @@ import numpy as np
 
 @dataclass
 class Sip:
-    ''' SIP (simple imaging polynomical) convention
+    """ SIP (simple imaging polynomical) convention
 
     Attributes:
       order (int):
@@ -20,7 +20,7 @@ class Sip:
       B (ndarray):
           The SIP coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
-    '''
+    """
     order: int
     center: np.ndarray = field(init=False)
     A: np.ndarray
@@ -36,12 +36,12 @@ class Sip:
           f'The shape of B matris should be ({self.order+1}, {self.order+1}).'
 
     def normalize(self, position: np.ndarray):
-        ''' Normalize position '''
+        """ Normalize position """
         position = position.copy()
         return position - self.center
 
     def apply(self, position: np.ndarray):
-        ''' Modify xy-coordinates with the SIP function
+        """ Modify xy-coordinates with the SIP function
 
         Arguments:
           position (ndarray):
@@ -50,7 +50,7 @@ class Sip:
 
         Returns:
           An ndarray instance contains modified coordinates.
-        '''
+        """
         N = position.shape[1]
         x, y = self.normalize(position)
 
@@ -77,7 +77,7 @@ class Sip:
 
 @dataclass
 class AltSip(Sip):
-    ''' SIP convention with the displaed distortion center
+    """ SIP convention with the displaed distortion center
 
     Attributes:
       order (int):
@@ -90,7 +90,7 @@ class AltSip(Sip):
       B (ndarray):
           The SIP coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
-    '''
+    """
     center: np.ndarray
 
     def __post_init__(self):
@@ -100,7 +100,7 @@ class AltSip(Sip):
 
 
 class SipDistortion(Sip, BaseDistortion):
-    ''' Distortion function with the SIP convention
+    """ Distortion function with the SIP convention
 
     Attributes:
       order (int):
@@ -111,12 +111,12 @@ class SipDistortion(Sip, BaseDistortion):
       B (ndarray):
           The SIP coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
-    '''
+    """
     pass
 
 
 class AltSipDistortion(AltSip, BaseDistortion):
-    ''' Distortion function with the displaced SIP convention
+    """ Distortion function with the displaced SIP convention
 
     Attributes:
       order (int):
@@ -129,5 +129,5 @@ class AltSipDistortion(AltSip, BaseDistortion):
       B (ndarray):
           The SIP coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
-    '''
+    """
     pass
