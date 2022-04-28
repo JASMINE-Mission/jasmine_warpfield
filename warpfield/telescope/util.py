@@ -5,7 +5,6 @@
 
 from astropy.wcs import WCS
 
-
 __debug_mode__ = False
 
 

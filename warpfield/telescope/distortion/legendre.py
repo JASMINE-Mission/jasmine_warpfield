@@ -29,7 +29,7 @@ class Legendre:
     scale: float = 30000.
 
     def __post_init__(self):
-        self.center = np.array((0, 0)).reshape((2,1))
+        self.center = np.array((0, 0)).reshape((2, 1))
         assert self.order >= 0, \
           f'The polynomical order should be non-negative.'
         assert self.A.shape == (self.order+1,self.order+1), \
@@ -39,7 +39,7 @@ class Legendre:
 
     def normalize(self, position: np.ndarray):
         ''' Normalize position '''
-        return (position.copy()-self.center)/self.scale
+        return (position.copy() - self.center) / self.scale
 
     def apply(self, position: np.ndarray):
         ''' Modify xy-coordinates with the Legendre polynomial function
@@ -81,7 +81,7 @@ class AltLegendre(Legendre):
     def __post_init__(self):
         assert self.center.size == 2, \
           'The center position should have two elements.'
-        self.center = self.center.reshape((2,1))
+        self.center = self.center.reshape((2, 1))
 
 
 class LegendreDistortion(Legendre, BaseDistortion):

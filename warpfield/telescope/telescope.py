@@ -87,9 +87,10 @@ class Optics:
               Source positions on the focal plane w/o distortion.
 
         Returns:
-          A boolean array, where True if a source is lcated inside the field-of-view.
+          A boolean array, where True if a source is located inside
+          the field-of-view.
         '''
-        mp = MultiPoint(position.reshape((-1,2)))
+        mp = MultiPoint(position.reshape((-1, 2)))
         polygon = prep(self.field_of_view.buffer(self.margin.to_value(u.um)))
         return np.array([not polygon.contains(p) for p in mp.geoms])
 
@@ -226,7 +227,7 @@ class Detector:
           A numpy array of the xy-positions of the sources,
           which are remapped onto the detector coordinates.
         '''
-        x,y = position.x, position.y
+        x, y = position.x, position.y
         c = np.cos(-self.position_angle.rad)
         s = np.sin(-self.position_angle.rad)
         dx = x - self.offset_dx.to_value(u.um)
@@ -253,8 +254,8 @@ class Detector:
         '''
         xy = self.align(position)
         xy = self.displacement(xy)
-        position.x = xy[:,0]
-        position.y = xy[:,1]
+        position.x = xy[:, 0]
+        position.y = xy[:, 1]
         bf = ~position.blocked
         xf = ((self.xrange[0] < position.x) & (position.x < self.xrange[1]))
         yf = ((self.yrange[0] < position.y) & (position.y < self.yrange[1]))
