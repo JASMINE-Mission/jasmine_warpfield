@@ -75,7 +75,7 @@ class Optics:
         while the second element contains the y-positions.
 
         Arguments:
-            distortion (function): A function to distort focal plane image.
+          distortion (function): A function to distort focal plane image.
         """
         self.distortion = distortion
 
@@ -83,12 +83,12 @@ class Optics:
         """ Block sources outside the field of view
 
         Arguments:
-            position (ndarray):
-                Source positions on the focal plane w/o distortion.
+          position (ndarray):
+              Source positions on the focal plane w/o distortion.
 
         Returns:
-            A boolean array, where True if a source is located inside
-            the field-of-view.
+          A boolean array, where True if a source is located inside
+          the field-of-view.
         """
         mp = MultiPoint(position.reshape((2, -1)).T)
         polygon = prep(self.field_of_view.buffer(self.margin.to_value(u.um)))
@@ -98,14 +98,14 @@ class Optics:
         """ Map celestial positions onto the focal plane
 
         Arguments:
-            sources (SkyCoord): The coordinates of sources.
-            epoch (Time): The epoch of the observation.
+          sources (SkyCoord): The coordinates of sources.
+          epoch (Time): The epoch of the observation.
 
         Returns:
-            A `DataFrame` instance.
-            The DataFrame contains four columns: the "x" and "y" columns are
-            the positions on the focal plane in micron, and the "ra" and "dec"
-            columns are the original celestial positions in the ICRS frame.
+          A `DataFrame` instance.
+          The DataFrame contains four columns: the "x" and "y" columns are
+          the positions on the focal plane in micron, and the "ra" and "dec"
+          columns are the original celestial positions in the ICRS frame.
         """
         try:
             if epoch is not None:
@@ -141,13 +141,13 @@ class Detector:
     """ Definition of a detector
 
     Attributes:
-        naxis1 (int)           : The number of pixels along with NAXIS1.
-        naxis2 (int)           : The number of pixels along with NAXIS2.
-        pixel_scale (Quantity) : A nominal detector pixel scale.
-        offset_dx (Quantity)   : An offset along with the x-axis.
-        offset_dy (Quantity)   : An offste along with the y-axis.
-        position_angle (Angle) : A position angle of the detector.
-        displacement (function): A function to distort image.
+      naxis1 (int)           : The number of pixels along with NAXIS1.
+      naxis2 (int)           : The number of pixels along with NAXIS2.
+      pixel_scale (Quantity) : A nominal detector pixel scale.
+      offset_dx (Quantity)   : An offset along with the x-axis.
+      offset_dy (Quantity)   : An offste along with the y-axis.
+      position_angle (Angle) : A position angle of the detector.
+      displacement (function): A function to distort image.
     """
     naxis1: int = 4096
     naxis2: int = 4096
