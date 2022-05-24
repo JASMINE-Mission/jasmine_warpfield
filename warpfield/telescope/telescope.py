@@ -125,8 +125,8 @@ class Optics:
         obj.representation_type = 'spherical'
         proj = get_projection(self.center, self.scale.to_value())
         pos = np.array(obj.to_pixel(proj, origin=0))
-        pos = self.distortion(pos.copy())
         blocked = self.block(pos)
+        pos = self.distortion(pos.copy())
 
         return pd.DataFrame({
             'x': pos[0][~blocked],
