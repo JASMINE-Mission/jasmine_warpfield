@@ -82,7 +82,7 @@ def _legval2d(x, y, c):
       An evaluation of Legendre polynomial expansion.
     """
     c = jnp.atleast_2d(c)
-    return val2d(legval, c, x, y)
+    return val2d(legval, c, y, x)
 
 
 legval2d = jit(_legval2d)
