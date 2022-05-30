@@ -170,7 +170,7 @@ def generate(fields, catalog, plate, filename):
 
 
 if __name__ == '__main__':
-    parser = ap(description='Generate Level-1 challenges')
+    parser = ap(description='Generate baseline challenges')
     parser.add_argument('--catalog',
                         type=str,
                         default='source_list.txt',
@@ -184,5 +184,5 @@ if __name__ == '__main__':
 
     plate = 1
     catalog = args.catalog
-    filename = f'level2_challenge.txt'
+    filename = f'baseline.txt'
     generate(fields, catalog, plate, filename)
