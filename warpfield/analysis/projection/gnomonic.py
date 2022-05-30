@@ -64,7 +64,7 @@ def gnomonic(tel_ra, tel_dec, tel_pa, ra, dec, scale):
     ra = degree_to_radian(ra)
     dec = degree_to_radian(dec)
     X, Y = gnomonic_conversion(tel_ra, tel_dec, ra, dec)
-    return (rotation_matrix(tel_pa) @ jnp.stack([X, Y])).T * scale
+    return (rotation_matrix(-tel_pa) @ jnp.stack([X, Y])).T * scale
 
 
 projection = vmap(gnomonic, (0, 0, 0, 0, 0, 0), 0)
