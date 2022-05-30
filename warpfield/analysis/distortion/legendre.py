@@ -92,7 +92,7 @@ def _map_coeff_5th(c):
     """ Convert 18-element coefficient array into a 6x6 matrix """
 
     # coeff :  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
-    # matrix:  2  7 12  3  8 13 18  4  9 14 19 24  5 10 15 20 25 30
+    # matrix: 12  7  2 18 18  8  3 24 19 14  9  4 30 25 20 15 10  5
 
     #  0  1  2  3  4  5
     #  6  7  8  9 10 11
