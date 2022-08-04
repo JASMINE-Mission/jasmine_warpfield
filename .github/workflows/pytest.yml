@@ -19,6 +19,9 @@ jobs:
     - name: get dependencies
       uses: ./.github/actions/get_dependencies
 
+    - name: build package
+      uses: ./.github/actions/build
+
     - name: test
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

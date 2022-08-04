@@ -3,7 +3,7 @@ runs:
   steps:
     - name: Test with pytest
       env:
-        BRANCH: ${{ github.ref_name}}
+        BRANCH: ${{ github.ref_name }}
       id: pytest
       continue-on-error: true
       run: |
