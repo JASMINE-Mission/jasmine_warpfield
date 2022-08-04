@@ -6,7 +6,7 @@ import os,sys,re
 
 
 with open('README.md', 'r') as fd:
-  version = '0.9.21'
+  version = '0.9.22'
   author = 'Ryou Ohsawa'
   email = 'ohsawa@ioa.s.u-tokyo.ac.jp'
   description = 'An experimental code to simulate a warped focal plane for small-JASMINE.'
@@ -33,6 +33,8 @@ dependencies = [
   'matplotlib>=3.3',
   'shapely>=1.6.4',
   'descartes>=1.1.0',
+  'jax>=0.3',
+  'jaxlib>=0.3',
 ]
 
 if __name__ == '__main__':
