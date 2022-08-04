@@ -1,6 +1,6 @@
+/build
+/dist
 __pycache__
 .ipynb_checkpoints
-build
-dist
-*.egg-info
+/*.egg-info
 *.pkl
