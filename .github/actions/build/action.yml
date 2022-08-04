@@ -1,0 +1,7 @@
+runs:
+  using: "Composite"
+  steps:
+    - name: Build Package
+      run: |
+        python setup.py install
+      shell: bash
