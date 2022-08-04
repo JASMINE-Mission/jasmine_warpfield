@@ -8,9 +8,7 @@ runs:
       continue-on-error: true
       run: |
         python -m pip install pytest pytest-html pytest-cov
-        pushd src
-        python -m pytest ../tests --cov=. --cov-report xml
-        popd
+        python -m pytest ./tests --cov=. --cov-report xml
       shell: bash
 
     - name: Send Coverage Report to CodeClimate
@@ -20,7 +18,7 @@ runs:
         CC_TEST_REPORTER_ID: ${{ env.CC_TEST_REPORTER_ID }}
       with:
         debug: false
-        coverageLocations: src/coverage.xml:coverage.py
+        coverageLocations: coverage.xml:coverage.py
 
     - name: Notice Error
       if: ${{ steps.pytest.outcome == 'failure' }}
