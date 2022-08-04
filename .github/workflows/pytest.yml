@@ -16,13 +16,6 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: debug
-      run: |
-        pwd
-        ls .github
-        ls -R .github
-      shell: bash
-
     - name: get dependencies
       uses: ./.github/actions/get_dependencies
 
