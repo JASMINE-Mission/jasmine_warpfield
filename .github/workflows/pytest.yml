@@ -1,0 +1,26 @@
+name: pytest
+
+on:
+  push:
+  pull_request:
+    branches: [ "master", "develop" ]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+
+    - name: get dependencies
+      uses: ./.github/actions/get_dependencies
+
+    - name: test
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      uses: ./.github/actions/test
