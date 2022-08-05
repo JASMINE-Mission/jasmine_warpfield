@@ -1,30 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Define distortion function by the SIP convention '''
+''' Define distortion function by the Legendre polynomials '''
 
 from dataclasses import dataclass, field
 from .base import BaseDistortion
+from numpy.polynomial.legendre import legval2d
 import numpy as np
 
 
 @dataclass
-class Sip:
-    ''' SIP (simple imaging polynomical) convention
+class Legendre:
+    ''' Displacement function by the Legendre polynomials
 
     Attributes:
       order (int):
-          The polynomial order of the SIP convention.
+          The polynomial order of the Legendre convention.
       A (ndarray):
-          The SIP coefficient matrix for the x-coordinate.
+          The coefficient matrix for the x-coordinate.
           The shape of the matrix should be (order+1, order+1).
       B (ndarray):
-          The SIP coefficient matrix for the y-coordinate.
+          The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
     '''
     order: int
     center: np.ndarray = field(init=False)
     A: np.ndarray
     B: np.ndarray
+    scale: float = 30000.
 
     def __post_init__(self):
         self.center = np.array((0, 0)).reshape((2, 1))
@@ -37,58 +39,42 @@ class Sip:
 
     def normalize(self, position: np.ndarray):
         ''' Normalize position '''
-        position = position.copy()
-        return position - self.center
+        return (position.copy() - self.center) / self.scale
 
     def apply(self, position: np.ndarray):
-        ''' Modify xy-coordinates with the SIP function
+        ''' Modify xy-coordinates with the Legendre polynomial function
 
         Arguments:
           position (ndarray):
-              An array contains the list of coordinates. The shape of the array
-              should be (2, Nsrc), where Nsrc is the number of sources.
+              An array contains the list of coordinates.
+              The shape of the array should be (2, Nsrc), where Nsrc is
+              the number of sources.
 
         Returns:
           An ndarray instance contains modified coordinates.
         '''
-        N = position.shape[1]
         x, y = self.normalize(position)
 
-        dx = np.zeros_like(x)
-        tmp = np.zeros((self.order + 1, N))
-        for m in np.arange(self.order + 1):
-            n = self.order + 1 - m
-            tmp[m] = np.sum([self.A[m, i] * y**i for i in np.arange(n)],
-                            axis=0)
-        for m in np.arange(self.order + 1):
-            dx += tmp[m] * x**m
-
-        dy = np.zeros_like(x)
-        tmp = np.zeros((self.order + 1, N))
-        for m in np.arange(self.order + 1):
-            n = self.order + 1 - m
-            tmp[m] = np.sum([self.B[m, i] * y**i for i in np.arange(n)],
-                            axis=0)
-        for m in np.arange(self.order + 1):
-            dy += tmp[m] * x**m
+        dx = legval2d(x, y, self.A)
+        dy = legval2d(x, y, self.B)
 
         return position + np.stack((dx, dy))
 
 
 @dataclass
-class AltSip(Sip):
-    ''' SIP convention with the displaed distortion center
+class AltLegendre(Legendre):
+    ''' Displacement function by the Legendre polynomials
 
     Attributes:
       order (int):
-          The polynomial order of the SIP convention.
+          The polynomial order of the Legendre convention.
       center (ndarray):
           The distortion center.
       A (ndarray):
-          The SIP coefficient matrix for the x-coordinate.
+          The coefficient matrix for the x-coordinate.
           The shape of the matrix should be (order+1, order+1).
       B (ndarray):
-          The SIP coefficient matrix for the y-coordinate.
+          The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
     '''
     center: np.ndarray
@@ -96,38 +82,38 @@ class AltSip(Sip):
     def __post_init__(self):
         assert self.center.size == 2, \
           'The center position should have two elements.'
-        self.center = np.array(self.center).reshape((2, 1))
+        self.center = self.center.reshape((2, 1))
 
 
-class SipDistortion(Sip, BaseDistortion):
-    ''' Distortion function with the SIP convention
+class LegendreDistortion(Legendre, BaseDistortion):
+    ''' Distortion function with the Legendre polynomials
 
     Attributes:
       order (int):
-          The polynomial order of the SIP convention.
+          The maximum order of the Legendre polynomials.
       A (ndarray):
-          The SIP coefficient matrix for the x-coordinate.
+          The coefficient matrix for the x-coordinate.
           The shape of the matrix should be (order+1, order+1).
       B (ndarray):
-          The SIP coefficient matrix for the y-coordinate.
+          The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
     '''
     pass
 
 
-class AltSipDistortion(AltSip, BaseDistortion):
-    ''' Distortion function with the SIP convention
+class AltLegendreDistortion(AltLegendre, BaseDistortion):
+    ''' Distortion function with the Legendre polynomials
 
     Attributes:
       order (int):
-          The polynomial order of the SIP convention.
+          The maximum order of the Legendre polynomials.
       center (ndarray):
           The distortion center.
       A (ndarray):
-          The SIP coefficient matrix for the x-coordinate.
+          The coefficient matrix for the x-coordinate.
           The shape of the matrix should be (order+1, order+1).
       B (ndarray):
-          The SIP coefficient matrix for the y-coordinate.
+          The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
     '''
     pass

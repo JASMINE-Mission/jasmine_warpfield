@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' vanilla model '''
+''' Fixed SIP-distortion model '''
 
 import jax.numpy as jnp
 import numpy as np
@@ -9,12 +9,12 @@ from numpyro.distributions import constraints as c
 import numpyro.distributions as dist
 import numpyro
 
+from ..distortion.sip import distortion
 from ..projection.gnomonic import projection
 
 
-
 def generate(source, reference, params={}):
-    ''' generate model and guide functions
+    ''' Generate model and guide functions
 
 
     This function generates model and guide functions for inference
@@ -22,35 +22,36 @@ def generate(source, reference, params={}):
     should contains the following columns:
 
       source:
-        x: x-coordinates of sources on the focal plane in mm.
-        y: y-coordinates of sources on the focal plane in mm.
-        object_id: unique ID numbers of objects.
+        x: X-coordinates on the focal plane in mm.
+        y: Y-coordinates on the focal plane in mm.
+        object_id: Unique ID numbers of objects.
         plate_id: ID numbers of observation plates (pointings).
 
     The reference table should contains the folloinwg columns:
 
       reference:
-        object_id: unique ID numbers of objects.
-        ra: right acensions of objects in degree.
-        dec: declinations of objects in degree.
-        sig: positional uncertainty in degree.
+        object_id: Unique ID numbers of objects.
+        ra: Right acensions of objects in degree.
+        dec: Declinations of objects in degree.
+        sig: Positional uncertainties in degree.
 
 
     Arguments:
-      source: pandas DataFrame of measurements.
-      reference: pandas DataFrame of reference stars.
-      params: dictionary of the initial condition.
+      source: A pandas DataFrame of measurements.
+      reference: A pandas DataFrame of reference stars.
+      params: A dictionary of the initial condition.
 
     Returns:
-      a function pair (model, guide) is generated.
+      A function pair (model, guide) is generated.
 
-        model: the obervation model function.
-        guide: a guide function for SVI.
+        model: The obervation model function.
+        guide: A guide function for SVI.
 
     '''
     T = source.shape[0]
     N = source.plate_id.unique().size
     M = reference.shape[0]
+    D = 18
     F0 = 1.0 / 7.84e-6
     sigma = params.get('sigma', 4e-3/3600)
 
@@ -65,6 +66,8 @@ def generate(source, reference, params={}):
     tel_t_sig = jnp.array(params.get('tel_t_sig', np.tile(1.0, N)))
     foc_f_loc = jnp.array(params.get('foc_f_loc', np.tile(1.0, [1, 2])))
     foc_f_sig = jnp.array(params.get('foc_f_sig', np.tile(0.1, [1, 2])))
+    foc_p_loc = jnp.array(params.get('foc_p_loc', np.tile(0.0, [N, 2])))
+    foc_p_sig = jnp.array(params.get('foc_p_sig', np.tile(1.0, [N, 2])))
 
     ref_a_loc = jnp.array(params.get('ra_loc', reference['ra_p']))
     ref_a_sig = jnp.array(params.get('ra_sig', reference['sig']))
@@ -75,6 +78,11 @@ def generate(source, reference, params={}):
     pri_d_loc = jnp.array(reference['dec_p'])
     pri_a_sig = jnp.array(reference['sig'])
     pri_d_sig = jnp.array(reference['sig'])
+
+    sip_a_loc = jnp.array(params.get('A_loc', jnp.zeros(D)))
+    sip_a_sig = jnp.array(params.get('A_sig', 1e-3 * jnp.ones(D)))
+    sip_b_loc = jnp.array(params.get('B_loc', jnp.zeros(D)))
+    sip_b_sig = jnp.array(params.get('B_sig', 1e-3 * jnp.ones(D)))
 
     plate_id = pd.Index(source.plate_id.unique())
     object_id = pd.Index(reference.object_id)
@@ -91,16 +99,24 @@ def generate(source, reference, params={}):
             t = numpyro.sample('tel_t', dist.Normal(tel_t_loc, 5))
         f = numpyro.sample('foc_f', dist.Uniform(0.95, 1.05))
         F = numpyro.deterministic('foc_F0', f * F0)
+        p = numpyro.sample('foc_p', dist.Uniform(-2e4, 2e4).expand([1, 2]))
+
+        A = numpyro.sample('sip_b',
+                            dist.Normal(0.0, 1.0).expand(D))
+        B = numpyro.sample('sip_a',
+                            dist.Normal(0.0, 1.0).expand(D))
 
         ax = jnp.take(a, jnp.array(pidx))
         dx = jnp.take(d, jnp.array(pidx))
         tx = jnp.take(t, jnp.array(pidx))
         fx = jnp.tile(F, [T, 1])
+        px = jnp.tile(p, [T, 1])
 
         rax = jnp.take(ra, jnp.array(oidx))
         dex = jnp.take(dec, jnp.array(oidx))
 
-        xy = numpyro.deterministic('xy', projection(ax, dx, tx, rax, dex, fx))
+        pq = numpyro.deterministic('pq', projection(ax, dx, tx, rax, dex, fx))
+        xy = numpyro.deterministic('xy', distortion(A, B, pq - px) + px)
 
         with numpyro.plate('obs', T):
             numpyro.sample('x', dist.Normal(xy[:, 0], sigma), obs=x0)
@@ -126,12 +142,25 @@ def generate(source, reference, params={}):
                               foc_f_loc,
                               constraint=c.interval(0.9, 1.1))
         sig_f = numpyro.param('foc_f_sig', foc_f_sig, constraint=c.positive)
+        loc_p = numpyro.param('foc_p_loc',
+                              foc_p_loc,
+                              constraint=c.interval(-2e4, 2e4))
+        sig_p = numpyro.param('foc_p_sig', foc_p_sig, constraint=c.positive)
+
 
         with numpyro.plate('pointing', N):
             numpyro.sample('tel_a', dist.Normal(loc_a, sig_a))
             numpyro.sample('tel_d', dist.Normal(loc_d, sig_d))
             numpyro.sample('tel_t', dist.Normal(loc_t, sig_t))
         numpyro.sample('foc_f', dist.Normal(loc_f, sig_f))
+        numpyro.sample('foc_p', dist.Normal(loc_p, sig_p))
+
+        loc_a = numpyro.param('A_loc', sip_a_loc)
+        sig_a = numpyro.param('A_sig', sip_a_sig, constraint=c.positive)
+        loc_b = numpyro.param('B_loc', sip_b_loc)
+        sig_b = numpyro.param('B_sig', sip_b_sig, constraint=c.positive)
+        numpyro.sample('pA', dist.Normal(loc_a, sig_a))
+        numpyro.sample('pB', dist.Normal(loc_b, sig_b))
 
         with numpyro.plate('ref', M):
             loc_ra = numpyro.param('ra_loc',
