@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Define identity transformation for distortion """
+''' Define identity transformation for distortion '''
 
 import numpy as np
 
 
 def identity_transformation(position):
-    """ An identity transformation function.
+    ''' An identity transformation function.
 
     This function is an fallback function for the image distortion.
     The function requires a tuple of two arrays. The first and second elements
@@ -20,5 +20,5 @@ def identity_transformation(position):
 
     Returns:
       A numpy.ndarray of the input coordinates.
-    """
+    '''
     return np.array(position)

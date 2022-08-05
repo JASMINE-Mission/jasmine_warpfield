@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Distortion function using the Legendre polynomials """
+''' Distortion function using the Legendre polynomials '''
 
 from jax.lax import scan
 from jax import jit
@@ -9,7 +9,7 @@ import numpy as np
 
 
 def val2d(func, c, x, y):
-    """ A helper function to evaluate a 2d-polynomial function
+    ''' A helper function to evaluate a 2d-polynomial function
 
     Arguments:
       func (function): A function to evaluate a polynomial expression.
@@ -19,14 +19,14 @@ def val2d(func, c, x, y):
 
     Returns:
       An array of elements evalulated at (x, y).
-    """
+    '''
     assert x.shape == y.shape, \
       'arrays `x` and `y` should have the same shapes.'
     return func(y, func(x, c), tensor=False)
 
 
 def legval(x, c, tensor=True):
-    """ Evaluate a one-dimensional Legendre polynomial expansion
+    ''' Evaluate a one-dimensional Legendre polynomial expansion
 
     Arguments:
       x (array): A list of evaluation coordinates.
@@ -34,7 +34,7 @@ def legval(x, c, tensor=True):
 
     Returns:
       An evaluation of Legendre polynomial expansion.
-    """
+    '''
     if isinstance(x, jnp.ndarray) and tensor:
         c = c.reshape(c.shape + (1, ) * x.ndim)
     if len(c) <= 2:
@@ -71,7 +71,7 @@ def legval(x, c, tensor=True):
 
 
 def _legval2d(x, y, c):
-    """ Evaluate a two-dimensional Legendre polynomial expansion
+    ''' Evaluate a two-dimensional Legendre polynomial expansion
 
     Arguments:
       x (array): A list of evaluation coordinates.
@@ -80,7 +80,7 @@ def _legval2d(x, y, c):
 
     Returns:
       An evaluation of Legendre polynomial expansion.
-    """
+    '''
     c = jnp.atleast_2d(c)
     return val2d(legval, c, y, x)
 
@@ -89,7 +89,7 @@ legval2d = jit(_legval2d)
 
 
 def _map_coeff_5th(c):
-    """ Convert 18-element coefficient array into a 6x6 matrix """
+    ''' Convert 18-element coefficient array into a 6x6 matrix '''
 
     # coeff :  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
     # matrix: 12  7  2 18 18  8  3 24 19 14  9  4 30 25 20 15 10  5
@@ -112,7 +112,7 @@ def _map_coeff_5th(c):
 
 
 def _distortion(coeff_a, coeff_b, xy):
-    """ Distort the coordinates using the SIP coefficients
+    ''' Distort the coordinates using the SIP coefficients
 
     The SIP coefficients sip_a and sip_b should contains 18 coefficients.
     The coefficients do not contain the Affine-transformation term.
@@ -129,7 +129,7 @@ def _distortion(coeff_a, coeff_b, xy):
 
     Returns:
       Distorted coordinates on the focal plane.
-    """
+    '''
     dx = _legval2d(xy[:, 0], xy[:, 1], _map_coeff_5th(coeff_a))
     dy = _legval2d(xy[:, 0], xy[:, 1], _map_coeff_5th(coeff_b))
     return jnp.stack([dx, dy]).T

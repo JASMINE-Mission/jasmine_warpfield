@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Define the nominal JASMINE telescope design """
+''' Define the nominal JASMINE telescope design '''
 
 from typing import Callable, List
 from astropy.coordinates import SkyCoord, Angle
@@ -15,7 +15,7 @@ from .telescope import identity_transformation
 
 
 def square_mask():
-    """ Generate a square field of view """
+    ''' Generate a square field of view '''
     side = (1920 * 10 * u.um + 1.5 * u.mm).to_value(u.um)
     return Polygon([
         [-side, -side],
@@ -26,7 +26,7 @@ def square_mask():
 
 
 def octagonal_mask():
-    """ Generate an octagonal field of view """
+    ''' Generate an octagonal field of view '''
     c45 = np.cos(np.pi / 4)
     square = square_mask()
     affine_matrix = 1.0225 * np.array([c45, -c45, c45, c45, 0, 0])
@@ -38,7 +38,7 @@ def get_jasmine( \
       position_angle: Angle,
       distortion: Callable = identity_transformation,
       octagonal: bool = False):
-    """ Generate JASMINE telescope
+    ''' Generate JASMINE telescope
 
     Arguments:
       pointing (SkyCoord):
@@ -53,7 +53,7 @@ def get_jasmine( \
 
     Returns:
       A telescope instance defined by the nominal JASMINE design.
-    """
+    '''
     optics = Optics( \
       pointing,
       position_angle,

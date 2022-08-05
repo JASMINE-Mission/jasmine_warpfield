@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Vanilla model """
+''' Vanilla model '''
 
 import jax.numpy as jnp
 import numpy as np
@@ -14,7 +14,7 @@ from ..projection.gnomonic import projection
 
 
 def generate(source, reference, params={}):
-    """ Generate model and guide functions
+    ''' Generate model and guide functions
 
 
     This function generates model and guide functions for inference
@@ -47,7 +47,7 @@ def generate(source, reference, params={}):
         model: The obervation model function.
         guide: A guide function for SVI.
 
-    """
+    '''
     T = source.shape[0]
     N = source.plate_id.unique().size
     M = reference.shape[0]
