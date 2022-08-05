@@ -5,7 +5,6 @@
 
 from astropy.wcs import WCS
 
-
 __debug_mode__ = False
 
 
@@ -14,15 +13,15 @@ def get_projection(pointing, scale=1.0 / 3600., lhcs=True):
 
     Arguments:
       pointing (SkyCoord):
-          the coordinates of the projection center.
+          The coordinates of the projection center.
       scale (float):
-          the conversion factor to calculate the position on the focal plane
+          The conversion factor to calculate the position on the focal plane
           from the angular distance on the sky in units of degree/um.
       lhcs (bool, optional):
-          set True if the coordinate is left-handded.
+          Set True if the coordinate is left-handded.
 
     Returns:
-      an object (astropy.wcs.WCS) for coordinate conversion.
+      An object (astropy.wcs.WCS) for coordinate conversion.
     '''
 
     # This projection instance is used to map celestrical coordinates onto

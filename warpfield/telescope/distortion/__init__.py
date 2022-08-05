@@ -1,5 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' distortion '''
+''' Distortion module '''
 
 from .identity import identity_transformation
