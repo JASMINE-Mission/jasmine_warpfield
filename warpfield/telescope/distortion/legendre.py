@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Define distortion function by the Legendre polynomials """
+''' Define distortion function by the Legendre polynomials '''
 
 from dataclasses import dataclass, field
 from .base import BaseDistortion
@@ -10,7 +10,7 @@ import numpy as np
 
 @dataclass
 class Legendre:
-    """ Displacement function by the Legendre polynomials
+    ''' Displacement function by the Legendre polynomials
 
     Attributes:
       order (int):
@@ -21,7 +21,7 @@ class Legendre:
       B (ndarray):
           The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
-    """
+    '''
     order: int
     center: np.ndarray = field(init=False)
     A: np.ndarray
@@ -38,11 +38,11 @@ class Legendre:
           f'The shape of B matris should be ({self.order+1}, {self.order+1}).'
 
     def normalize(self, position: np.ndarray):
-        """ Normalize position """
+        ''' Normalize position '''
         return (position.copy() - self.center) / self.scale
 
     def apply(self, position: np.ndarray):
-        """ Modify xy-coordinates with the Legendre polynomial function
+        ''' Modify xy-coordinates with the Legendre polynomial function
 
         Arguments:
           position (ndarray):
@@ -52,7 +52,7 @@ class Legendre:
 
         Returns:
           An ndarray instance contains modified coordinates.
-        """
+        '''
         x, y = self.normalize(position)
 
         dx = legval2d(x, y, self.A)
@@ -63,7 +63,7 @@ class Legendre:
 
 @dataclass
 class AltLegendre(Legendre):
-    """ Displacement function by the Legendre polynomials
+    ''' Displacement function by the Legendre polynomials
 
     Attributes:
       order (int):
@@ -76,7 +76,7 @@ class AltLegendre(Legendre):
       B (ndarray):
           The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
-    """
+    '''
     center: np.ndarray
 
     def __post_init__(self):
@@ -86,7 +86,7 @@ class AltLegendre(Legendre):
 
 
 class LegendreDistortion(Legendre, BaseDistortion):
-    """ Distortion function with the Legendre polynomials
+    ''' Distortion function with the Legendre polynomials
 
     Attributes:
       order (int):
@@ -97,12 +97,12 @@ class LegendreDistortion(Legendre, BaseDistortion):
       B (ndarray):
           The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
-    """
+    '''
     pass
 
 
 class AltLegendreDistortion(AltLegendre, BaseDistortion):
-    """ Distortion function with the Legendre polynomials
+    ''' Distortion function with the Legendre polynomials
 
     Attributes:
       order (int):
@@ -115,5 +115,5 @@ class AltLegendreDistortion(AltLegendre, BaseDistortion):
       B (ndarray):
           The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
-    """
+    '''
     pass

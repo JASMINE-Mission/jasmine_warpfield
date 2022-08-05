@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Define distortion base classes """
+''' Define distortion base classes '''
 
 from scipy.optimize import least_squares
 import numpy as np
@@ -9,7 +9,7 @@ import numpy as np
 class BaseDistortion:
 
     def __call__(self, position: np.ndarray):
-        """ Distortion function with SIP convention
+        ''' Distortion function with SIP convention
 
         This function converts _correct_ coordinates into _distorted_ coordinates.
         The distorted coordinates are obtained by an interative method.
@@ -22,7 +22,7 @@ class BaseDistortion:
 
         Returns:
           A numpy.ndarray of the input coordinates.
-        """
+        '''
         position = np.array(position).reshape((2, -1))
         p0, x0, d = position, position.copy(), np.infty
         for n in range(100):
@@ -37,7 +37,7 @@ class BaseDistortion:
         return x0
 
     def __solve__(self, position: np.ndarray):
-        """ Distortion function with SIP convention
+        ''' Distortion function with SIP convention
 
         This function converts _correct_ coordinates into _distorted_ coordinates.
         The distorted coordinates are obtained by a least square minimization.
@@ -51,7 +51,7 @@ class BaseDistortion:
 
         Returns:
           A numpy.ndarray of the input coordinates.
-        """
+        '''
         p0 = np.array(position).flatten()
         func = lambda x: p0 - self.apply(x.reshape((2, -1))).flatten()
         result = least_squares(func,

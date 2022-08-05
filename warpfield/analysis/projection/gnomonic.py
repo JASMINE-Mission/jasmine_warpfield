@@ -1,41 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Gnomonic projection """
+''' Gnomonic projection '''
 
 import jax.numpy as jnp
 from jax import vmap
 
 
 def degree_to_radian(theta):
-    """ Convert degree to radian """
+    ''' Convert degree to radian '''
     return theta * jnp.pi / 180.
 
 
 def rotation_matrix(theta):
-    """ Calculate rotation matrix R """
+    ''' Calculate rotation matrix R '''
     rot = [jnp.cos(theta), -jnp.sin(theta), jnp.sin(theta), jnp.cos(theta)]
     return jnp.array(rot).reshape([2, 2])
 
 
 def gnomonic_x(tel_ra, tel_dec, ra, dec):
-    """ Calculate internal spherical coordinate x """
+    ''' Calculate internal spherical coordinate x '''
     return jnp.sin(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra) \
         - jnp.cos(tel_dec) * jnp.sin(dec)
 
 
 def gnomonic_y(tel_ra, tel_dec, ra, dec):
-    """ Calculate internal spherical coordinate y """
+    ''' Calculate internal spherical coordinate y '''
     return jnp.cos(dec) * jnp.sin(ra - tel_ra)
 
 
 def gnomonic_z(tel_ra, tel_dec, ra, dec):
-    """ Calculate internal spherical coordinate z """
+    ''' Calculate internal spherical coordinate z '''
     return jnp.cos(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra) \
         + jnp.sin(tel_dec) * jnp.sin(dec)
 
 
 def gnomonic_conversion(tel_ra, tel_dec, ra, dec):
-    """ Calculate the gnomonic projection """
+    ''' Calculate the gnomonic projection '''
     x = gnomonic_x(tel_ra, tel_dec, ra, dec)
     y = gnomonic_y(tel_ra, tel_dec, ra, dec)
     z = gnomonic_z(tel_ra, tel_dec, ra, dec)
@@ -45,7 +45,7 @@ def gnomonic_conversion(tel_ra, tel_dec, ra, dec):
 
 
 def gnomonic(tel_ra, tel_dec, tel_pa, ra, dec, scale):
-    """ Gnomonic projection of the spherical coordinates
+    ''' Gnomonic projection of the spherical coordinates
 
     Arguments:
       tel_ra: A right ascension of the telescope center.
@@ -57,7 +57,7 @@ def gnomonic(tel_ra, tel_dec, tel_pa, ra, dec, scale):
 
     Returns:
       Converted coordinates on the focal plane
-    """
+    '''
     tel_ra = degree_to_radian(tel_ra)
     tel_dec = degree_to_radian(tel_dec)
     tel_pa = degree_to_radian(tel_pa)
