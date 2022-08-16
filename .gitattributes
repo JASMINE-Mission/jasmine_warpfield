@@ -1,2 +1,1 @@
-*.ipynb linguistdetectable=false
-*.py linguistdetectable=true
+notebook/* linguist-vendored
