@@ -39,7 +39,7 @@ def gnomonic_conversion(tel_ra, tel_dec, ra, dec):
     x = gnomonic_x(tel_ra, tel_dec, ra, dec)
     y = gnomonic_y(tel_ra, tel_dec, ra, dec)
     z = gnomonic_z(tel_ra, tel_dec, ra, dec)
-    radius = 180.0 / jnp.pi * jnp.sqrt(1 / z**2 - 1)
+    radius = 180.0 / jnp.pi * jnp.sqrt(jnp.clip(1 / z**2 - 1, 0))
     phi = jnp.arctan2(x, -y)
     return radius * jnp.cos(phi), -radius * jnp.sin(phi)
 
