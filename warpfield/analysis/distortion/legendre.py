@@ -21,7 +21,7 @@ def val2d(func, c, x, y):
       An array of elements evalulated at (x, y).
     '''
     assert x.shape == y.shape, \
-      'arrays `x` and `y` should have the same shapes.'
+        'arrays `x` and `y` should have the same shapes.'
     return func(y, func(x, c), tensor=False)
 
 
@@ -41,7 +41,7 @@ def legval(x, c, tensor=True):
         z = jnp.zeros(list([2, *c.shape[1:]]))
         c = jnp.concatenate([c, z], axis=0)
 
-    ## Legendre polynomial is calculated by the following iterations:
+    # Legendre polynomial is calculated by the following iterations:
     #
     # nd = len(c)
     # c0 = c[-2]
@@ -108,7 +108,7 @@ def _map_coeff_5th(c):
         c[ 3], c[ 8], c[14],     0,     0,     0,
         c[ 7], c[13],     0,     0,     0,     0,
         c[12],     0,     0,     0,     0,     0,
-    ]).reshape((6,6))
+    ]).reshape((6, 6))
 
 
 def _distortion(coeff_a, coeff_b, xy):
