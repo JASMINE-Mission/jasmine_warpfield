@@ -8,8 +8,10 @@ select =
     E127, # continuation line over-indented for visual indent
     E221, # multiple spaces before operator
     E226, # missing whitespace around arithmetic operator
+    E231, # missing whitespace after ','
     E251, # unexpected spaces around keyword / parameter equals
     E266, # too many leading '#' for block comment
+    E302, # too few blank lines
     E303, # too many blank lines
     E501, # line too long
     E541  # f-string is missing placeholders
