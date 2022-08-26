@@ -7,6 +7,7 @@ import numpy as np
 
 from warpfield.telescope.distortion.identity import *
 
+
 @settings(deadline=500, max_examples=10)
 @given(integers(1, 10000))
 def test_identity(Nsrc):

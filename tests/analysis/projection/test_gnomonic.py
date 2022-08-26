@@ -11,11 +11,14 @@ from warpfield.analysis.projection.gnomonic import *
 def degree():
     return floats(0.0, 360.0)
 
+
 def longitude():
     return floats(0, 360.0)
 
+
 def latitude():
     return floats(-90.0, 90.0)
+
 
 def dot(a0, d0, a1, d1):
     a0, d0 = a0 * np.pi / 180.0, d0 * np.pi / 180.0
@@ -24,13 +27,16 @@ def dot(a0, d0, a1, d1):
     x1, y1, z1 = np.cos(d1) * np.cos(a1), np.cos(d1) * np.sin(a1), np.sin(d1)
     return x0 * x1 + y0 * y1 + z0 * z1
 
+
 def cosd(theta):
     return np.cos(theta * np.pi / 180.0)
+
 
 @given(degree())
 def test_gnomonic(theta):
     rad = degree_to_radian(theta)
     assert rad == approx(theta * np.pi / 180)
+
 
 @given(longitude(), latitude())
 def test_gnomonic_x_null(lon, lat):
@@ -39,12 +45,14 @@ def test_gnomonic_x_null(lon, lat):
     x = gnomonic_x(lon, lat, lon, lat)
     assert x == approx(0.0)
 
+
 @given(longitude(), latitude())
 def test_gnomonic_y_null(lon, lat):
     lon = degree_to_radian(lon)
     lat = degree_to_radian(lat)
     y = gnomonic_y(lon, lat, lon, lat)
     assert y == approx(0.0)
+
 
 @given(longitude(), latitude())
 def test_gnomonic_z_null(lon, lat):
@@ -53,6 +61,7 @@ def test_gnomonic_z_null(lon, lat):
     z = gnomonic_z(lon, lat, lon, lat)
     assert z == approx(1.0)
 
+
 @given(longitude(), latitude())
 def test_gnomonic_conversion_null(lon, lat):
     lon = degree_to_radian(lon)
@@ -60,6 +69,7 @@ def test_gnomonic_conversion_null(lon, lat):
     X, Y = gnomonic_conversion(lon, lat, lon, lat)
     assert X == approx(0.0, abs=3e-6)
     assert Y == approx(0.0)
+
 
 @given(longitude(), longitude())
 def test_gnomonic_conversion_lon(lon_t, lon):
@@ -72,6 +82,7 @@ def test_gnomonic_conversion_lon(lon_t, lon):
     X, Y = gnomonic_conversion(lon_t, lat_t, lon, lat)
     assert Y == approx(0.0)
 
+
 @given(longitude(), latitude(), latitude())
 def test_gnomonic_conversion_lat(lon_t, lat_t, lat):
     lon = lon_t
@@ -82,6 +93,7 @@ def test_gnomonic_conversion_lat(lon_t, lat_t, lat):
     lat = degree_to_radian(lat)
     X, Y = gnomonic_conversion(lon_t, lat_t, lon, lat)
     assert X == approx(0.0, abs=1e-3)
+
 
 @settings(deadline=500)
 @given(longitude(), latitude(), longitude(), latitude(), degree())
