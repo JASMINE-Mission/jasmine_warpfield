@@ -1,8 +1,0 @@
-{
-    "[python]" {
-        "editor.renderWhitespace": "all",
-        "editor.detectIndentation": false,
-        "editor.insertSpaces": true,
-        "editor.tabSize": 4
-    }
-}
