@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 ''' Define distortion base classes '''
 
-from scipy.optimize import least_squares
 import numpy as np
 
 
@@ -35,32 +34,3 @@ class BaseDistortion:
         else:
             raise RuntimeError(f'Iteration not converged ({d})')
         return x0
-
-    def __solve__(self, position: np.ndarray):
-        ''' Distortion function with SIP convention
-
-        Converts _correct_ coordinates into _distorted_ coordinates.
-        The distorted coordinates are obtained by a least square minimization.
-        Note that this method fails if the number of positions is too large.
-
-        Arguments:
-          position (ndarray):
-              A numpy.array with the shape of (2, Nsrc). The first element
-              contains the x-positions, while the second element contains
-              the y-positions.
-
-        Returns:
-          A numpy.ndarray of the input coordinates.
-        '''
-        p0 = np.array(position).flatten()
-        func = lambda x: p0 - self.apply(x.reshape((2, -1))).flatten()
-        result = least_squares(
-            func,
-            p0,
-            loss='linear',
-            ftol=1e-15,
-            xtol=1e-15,
-            gtol=1e-15)
-        assert result.success is True, \
-            'failed to perform an inverse conversion.'
-        return result.x.reshape((2, -1))
