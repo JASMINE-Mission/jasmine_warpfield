@@ -12,7 +12,6 @@ import numpyro
 from ..projection.gnomonic import projection
 
 
-
 def generate(source, reference, params={}):
     ''' Generate model and guide functions
 
@@ -52,7 +51,7 @@ def generate(source, reference, params={}):
     N = source.plate_id.unique().size
     M = reference.shape[0]
     F0 = 1.0 / 7.84e-6
-    sigma = params.get('sigma', 4e-3/3600)
+    sigma = params.get('sigma', 4e-3 / 3600)
 
     x0 = jnp.array(source['x'])
     y0 = jnp.array(source['y'])

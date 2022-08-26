@@ -53,7 +53,7 @@ def generate(source, reference, params={}):
     M = reference.shape[0]
     D = 18
     F0 = 1.0 / 7.84e-6
-    sigma = params.get('sigma', 4e-3/3600)
+    sigma = params.get('sigma', 4e-3 / 3600)
 
     x0 = jnp.array(source['x'])
     y0 = jnp.array(source['y'])
@@ -101,10 +101,8 @@ def generate(source, reference, params={}):
         F = numpyro.deterministic('foc_F0', f * F0)
         p = numpyro.sample('foc_p', dist.Uniform(-2e4, 2e4).expand([1, 2]))
 
-        A = numpyro.sample('sip_b',
-                            dist.Normal(0.0, 1.0).expand(D))
-        B = numpyro.sample('sip_a',
-                            dist.Normal(0.0, 1.0).expand(D))
+        A = numpyro.sample('sip_b', dist.Normal(0.0, 1.0).expand(D))
+        B = numpyro.sample('sip_a', dist.Normal(0.0, 1.0).expand(D))
 
         ax = jnp.take(a, jnp.array(pidx))
         dx = jnp.take(d, jnp.array(pidx))
@@ -146,7 +144,6 @@ def generate(source, reference, params={}):
                               foc_p_loc,
                               constraint=c.interval(-2e4, 2e4))
         sig_p = numpyro.param('foc_p_sig', foc_p_sig, constraint=c.positive)
-
 
         with numpyro.plate('pointing', N):
             numpyro.sample('tel_a', dist.Normal(loc_a, sig_a))

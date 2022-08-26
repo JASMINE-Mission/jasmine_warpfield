@@ -28,12 +28,13 @@ class Sip:
 
     def __post_init__(self):
         self.center = np.array((0, 0)).reshape((2, 1))
+        dim = self.order + 1
         assert self.order >= 0, \
-          f'The polynomical order should be non-negative.'
-        assert self.A.shape == (self.order+1,self.order+1), \
-          f'The shape of A matris should be ({self.order+1}, {self.order+1}).'
-        assert self.B.shape == (self.order+1,self.order+1), \
-          f'The shape of B matris should be ({self.order+1}, {self.order+1}).'
+            'The polynomical order should be non-negative.'
+        assert self.A.shape == (dim, dim), \
+            f'The shape of A matris should be ({dim}, {dim}).'
+        assert self.B.shape == (dim, dim), \
+            f'The shape of B matris should be ({dim}, {dim}).'
 
     def normalize(self, position: np.ndarray):
         ''' Normalize position '''
@@ -95,7 +96,7 @@ class AltSip(Sip):
 
     def __post_init__(self):
         assert self.center.size == 2, \
-          'The center position should have two elements.'
+            'The center position should have two elements.'
         self.center = np.array(self.center).reshape((2, 1))
 
 

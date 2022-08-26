@@ -11,7 +11,7 @@ class BaseDistortion:
     def __call__(self, position: np.ndarray):
         ''' Distortion function with SIP convention
 
-        This function converts _correct_ coordinates into _distorted_ coordinates.
+        Converts _correct_ coordinates into _distorted_ coordinates.
         The distorted coordinates are obtained by an interative method.
 
         Arguments:
@@ -31,7 +31,7 @@ class BaseDistortion:
             if d < 1e-24: break
             if abs(1 - f / d) < 1e-3 and d < 1e-16: break
             assert np.isfinite(d), \
-              'Floating value overflow detected.'
+                'Floating value overflow detected.'
         else:
             raise RuntimeError(f'Iteration not converged ({d})')
         return x0
@@ -39,7 +39,7 @@ class BaseDistortion:
     def __solve__(self, position: np.ndarray):
         ''' Distortion function with SIP convention
 
-        This function converts _correct_ coordinates into _distorted_ coordinates.
+        Converts _correct_ coordinates into _distorted_ coordinates.
         The distorted coordinates are obtained by a least square minimization.
         Note that this method fails if the number of positions is too large.
 
@@ -54,12 +54,13 @@ class BaseDistortion:
         '''
         p0 = np.array(position).flatten()
         func = lambda x: p0 - self.apply(x.reshape((2, -1))).flatten()
-        result = least_squares(func,
-                               p0,
-                               loss='linear',
-                               ftol=1e-15,
-                               xtol=1e-15,
-                               gtol=1e-15)
+        result = least_squares(
+            func,
+            p0,
+            loss='linear',
+            ftol=1e-15,
+            xtol=1e-15,
+            gtol=1e-15)
         assert result.success is True, \
-          'failed to perform an inverse conversion.'
+            'failed to perform an inverse conversion.'
         return result.x.reshape((2, -1))
