@@ -35,6 +35,7 @@ def _polymap(coeff, xy):
     _, pq = scan(inner, [len(coeff) - 1, 0], coeff)
     return pq.sum(axis=0)
 
+
 polymap = jit(_polymap)
 
 
@@ -63,10 +64,11 @@ def _distortion(sip_a, sip_b, xy):
     sip_a *= scale
     sip_b *= scale
     dx = polymap(sip_a[0:3], xy) + polymap(sip_a[3:7], xy) \
-      + polymap(sip_a[7:12], xy) + polymap(sip_a[12:18], xy)
+        + polymap(sip_a[7:12], xy) + polymap(sip_a[12:18], xy)
     dy = polymap(sip_b[0:3], xy) + polymap(sip_b[3:7], xy) \
-      + polymap(sip_b[7:12], xy) + polymap(sip_b[12:18], xy)
+        + polymap(sip_b[7:12], xy) + polymap(sip_b[12:18], xy)
     return xy + jnp.stack([dx, dy]).T
+
 
 distortion = jit(_distortion)
 
