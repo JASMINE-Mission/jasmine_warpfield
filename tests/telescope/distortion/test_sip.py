@@ -6,8 +6,7 @@ import numpy as np
 from warpfield.telescope.distortion.sip import *
 
 
-def test_sip_distortion_zero(seed=42):
-    Nsrc = 1000
+def test_sip_distortion_zero(seed=42, Nsrc=1000):
     order = 1
     A = np.zeros((order + 1, order + 1))
     B = np.zeros((order + 1, order + 1))
@@ -19,8 +18,7 @@ def test_sip_distortion_zero(seed=42):
     assert converted == approx(position)
 
 
-def test_altsip_distortion_zero(seed=42):
-    Nsrc = 1000
+def test_altsip_distortion_zero(seed=42, Nsrc=1000):
     order = 1
     A = np.zeros((order + 1, order + 1))
     B = np.zeros((order + 1, order + 1))
