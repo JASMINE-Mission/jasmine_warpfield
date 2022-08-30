@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from pytest import approx
-from hypothesis import given, assume, settings
-from hypothesis.strategies import integers
 import numpy as np
 
 from warpfield.telescope.distortion.sip import *
 
 
-@given(integers(0, 2**31))
-def test_sip_distortion_zero(seed):
+def test_sip_distortion_zero(seed=42):
     Nsrc = 1000
     order = 1
     A = np.zeros((order + 1, order + 1))
@@ -22,8 +19,7 @@ def test_sip_distortion_zero(seed):
     assert converted == approx(position)
 
 
-@given(integers(0, 2**31))
-def test_altsip_distortion_zero(seed):
+def test_altsip_distortion_zero(seed=42):
     Nsrc = 1000
     order = 1
     A = np.zeros((order + 1, order + 1))
