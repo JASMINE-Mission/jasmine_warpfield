@@ -43,6 +43,12 @@ def cosd(theta):
     return np.cos(theta * np.pi / 180.0)
 
 
+@given(floats(0.7, 1.0))
+def test_rsinr(rho):
+    assume(rho < 1.0)
+    assert rsinr(rho) == approx(np.arccos(rho) / np.sqrt(1.0 - rho**2))
+
+
 @settings(max_examples=10)
 @given(degree())
 def test_degree_to_radian(theta):
@@ -52,30 +58,9 @@ def test_degree_to_radian(theta):
 
 @settings(max_examples=10)
 @given(longitude(), latitude())
-def test_gnomonic_x_null(lon, lat):
-    x = gnomonic_x(lon, lat, lon, lat)
-    assert x == approx(0.0)
-
-
-@settings(max_examples=10)
-@given(longitude(), latitude())
-def test_gnomonic_y_null(lon, lat):
-    y = gnomonic_y(lon, lat, lon, lat)
-    assert y == approx(0.0)
-
-
-@settings(max_examples=10)
-@given(longitude(), latitude())
-def test_gnomonic_z_null(lon, lat):
-    z = gnomonic_z(lon, lat, lon, lat)
-    assert z == approx(1.0)
-
-
-@settings(max_examples=10)
-@given(longitude(), latitude())
 def test_gnomonic_conversion_null(lon, lat):
     X, Y = gnomonic_conversion(lon, lat, lon, lat)
-    assert X == approx(0.0, abs=3e-6)
+    assert X == approx(0.0)
     assert Y == approx(0.0)
 
 
@@ -84,7 +69,7 @@ def test_gnomonic_conversion_null(lon, lat):
 def test_gnomonic_conversion_lon(lon_t, lon):
     lat = lat_t = 0.0
     assume(dot(lon_t, lat_t, lon, lat) > cosd(30.0))
-    X, Y = gnomonic_conversion(lon_t, lat_t, lon, lat)
+    Y = gnomonic_conversion(lon_t, lat_t, lon, lat)[1]
     assert Y == approx(0.0)
 
 
@@ -93,8 +78,8 @@ def test_gnomonic_conversion_lon(lon_t, lon):
 def test_gnomonic_conversion_lat(lon_t, lat_t, lat):
     lon = lon_t
     assume(dot(lon_t, lat_t, lon, lat) > cosd(30.0))
-    X, Y = gnomonic_conversion(lon_t, lat_t, lon, lat)
-    assert X == approx(0.0, abs=1e-3)
+    X = gnomonic_conversion(lon_t, lat_t, lon, lat)[0]
+    assert X == approx(0.0)
 
 
 @settings(deadline=500)
@@ -106,9 +91,9 @@ def test_gnomonic_rotate(tel_ra, tel_dec, ra, dec):
     X0, Y0 = gnomonic(tel_ra, tel_dec, pa, ra, dec, scale)
 
     X1, Y1 = gnomonic(tel_ra, tel_dec, pa + 90.0, ra, dec, scale)
-    assert X0 - Y1 == approx(0.0, abs=1e-3)
-    assert Y0 + X1 == approx(0.0, abs=1e-3)
+    assert X0 - Y1 == approx(0.0, abs=1e-6)
+    assert Y0 + X1 == approx(0.0, abs=1e-6)
 
     X1, Y1 = gnomonic(tel_ra, tel_dec, pa + 180.0, ra, dec, scale)
-    assert X0 + X1 == approx(0.0, abs=1e-3)
-    assert Y0 + Y1 == approx(0.0, abs=1e-3)
+    assert X0 + X1 == approx(0.0, abs=1e-6)
+    assert Y0 + Y1 == approx(0.0, abs=1e-6)
