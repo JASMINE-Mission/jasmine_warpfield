@@ -1,13 +1,20 @@
 runs:
-  using: "Composite"
+  using: "composite"
   steps:
+    - name: Install pytest and dependencies
+      env:
+        BRANCH: ${{ github.ref_name }}
+      run: |
+        python -m pip install pytest pytest-html pytest-cov
+        if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+      shell: bash
+
     - name: Test with pytest
       env:
         BRANCH: ${{ github.ref_name }}
       id: pytest
       continue-on-error: true
       run: |
-        python -m pip install pytest pytest-html pytest-cov
         python -m pytest ./tests --cov=. --cov-report xml
       shell: bash
 
