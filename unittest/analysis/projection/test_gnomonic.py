@@ -51,9 +51,9 @@ def test_gnomonic_rotate():
     X0, Y0 = gnomonic_rotate(0.0)
 
     X1, Y1 = gnomonic_rotate(90.0)
-    assert X0 - Y1 == approx(0.0, abs=1e-6)
-    assert Y0 + X1 == approx(0.0, abs=1e-6)
+    assert X0 - Y1 == approx(0.0, abs=1e-4)
+    assert Y0 + X1 == approx(0.0, abs=1e-4)
 
     X1, Y1 = gnomonic_rotate(180.0)
-    assert X0 + X1 == approx(0.0, abs=1e-6)
-    assert Y0 + Y1 == approx(0.0, abs=1e-6)
+    assert X0 + X1 == approx(0.0, abs=1e-4)
+    assert Y0 + Y1 == approx(0.0, abs=1e-4)
