@@ -51,8 +51,8 @@ def gnomonic_rcost(tel_ra, tel_dec, ra, dec):
 
 
 def gnomonic_conversion(tel_ra, tel_dec, ra, dec):
-    X = gnomonic_rsint(tel_ra, tel_dec, ra, dec)
-    Y = gnomonic_rcost(tel_ra, tel_dec, ra, dec)
+    X = -gnomonic_rsint(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
+    Y = +gnomonic_rcost(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
     return X, Y
 
 
