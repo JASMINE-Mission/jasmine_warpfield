@@ -1,9 +1,7 @@
 name: pytest
 
 on:
-  push:
-  pull_request:
-    branches: [ "master", "develop" ]
+  push
 
 jobs:
   pytest:
@@ -18,9 +16,6 @@ jobs:
 
     - name: get dependencies
       uses: ./.github/actions/get_dependencies
-
-    - name: build package
-      uses: ./.github/actions/build
 
     - name: unittest
       env:
