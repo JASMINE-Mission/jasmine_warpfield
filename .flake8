@@ -1,10 +1,12 @@
 [flake8]
 indent-size = 4
-select =
-    W,
-    # F,
-    F401, # imported but unused
-    # E,
+extend-ignore =
+    F403, # star imports
+    F405, # star imports
+    W503, # line break before binary operator
+    E128, # continuation line under-indented for visual indent
+    E221  # multiple spaces before operator
+extend-select =
     E127, # continuation line over-indented for visual indent
     E226, # missing whitespace around arithmetic operator
     E231, # missing whitespace after ','
