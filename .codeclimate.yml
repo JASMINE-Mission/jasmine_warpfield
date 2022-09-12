@@ -10,5 +10,7 @@ plugins:
     checks:
       E221:
         enabled: false
+      E128:
+        enabled: false
   radon:
     enabled: true
