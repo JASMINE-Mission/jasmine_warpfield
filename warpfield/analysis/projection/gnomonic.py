@@ -31,7 +31,7 @@ def gnomonic_Rsint(tel_ra, tel_dec, ra, dec):
 
 def gnomonic_Rcost(tel_ra, tel_dec, ra, dec):
     ''' Calculate the projected coordinate y '''
-    return (jnp.sin(dec) * jnp.cos(tel_dec) \
+    return (jnp.sin(dec) * jnp.cos(tel_dec)
         - jnp.sin(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra)) \
         / gnomonic_cosr(tel_ra, tel_dec, ra, dec)
 
