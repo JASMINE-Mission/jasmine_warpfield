@@ -6,7 +6,6 @@ select =
     F401, # imported but unused
     # E,
     E127, # continuation line over-indented for visual indent
-    E221, # multiple spaces before operator
     E226, # missing whitespace around arithmetic operator
     E231, # missing whitespace after ','
     E251, # unexpected spaces around keyword / parameter equals
