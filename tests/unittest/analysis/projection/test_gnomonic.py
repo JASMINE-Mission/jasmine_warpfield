@@ -6,15 +6,6 @@ import numpy as np
 from warpfield.analysis.projection.gnomonic import *
 
 
-def test_rsinr():
-    def rsinr_orig(rho):
-        return np.arccos(rho) / np.sqrt(1 - rho**2)
-
-    args = [0.7, 0.8, 0.9, 0.99]
-    for rho in args:
-        assert rsinr(rho) == approx(rsinr_orig(rho))
-
-
 def test_degree_to_radian():
     args = [-180, -90, 0, 90, 180]
     for theta in args:
@@ -46,14 +37,14 @@ def test_gnomonic_rotate():
     def gnomonic_rotate(pa):
         a0 = 266.415  # Right Ascension of the Galactic Center
         d0 = -29.006  # Declination of the Galactic Center
-        return gnomonic(a0, d0, pa, a0 + 1.0, d0 + 1.0, 1.0e-6)
+        return gnomonic(a0, d0, pa, a0 + 1.0, d0 + 1.0, 1.0)
 
     X0, Y0 = gnomonic_rotate(0.0)
 
     X1, Y1 = gnomonic_rotate(90.0)
-    assert X0 - Y1 == approx(0.0, abs=1e-4)
-    assert Y0 + X1 == approx(0.0, abs=1e-4)
+    assert X0 + Y1 == approx(0.0)
+    assert Y0 - X1 == approx(0.0)
 
     X1, Y1 = gnomonic_rotate(180.0)
-    assert X0 + X1 == approx(0.0, abs=1e-4)
-    assert Y0 + Y1 == approx(0.0, abs=1e-4)
+    assert X0 + X1 == approx(0.0)
+    assert Y0 + Y1 == approx(0.0)

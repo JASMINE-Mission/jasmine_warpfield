@@ -6,7 +6,7 @@ runs:
         BRANCH: ${{ github.ref_name }}
       run: |
         python -m pip install pytest pytest-html pytest-cov
-        if [ -f unittest/requirements.txt ]; then pip install -r unittest/requirements.txt; fi
+        if [ -f tests/unittest/requirements.txt ]; then pip install -r tests/unittest/requirements.txt; fi
       shell: bash
 
     - name: Test with pytest
@@ -15,7 +15,7 @@ runs:
       id: pytest
       continue-on-error: true
       run: |
-        python -m pytest ./unittest --cov=. --cov-report xml
+        python -m pytest ./tests/unittest --cov=. --cov-report xml
       shell: bash
 
     - name: Send Coverage Report to CodeClimate
