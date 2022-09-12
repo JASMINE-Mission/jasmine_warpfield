@@ -20,23 +20,27 @@ def rotation_matrix(theta):
 def gnomonic_cosr(tel_ra, tel_dec, ra, dec):
     ''' Calculate cos(r), the cosine of the distance r '''
     return jnp.sin(tel_dec) * jnp.sin(dec) \
-        + jnp.cos(tel_dec) * jnp.cos(dec) * jnp.cos(tel_ra - ra)
+        + jnp.cos(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra)
 
 
 def gnomonic_rsint(tel_ra, tel_dec, ra, dec):
     ''' Calculate the projected coordinate x '''
-    return jnp.sin(tel_ra - ra) * jnp.cos(dec) \
+    return jnp.sin(ra - tel_ra) * jnp.cos(dec) \
         / gnomonic_cosr(tel_ra, tel_dec, ra, dec)
 
 
 def gnomonic_rcost(tel_ra, tel_dec, ra, dec):
-    ''' Calculate the projected coordinate y '''
+    ''' Calculate the projected coordinate y
+
+    Caution:
+      This implementation does not work well when cos(tel_dec) ~ 0.
+    '''
     return jnp.sin(dec) / jnp.cos(tel_dec) \
         / gnomonic_cosr(tel_ra, tel_dec, ra, dec) - jnp.tan(tel_dec)
 
 
 def gnomonic_conversion(tel_ra, tel_dec, ra, dec):
-    X = +gnomonic_rsint(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
+    X = -gnomonic_rsint(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
     Y = +gnomonic_rcost(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
     return X, Y
 

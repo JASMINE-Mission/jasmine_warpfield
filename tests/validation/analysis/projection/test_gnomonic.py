@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from pytest import approx
 from hypothesis import given, assume, settings
-from hypothesis import HealthCheck as hc
 from hypothesis.strategies import floats
 from astropy.coordinates import SkyCoord
 import numpy as np
@@ -20,8 +19,7 @@ def longitude():
 
 
 def latitude():
-    return floats(
-        -np.pi / 2.0, np.pi / 2.0, exclude_min=True, exclude_max=True)
+    return floats(-np.pi / 2.5, np.pi / 2.5)
 
 
 def radian_to_degree(rad):
@@ -53,12 +51,11 @@ def test_degree_to_radian(theta):
     assert rad == approx(theta * np.pi / 180)
 
 
-@settings(deadline=500, suppress_health_check=[hc.filter_too_much])
+@settings(deadline=500)
 @given(longitude(), latitude(), longitude(), latitude())
 def test_gnomonic_conversion(tel_ra, tel_dec, ra, dec):
     telescope = Gnomonic(tel_ra, tel_dec)
-    assume(np.abs(tel_dec) < np.pi / 2 \
-        and 0.0001 < telescope.separation(ra, dec) < 60.0)
+    assume(0.0001 < telescope.separation(ra, dec) < 60.0)
 
     X, Y = telescope.convert(ra, dec)
     x, y = gnomonic_conversion(tel_ra, tel_dec, ra, dec)
