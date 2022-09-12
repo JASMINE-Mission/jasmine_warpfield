@@ -17,31 +17,29 @@ def rotation_matrix(theta):
     return jnp.array(rot).reshape([2, 2])
 
 
-def gnomonic_x(tel_ra, tel_dec, ra, dec):
-    ''' Calculate internal spherical coordinate x '''
-    return jnp.sin(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra) \
-        - jnp.cos(tel_dec) * jnp.sin(dec)
+def gnomonic_cosr(tel_ra, tel_dec, ra, dec):
+    ''' Calculate cos(r), the cosine of the distance r '''
+    return jnp.sin(tel_dec) * jnp.sin(dec) \
+        + jnp.cos(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra)
 
 
-def gnomonic_y(tel_ra, tel_dec, ra, dec):
-    ''' Calculate internal spherical coordinate y '''
-    return jnp.cos(dec) * jnp.sin(ra - tel_ra)
+def gnomonic_Rsint(tel_ra, tel_dec, ra, dec):
+    ''' Calculate the projected coordinate x '''
+    return jnp.sin(ra - tel_ra) * jnp.cos(dec) \
+        / gnomonic_cosr(tel_ra, tel_dec, ra, dec)
 
 
-def gnomonic_z(tel_ra, tel_dec, ra, dec):
-    ''' Calculate internal spherical coordinate z '''
-    return jnp.cos(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra) \
-        + jnp.sin(tel_dec) * jnp.sin(dec)
+def gnomonic_Rcost(tel_ra, tel_dec, ra, dec):
+    ''' Calculate the projected coordinate y '''
+    return (jnp.sin(dec) * jnp.cos(tel_dec)
+        - jnp.sin(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra)) \
+        / gnomonic_cosr(tel_ra, tel_dec, ra, dec)
 
 
 def gnomonic_conversion(tel_ra, tel_dec, ra, dec):
-    ''' Calculate the gnomonic projection '''
-    x = gnomonic_x(tel_ra, tel_dec, ra, dec)
-    y = gnomonic_y(tel_ra, tel_dec, ra, dec)
-    z = gnomonic_z(tel_ra, tel_dec, ra, dec)
-    radius = 180.0 / jnp.pi * jnp.sqrt(jnp.clip(1 / z**2 - 1, 0))
-    phi = jnp.arctan2(x, -y)
-    return radius * jnp.cos(phi), -radius * jnp.sin(phi)
+    X = -gnomonic_Rsint(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
+    Y = +gnomonic_Rcost(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
+    return X, Y
 
 
 def gnomonic(tel_ra, tel_dec, tel_pa, ra, dec, scale):

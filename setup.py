@@ -24,18 +24,9 @@ classifiers = [
   'Topic :: Scientific/Engineering :: Astronomy'
 ]
 
-dependencies = [
-  'numpy>=1.20',
-  'scipy>=1.6',
-  'pandas>=1.1',
-  'astropy>=4.2',
-  'astroquery>=0.4',
-  'matplotlib>=3.3',
-  'shapely>=1.6.4',
-  'descartes>=1.1.0',
-  'jax>=0.3',
-  'jaxlib>=0.3',
-]
+with open('requirements.txt', 'r') as f:
+    dependencies = f.readlines()
+
 
 if __name__ == '__main__':
   setup(
