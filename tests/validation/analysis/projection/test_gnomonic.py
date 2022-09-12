@@ -19,7 +19,7 @@ def longitude():
 
 
 def latitude():
-    return floats(-np.pi / 2.5, np.pi / 2.5)
+    return floats(-np.pi / 2, np.pi / 2)
 
 
 def radian_to_degree(rad):
