@@ -11,14 +11,14 @@ An experimental code to simulate the image warp function.
 
 The package is available using the command below:
 
-``` bash
-pip install git+https://github.com/xr0038/jasmine_warpfield.git
+``` console
+$ pip install git+https://github.com/JASMINE_Mission/jasmine_warpfield.git
 ```
 
 Otherwise clone this repository and try the command below:
 
-``` bash
-python setup.py install
+``` console
+$ python setup.py install
 ```
 
 The module `jasmine_warpfield` will be installed in your system. A simple example is described below.
@@ -45,13 +45,3 @@ ax.set_ylabel('focal plane position (um)', fontsize=14)
 fig.tight_layout()
 plt.show()
 ```
-
-
-### Dependencies
-
-- `numpy>=1.20`
-- `scipy>=1.6`
-- `pandas>=1.1`
-- `astropy>=4.2`
-- `astroquery>=0.4`
-- `matplotlib>=3.3`
