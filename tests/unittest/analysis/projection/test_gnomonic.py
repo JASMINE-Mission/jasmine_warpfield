@@ -1,16 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from pytest import approx
-import numpy as np
 
 from warpfield.analysis.projection.gnomonic import *
-
-
-def test_degree_to_radian():
-    args = [-180, -90, 0, 90, 180]
-    for theta in args:
-        rad = degree_to_radian(theta)
-        assert rad == approx(theta * np.pi / 180)
 
 
 def test_gnomonic_conversion_zero():

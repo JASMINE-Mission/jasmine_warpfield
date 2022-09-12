@@ -8,7 +8,7 @@ from astropy.wcs import WCS
 __debug_mode__ = False
 
 
-def get_projection(pointing, scale=1.0 / 3600., lhcs=True):
+def get_projection(pointing, scale=1.0 / 3600., lhcs=True, name='TAN'):
     ''' Obtain the gnomonic projection instance.
 
     Arguments:
@@ -36,11 +36,11 @@ def get_projection(pointing, scale=1.0 / 3600., lhcs=True):
     if pointing.frame.name == 'galactic':
         lon = pointing.galactic.l.deg
         lat = pointing.galactic.b.deg
-        proj.wcs.ctype = ['GLON-TAN', 'GLAT-TAN']
+        proj.wcs.ctype = [f'GLON-{name}', f'GLAT-{name}']
     else:
         lon = pointing.icrs.ra.deg
         lat = pointing.icrs.dec.deg
-        proj.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+        proj.wcs.ctype = [f'RA---{name}', f'DEC--{name}']
     proj.wcs.crval = [lon, lat]
     if lhcs is True:
         proj.wcs.cdelt = [-scale, scale]
