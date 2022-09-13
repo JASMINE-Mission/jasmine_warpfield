@@ -14,7 +14,7 @@ class Equidistant(WCSProjection):
         self.projection = 'ARC'
 
 
-@settings(deadline=500, suppress_health_check=suppress_too_much_filter)
+@settings(deadline=None, suppress_health_check=suppress_too_much_filter)
 @given(longitude(), latitude(), longitude(), latitude())
 def test_equidistant_conversion(tel_ra, tel_dec, ra, dec):
     telescope = Equidistant(tel_ra, tel_dec)
