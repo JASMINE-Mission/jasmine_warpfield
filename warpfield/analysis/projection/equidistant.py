@@ -5,7 +5,7 @@
 import jax.numpy as jnp
 from jax import vmap
 
-from .util import sptrig_cosr, generate_projection
+from .util import sptrig_cosr, generate_conversion, generate_projection
 
 
 def equidistant_rsinr(rho):
@@ -35,13 +35,9 @@ def equidistant_rcost(tel_ra, tel_dec, ra, dec):
         * (jnp.sin(dec) - rho * jnp.sin(tel_dec)) / jnp.cos(tel_dec)
 
 
-def equidistant_conversion(tel_ra, tel_dec, ra, dec):
-    X = -equidistant_rsint(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
-    Y = +equidistant_rcost(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
-    return X, Y
-
+equidistant_conversion = \
+    generate_conversion(equidistant_rsint, equidistant_rcost)
 
 equidistant = generate_projection(equidistant_conversion)
-
 
 projection = vmap(equidistant, (0, 0, 0, 0, 0, 0), 0)

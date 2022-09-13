@@ -76,13 +76,18 @@ distortion = jit(_distortion)
 if __name__ == '__main__':
     from timeit import timeit
 
-    x = jnp.linspace(-1, 1, 101)
+    x = jnp.linspace(-1, 1, 201)
     xy = jnp.stack([x, x]).T
-    c = jnp.array([0.0, 0.0, 0.4])
+    coeff = jnp.array([0.0, 0.0, 0.4])
 
-    print(timeit(lambda: polymap(c, xy), number=100))
+    print('\nBenchmark of 1D-Legendre polynomial:\n')
+    print('  w/o JIT compile:  {:.6f}'.format(
+        timeit(lambda: _polymap(coeff, xy), number=25) / 25))
+    print('  with JIT compile: {:.6f}'.format(
+        timeit(lambda: polymap(coeff, xy), number=100) / 100))
 
-    sip_a = jnp.zeros(18)
-    sip_b = jnp.zeros(18)
-
-    print(timeit(lambda: distortion(sip_a, sip_b, xy), number=100))
+    print('\nBenchmark of the distortion function:\n')
+    coeff_a = jnp.zeros(18)
+    coeff_b = jnp.zeros(18)
+    print('  with JIT compile: {:.6f}'.format(
+        timeit(lambda: distortion(coeff_a, coeff_b, xy), number=100)))

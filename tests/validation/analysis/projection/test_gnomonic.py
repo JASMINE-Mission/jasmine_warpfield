@@ -3,7 +3,7 @@
 from pytest import approx
 from hypothesis import given, assume, settings
 
-from util import WCSProjection, longitude, latitude
+from .util import WCSProjection, longitude, latitude
 from warpfield.analysis.projection.gnomonic import *
 
 
