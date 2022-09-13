@@ -31,6 +31,14 @@ def sptrig_cosr(tel_ra, tel_dec, ra, dec):
         + jnp.cos(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra)
 
 
+def generate_conversion(xfunc, yfunc):
+    def conversion(tel_ra, tel_dec, ra, dec):
+        X = -xfunc(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
+        Y = +yfunc(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
+        return X, Y
+    return conversion
+
+
 def generate_projection(func):
     def inner_func(tel_ra, tel_dec, tel_pa, ra, dec, scale):
         ''' Gnomonic projection of the spherical coordinates
