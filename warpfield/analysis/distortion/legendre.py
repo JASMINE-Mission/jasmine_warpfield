@@ -85,6 +85,8 @@ def _legval2d(x, y, c):
     return _val2d(_legval, c, y, x)
 
 
+legval = jit(_legval)
+
 legval2d = jit(_legval2d)
 
 
@@ -144,19 +146,28 @@ if __name__ == '__main__':
     from timeit import timeit
 
     x = jnp.linspace(-1, 1, 201)
-    xy = jnp.stack([x, x]).T
-    c = np.random.normal(size=(8, 8))
+    coeff = np.random.normal(size=(16))
+
+    print('\nBenchmark of 1D-Legendre polynomial:\n')
+    print('  w/o JIT compile:  {:.6f}'.format(
+        timeit(lambda: _legval(x, coeff), number=25) / 25))
+    print('  with JIT compile: {:.6f}'.format(
+        timeit(lambda: legval(x, coeff), number=100) / 100))
+
+    coeff = np.random.normal(size=(8, 8))
 
     print('\nBenchmark of 2D-Legendre polynomial:\n')
-    print('  w/o JIT compile : {:.4f}'.format(
-        timeit(lambda: _legval2d(x, x, c), number=25) / 25))
-    print('  with JIT compile: {:.4f}'.format(
-        timeit(lambda: legval2d(x, x, c), number=100) / 100))
+    print('  w/o JIT compile:  {:.6f}'.format(
+        timeit(lambda: _legval2d(x, x, coeff), number=25) / 25))
+    print('  with JIT compile: {:.6f}'.format(
+        timeit(lambda: legval2d(x, x, coeff), number=100) / 100))
+
+    xy = jnp.stack([x, x]).T
 
     print('\nBenchmark of the distortion function:\n')
     coeff_a = jnp.array([0.1] + [0.0] * 17)
     coeff_b = jnp.array([0.0, 0.1] + [0.0] * 16)
-    print('  with JIT compile: {:.4f}'.format(
+    print('  with JIT compile: {:.6f}'.format(
         timeit(lambda: distortion(coeff_a, coeff_b, xy), number=100)))
 
     print('\nDistortion value shold be zero at the origin:\n')
