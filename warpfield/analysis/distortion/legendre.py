@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import numpy as np
 
 
-def val2d(func, c, x, y):
+def _val2d(func, c, x, y):
     ''' A helper function to evaluate a 2d-polynomial function
 
     Arguments:
@@ -25,7 +25,7 @@ def val2d(func, c, x, y):
     return func(y, func(x, c), tensor=False)
 
 
-def legval(x, c, tensor=True):
+def _legval(x, c, tensor=True):
     ''' Evaluate a one-dimensional Legendre polynomial expansion
 
     Arguments:
@@ -82,7 +82,7 @@ def _legval2d(x, y, c):
       An evaluation of Legendre polynomial expansion.
     '''
     c = jnp.atleast_2d(c)
-    return val2d(legval, c, y, x)
+    return _val2d(_legval, c, y, x)
 
 
 legval2d = jit(_legval2d)
@@ -101,8 +101,10 @@ def _map_coeff_5th(c):
     # 24 25 26 27 28 29
     # 30 31 32 33 34 35
 
+    z0 = (c[0] + c[2]) / 2 - c[9] / 4 - (c[7] + c[11]) * 3 / 8
+
     return jnp.array([
-            0,     0, c[ 2], c[ 6], c[11], c[17],
+           z0,     0, c[ 2], c[ 6], c[11], c[17],
             0, c[ 1], c[ 5], c[10], c[16],     0,
         c[ 0], c[ 4], c[ 9], c[15],     0,     0,
         c[ 3], c[ 8], c[14],     0,     0,     0,
@@ -141,13 +143,26 @@ distortion = jit(_distortion)
 if __name__ == '__main__':
     from timeit import timeit
 
-    x = jnp.linspace(-1, 1, 101)
+    x = jnp.linspace(-1, 1, 201)
     xy = jnp.stack([x, x]).T
-    c = jnp.array([[0.1, 0.1], [0.1, 0.0]])
-    c = np.zeros((8, 8))
+    c = np.random.normal(size=(8, 8))
 
-    print(timeit(lambda: legval2d(x, x, c), number=100))
+    print('\nBenchmark of 2D-Legendre polynomial:\n')
+    print('  w/o JIT compile : {:.4f}'.format(
+        timeit(lambda: _legval2d(x, x, c), number=25) / 25))
+    print('  with JIT compile: {:.4f}'.format(
+        timeit(lambda: legval2d(x, x, c), number=100) / 100))
 
+    print('\nBenchmark of the distortion function:\n')
     coeff_a = jnp.array([0.1] + [0.0] * 17)
     coeff_b = jnp.array([0.0, 0.1] + [0.0] * 16)
-    print(timeit(lambda: distortion(coeff_a, coeff_b, xy), number=1))
+    print('  with JIT compile: {:.4f}'.format(
+        timeit(lambda: distortion(coeff_a, coeff_b, xy), number=100)))
+
+    print('\nDistortion value shold be zero at the origin:\n')
+    xy = jnp.array([[0.0, 0.0]])
+    for n in range(10):
+        coeff_a = jnp.array(np.random.normal(size=(18)))
+        coeff_b = jnp.array(np.random.normal(size=(18)))
+        print('  (case {0}): [{1:+.2e} {2:+.2e}]'.format(
+            n, *distortion(coeff_a, coeff_b, xy)[0]))
