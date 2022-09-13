@@ -3,12 +3,12 @@
 from pytest import approx
 
 from util import *
-from warpfield.analysis.distortion.legendre import *
+from warpfield.analysis.distortion.sip import *
 
 
-def test_2d_legendre(x, random):
-    c = random.normal(size=(10, 10))
-    legval2d(x, x, c)
+def test_polymap(xy):
+    coeff = jnp.array([0.0, 0.0, 0.4])
+    polymap(coeff, xy)
 
 
 def test_distortion(xy, random):
