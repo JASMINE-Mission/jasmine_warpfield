@@ -5,7 +5,7 @@
 import jax.numpy as jnp
 from jax import vmap
 
-from .util import sptrig_cosr, generate_projection
+from .util import sptrig_cosr, generate_conversion, generate_projection
 
 
 def gnomonic_Rsint(tel_ra, tel_dec, ra, dec):
@@ -21,13 +21,9 @@ def gnomonic_Rcost(tel_ra, tel_dec, ra, dec):
         / sptrig_cosr(tel_ra, tel_dec, ra, dec)
 
 
-def gnomonic_conversion(tel_ra, tel_dec, ra, dec):
-    X = -gnomonic_Rsint(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
-    Y = +gnomonic_Rcost(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
-    return X, Y
-
+gnomonic_conversion = \
+    generate_conversion(gnomonic_Rsint, gnomonic_Rcost)
 
 gnomonic = generate_projection(gnomonic_conversion)
-
 
 projection = vmap(gnomonic, (0, 0, 0, 0, 0, 0), 0)
