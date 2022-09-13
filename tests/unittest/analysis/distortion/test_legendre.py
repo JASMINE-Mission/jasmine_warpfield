@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from pytest import approx
 
-from util import *
+from .util import *
 from warpfield.analysis.distortion.legendre import *
 
 
