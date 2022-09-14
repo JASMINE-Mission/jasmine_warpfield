@@ -129,11 +129,11 @@ class Optics:
         pos = self.distortion(pos.copy())
 
         return pd.DataFrame({
-            'x': pos[0][~blocked],
-            'y': pos[1][~blocked],
-            'ra': icrs.ra[~blocked],
-            'dec': icrs.dec[~blocked],
-        })
+            'x': pos[0],
+            'y': pos[1],
+            'ra': icrs.ra,
+            'dec': icrs.dec,
+        })[~blocked]
 
 
 @dataclass
