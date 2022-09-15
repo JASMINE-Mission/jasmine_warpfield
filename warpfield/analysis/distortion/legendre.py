@@ -8,14 +8,14 @@ import jax.numpy as jnp
 import numpy as np
 
 
-def _val2d(func, c, x, y):
+def _val2d(func, x, y, c):
     ''' A helper function to evaluate a 2d-polynomial function
 
     Arguments:
       func (function): A function to evaluate a polynomial expression.
-      c (array): A list of coefficients.
       x (array): A list of first coordiantes.
       y (array): A list of second coordinates.
+      c (array): A list of coefficients.
 
     Returns:
       An array of elements evalulated at (x, y).
@@ -82,7 +82,7 @@ def _legval2d(x, y, c):
       An evaluation of Legendre polynomial expansion.
     '''
     c = jnp.atleast_2d(c)
-    return _val2d(_legval, c, y, x)
+    return _val2d(_legval, x, y, c)
 
 
 legval = jit(_legval)
