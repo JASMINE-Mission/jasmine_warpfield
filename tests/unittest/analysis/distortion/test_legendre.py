@@ -23,3 +23,9 @@ def test_distortion(xy, random):
     coeff_b = random.normal(size=(18))
     d = distortion(coeff_a, coeff_b, xy)
     assert at_origin(d) == approx(0.0)
+
+    d = distortion(0 * coeff_a, coeff_b, xy)
+    assert d[:, 0] == approx(0.0)
+
+    d = distortion(coeff_a, 0 * coeff_b, xy)
+    assert d[:, 1] == approx(0.0)
