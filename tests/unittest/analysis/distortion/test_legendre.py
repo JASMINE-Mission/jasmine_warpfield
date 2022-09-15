@@ -1,14 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from pytest import approx
+import numpy.polynomial.legendre as legendre
+
 
 from .util import *
 from warpfield.analysis.distortion.legendre import *
 
 
-def test_2d_legendre(x, random):
+def test_1d_legendre(y, random):
+    c = random.normal(size=(10))
+    assert legval(y, c) == approx(legendre.legval(y, c))
+
+
+def test_2d_legendre(x, y, random):
     c = random.normal(size=(10, 10))
-    legval2d(x, x, c)
+    assert legval2d(x, y, c) == approx(legendre.legval2d(x, y, c))
 
 
 def test_distortion(xy, random):

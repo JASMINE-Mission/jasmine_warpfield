@@ -11,6 +11,11 @@ def x():
 
 
 @fixture
+def y():
+    return jnp.array(np.random.uniform(-1, 1, size=201))
+
+
+@fixture
 def xy(x):
     return jnp.stack([x, x]).T
 
