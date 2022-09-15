@@ -1,8 +1,9 @@
 /build
 /dist
+/jasmine_warpfield.egg-info
 /.vscode
-/.hypothesis
+.hypothesis
 __pycache__
 .ipynb_checkpoints
-/*.egg-info
+.pytest_cache
 *.pkl
