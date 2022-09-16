@@ -14,3 +14,13 @@ plugins:
         enabled: false
   radon:
     enabled: true
+exclude_patterns:
+  - /.*
+  - /LICENSE
+  - /README.md
+  - /setup.py
+  - /notebook/
+  - /challenge/
+  - /tests/**/__init__.py
+  - *.txt
+  - *.md
