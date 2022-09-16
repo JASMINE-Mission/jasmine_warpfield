@@ -18,7 +18,7 @@ class Equidistant(WCSProjection):
 @given(longitude(), latitude(), longitude(), latitude())
 def test_equidistant_conversion(tel_ra, tel_dec, ra, dec):
     telescope = Equidistant(tel_ra, tel_dec)
-    assume(0.0001 < telescope.separation(ra, dec) < 5.0)
+    assume(0.0001 < telescope.separation(ra, dec) < 1.0)
 
     X, Y = telescope.convert(ra, dec)
     x, y = equidistant_conversion(tel_ra, tel_dec, ra, dec)
