@@ -5,10 +5,6 @@
 from dataclasses import dataclass
 from typing import List
 from astropy.coordinates import SkyCoord, Angle
-from shapely.geometry import Polygon
-from matplotlib.patches import Polygon as PolygonPatch
-import matplotlib.pyplot as plt
-import astropy.units as u
 import numpy as np
 
 from .optics import Optics
