@@ -4,6 +4,9 @@
 
 from .util import get_projection
 from .source import retrieve_gaia_sources
+from .source import get_subplot
 from .source import display_sources, display_gaia_sources
-from .telescope import Optics, Detector, Telescope
+from .optics import Optics
+from .detector import Detector
+from .telescope import Telescope
 from .jasmine import get_jasmine

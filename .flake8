@@ -5,7 +5,9 @@ extend-ignore =
     F405, # star imports
     W503, # line break before binary operator
     E128, # continuation line under-indented for visual indent
-    E221  # multiple spaces before operator
+    E221, # multiple spaces before operator
+    E701, # multiple statements with colon
+    E731  # do not assign a lambda expression
 extend-select =
     E127, # continuation line over-indented for visual indent
     E226, # missing whitespace around arithmetic operator
