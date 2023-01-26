@@ -8,7 +8,7 @@ from astroquery.gaia import Gaia
 import astropy.units as u
 import matplotlib.pyplot as plt
 
-from .util import get_projection
+from .util import get_projection, estimate_frame_from_ctype
 
 __debug_mode__ = False
 
@@ -64,10 +64,10 @@ def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
       A list of neighbour souces (SkyCoord).
     '''
 
-    ## Get an acceess to the Gaia TAP+.
-    ##   - Set the target table to Gaia EDR3.
-    ##   - Remove the limit of the query number.
-    Gaia.MAIN_GAIA_TABLE = 'gaiaedr3.gaia_source'
+    # Get an acceess to the Gaia TAP+.
+    #   - Set the target table to Gaia DR3.
+    #   - Remove the limit of the query number.
+    Gaia.MAIN_GAIA_TABLE = 'gaiadr3.gaia_source'
     Gaia.ROW_LIMIT = row_limit
 
     if not isinstance(radius, Angle):
@@ -93,21 +93,36 @@ def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
     return obj
 
 
-def display_sources(pointing, sources, **options):
-    ''' Display sources around the specified coordinates
+def get_subplot(pointing, key=111, figsize=(8, 8)):
+    ''' Generate an axis instance for a poiting
 
     Arguments:
       pointing (SkyCoord):
-          The center of the search point.
+          The directin of the telescope pointing.
+      frame (string):
+          Set to override the projection of `pointing`.
+    '''
+    proj = get_projection(pointing)
+
+    fig = plt.figure(figsize=figsize)
+    axis = fig.add_subplot(key, projection=proj)
+
+    return fig, axis
+
+
+def display_sources(axis, sources, **options):
+    ''' Display sources around the specified coordinates
+
+    Arguments:
+      axis (Axes):
+          Matplotlib Axes instance.
+      pointing (SkyCoord):
+          The direction of the telescope pointing.
       sources (SkyCoord):
           The list of sources.
-
-    Returns:
-      A tuble of (figure, axis).
     '''
-
-    proj = get_projection(pointing)
-    frame = pointing.frame.name
+    ctype = axis.wcs.wcs.ctype
+    frame = estimate_frame_from_ctype(ctype)
 
     if frame == 'galactic':
         get_lon = lambda x: getattr(x, 'galactic').l
@@ -122,8 +137,6 @@ def display_sources(pointing, sources, **options):
 
     title = options.pop('title', None)
     marker = options.pop('marker', 'x')
-    fig = plt.figure(figsize=(8, 8))
-    axis = fig.add_subplot(111, projection=proj)
     axis.set_aspect(1.0)
     axis.set_position([0.13, 0.10, 0.85, 0.85])
     axis.scatter(get_lon(sources),
@@ -137,7 +150,6 @@ def display_sources(pointing, sources, **options):
         axis.legend(bbox_to_anchor=[1, 1], loc='lower right', frameon=False)
     axis.set_xlabel(xlabel, fontsize=14)
     axis.set_ylabel(ylabel, fontsize=14)
-    return fig, axis
 
 
 def display_gaia_sources(pointing, radius=0.1):

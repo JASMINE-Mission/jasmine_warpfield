@@ -30,7 +30,7 @@ class WCSProjection:
 
     @property
     def proj(self):
-        return get_projection(self.tel, self.scale, name=self.projection)
+        return get_projection(self.tel, self.scale, projection=self.projection)
 
     @staticmethod
     def radian_to_degree(rad):
