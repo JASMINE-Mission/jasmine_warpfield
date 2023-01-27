@@ -2,16 +2,17 @@
 # -*- coding: utf-8 -*-
 ''' Define the nominal JASMINE telescope design '''
 
-from typing import Callable, List
+from typing import Callable
 from astropy.coordinates import SkyCoord, Angle
-from astropy.units.quantity import Quantity
 from shapely.geometry import Polygon
 from shapely.affinity import affine_transform
 import astropy.units as u
 import numpy as np
 
-from .telescope import Optics, Detector, Telescope
-from .telescope import identity_transformation
+from .optics import Optics
+from .detector import Detector
+from .telescope import Telescope
+from .distortion import identity_transformation
 
 
 def square_mask():
