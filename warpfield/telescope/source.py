@@ -37,6 +37,21 @@ __columns__ = {
 @dataclass(frozen=True)
 class SourceTable:
     ''' Source Table
+
+    Attributes:
+      table (QTable):
+          Table of celestial objects.
+      skycoord (SkyCoord):
+          Auto-generated SkyCoord object.
+
+     The table should contain the following columns.
+
+        - ra: right ascension
+        - dec: declination
+        - parallax: parallax
+        - pmra: proper motion in right ascension (μα*)
+        - pmdec: proper motion in declination (μδ)
+        - ref_epoch: measurement epoch
     '''
     table: QTable
     skycoord: SkyCoord = field(init=False)
@@ -55,11 +70,22 @@ class SourceTable:
 
     @staticmethod
     def from_fitsfile(filename, key='table'):
+        ''' Generate a SourceTable from a FITS file '''
         hdul = fits.open(filename)
         table = QTable.read(hdul[key])
         return SourceTable(table=table)
 
     def writeto(self, filename, overwrite=False):
+        ''' Dump a SourceTable into a FITS file
+
+        Arguments:
+          filename (str):
+              A filename to be saved.
+
+        Options:
+          overwrite (bool):
+              An existing file will be overwritten if true.
+        '''
         hdul = fits.HDUList([
             fits.PrimaryHDU(),
             fits.BinTableHDU(data=self.table, name='table')
