@@ -32,8 +32,8 @@ pointing = SkyCoord(0.0*u.deg, 0.0*u.deg, frame="galactic")
 position_angle = Angle(5.0*u.deg)
 
 jasmine = w.Telescope(pointing, position_angle)
-gaia_sources = w.retrieve_gaia_sources(pointing, radius=0.4*u.deg)
-position = jasmine.observe(gaia_sources)
+source_table = w.retrieve_gaia_sources(pointing, radius=0.4*u.deg)
+position = jasmine.observe(source_table.skycoord)
 
 import matplotlib.pyplot as plt
 fig = plt.figure()
