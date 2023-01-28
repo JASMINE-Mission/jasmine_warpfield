@@ -1,4 +1,7 @@
 version: "2"
+checks:
+  argument-count:
+    enabled: false
 plugins:
   sonar-python:
     enabled: true
