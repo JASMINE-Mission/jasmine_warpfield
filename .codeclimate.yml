@@ -17,7 +17,7 @@ plugins:
       E731:     # do not assign a lambda expression
         enabled: false
   radon:
-nabled: true
+    enabled: true
 exclude_patterns:
   - "/.*"
   - "/LICENSE"
