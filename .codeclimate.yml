@@ -25,6 +25,6 @@ exclude_patterns:
   - "/setup.py"
   - "/notebook/"
   - "/challenge/"
-  - "/tests/**/__init__.py"
+  - "/**/__init__.py"
   - "*.txt"
   - "*.md"
