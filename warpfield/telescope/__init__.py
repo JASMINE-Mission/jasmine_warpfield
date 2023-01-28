@@ -3,9 +3,8 @@
 ''' A telescope module '''
 
 from .util import get_projection
-from .source import retrieve_gaia_sources
-from .source import get_subplot
-from .source import display_sources, display_gaia_sources
+from .source import SourceTable, retrieve_gaia_sources
+from .visualize import get_subplot, display_sources
 from .optics import Optics
 from .detector import Detector
 from .telescope import Telescope

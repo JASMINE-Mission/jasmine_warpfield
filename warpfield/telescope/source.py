@@ -2,41 +2,115 @@
 # -*- coding: utf-8 -*-
 ''' Handling astronomical sources '''
 
+from dataclasses import dataclass, field
 from astropy.coordinates import SkyCoord, Angle, Distance
+from astropy.table import QTable
 from astropy.time import Time
 from astroquery.gaia import Gaia
+import astropy.io.fits as fits
 import astropy.units as u
-import matplotlib.pyplot as plt
-
-from .util import get_projection, estimate_frame_from_ctype
 
 __debug_mode__ = False
 
 
-def gaia_query_builder(pointing, radius, snr_limit, catalog='gaiaedr3'):
+__columns__ = {
+    'source_id': None,
+    'ra': 'degree',
+    'ra_error': 'mas',
+    'dec': 'degree',
+    'dec_error': 'mas',
+    'phot_g_mean_mag': 'mag',
+    'phot_bp_mean_mag': 'mag',
+    'phot_rp_mean_mag': 'mag',
+    'pmra': 'mas/year',
+    'pmra_error': 'mas/year',
+    'pmdec': 'mas/year',
+    'pmdec_error': 'mas/year',
+    'parallax': 'mas',
+    'parallax_error': 'mas',
+    'ruwe': None,
+    'non_single_star': None,
+    'ref_epoch': 'year',
+}
+
+
+@dataclass(frozen=True)
+class SourceTable:
+    ''' Source Table
+
+    Attributes:
+      table (QTable):
+          Table of celestial objects.
+      skycoord (SkyCoord):
+          Auto-generated SkyCoord object.
+
+     The table should contain the following columns.
+
+        - ra: right ascension
+        - dec: declination
+        - parallax: parallax
+        - pmra: proper motion in right ascension (μα*)
+        - pmdec: proper motion in declination (μδ)
+        - ref_epoch: measurement epoch
+    '''
+    table: QTable
+    skycoord: SkyCoord = field(init=False)
+
+    def __post_init__(self):
+        epoch = Time(self.table['ref_epoch'].data, format='decimalyear')
+        distance = Distance(parallax=self.table['parallax'])
+        skycoord = SkyCoord(
+            ra=self.table['ra'], dec=self.table['dec'],
+            pm_ra_cosdec=self.table['pmra'], pm_dec=self.table['pmdec'],
+            distance=distance, obstime=epoch)
+        object.__setattr__(self, 'skycoord', skycoord)
+
+    def __len__(self):
+        return len(self.table)
+
+    @staticmethod
+    def from_fitsfile(filename, key='table'):
+        ''' Generate a SourceTable from a FITS file '''
+        hdul = fits.open(filename)
+        table = QTable.read(hdul[key])
+        return SourceTable(table=table)
+
+    def writeto(self, filename, overwrite=False):
+        ''' Dump a SourceTable into a FITS file
+
+        Arguments:
+          filename (str):
+              A filename to be saved.
+
+        Options:
+          overwrite (bool):
+              An existing file will be overwritten if true.
+        '''
+        hdul = fits.HDUList([
+            fits.PrimaryHDU(),
+            fits.BinTableHDU(data=self.table, name='table')
+        ])
+        hdul.writeto(filename, overwrite=overwrite)
+
+
+def gaia_query_builder(
+        pointing, radius, snr_limit, catalog='gaiadr3.gaia_source'):
     ''' Construct a query string
 
     Arguments:
       pointing: A center of the search circle.
       radius: A serach radius.
       snr_limit: A lower limit of `parallax_over_error`.
-      catalog: The name of catalog (default: `gaiaedr3`)
+      catalog: The name of catalog (default: `gaiadr3.gaia_source`)
 
     Returns:
       A SQL query string.
     '''
     return f'''
     SELECT
-        source_id,
-        ra,
-        dec,
-        phot_g_mean_mag,
-        pmra,
-        pmdec,
-        parallax,
-        ref_epoch
+        {','.join(__columns__.keys())}
     FROM
-        {catalog}.gaia_source
+        {catalog}
     WHERE
         1=CONTAINS(
           POINT('ICRS', {pointing.icrs.ra.deg}, {pointing.icrs.dec.deg}),
@@ -61,7 +135,7 @@ def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
           `-1` means no limit in the number of records.
 
     Return:
-      A list of neighbour souces (SkyCoord).
+      A table containig souces wihtin the search circle.
     '''
 
     # Get an acceess to the Gaia TAP+.
@@ -82,87 +156,5 @@ def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
         print(res)
 
     record = res.get_results()
-    epoch = Time(record['ref_epoch'].data, format='decimalyear')
-
-    obj = SkyCoord(ra=record['ra'],
-                   dec=record['dec'],
-                   pm_ra_cosdec=record['pmra'],
-                   pm_dec=record['pmdec'],
-                   distance=Distance(parallax=record['parallax'].data * u.mas),
-                   obstime=epoch)
-    return obj
-
-
-def get_subplot(pointing, key=111, figsize=(8, 8)):
-    ''' Generate an axis instance for a poiting
-
-    Arguments:
-      pointing (SkyCoord):
-          The directin of the telescope pointing.
-      frame (string):
-          Set to override the projection of `pointing`.
-    '''
-    proj = get_projection(pointing)
-
-    fig = plt.figure(figsize=figsize)
-    axis = fig.add_subplot(key, projection=proj)
-
-    return fig, axis
-
-
-def display_sources(axis, sources, **options):
-    ''' Display sources around the specified coordinates
-
-    Arguments:
-      axis (Axes):
-          Matplotlib Axes instance.
-      pointing (SkyCoord):
-          The direction of the telescope pointing.
-      sources (SkyCoord):
-          The list of sources.
-    '''
-    ctype = axis.wcs.wcs.ctype
-    frame = estimate_frame_from_ctype(ctype)
-
-    if frame == 'galactic':
-        get_lon = lambda x: getattr(x, 'galactic').l
-        get_lat = lambda x: getattr(x, 'galactic').b
-        xlabel = 'Galactic Longitude'
-        ylabel = 'Galactic Latitude'
-    else:
-        get_lon = lambda x: getattr(x, 'icrs').ra
-        get_lat = lambda x: getattr(x, 'icrs').dec
-        xlabel = 'Right Ascension'
-        ylabel = 'Declination'
-
-    title = options.pop('title', None)
-    marker = options.pop('marker', 'x')
-    axis.set_aspect(1.0)
-    axis.set_position([0.13, 0.10, 0.85, 0.85])
-    axis.scatter(get_lon(sources),
-                 get_lat(sources),
-                 transform=axis.get_transform(frame),
-                 marker=marker,
-                 label=title,
-                 **options)
-    axis.grid()
-    if title is not None:
-        axis.legend(bbox_to_anchor=[1, 1], loc='lower right', frameon=False)
-    axis.set_xlabel(xlabel, fontsize=14)
-    axis.set_ylabel(ylabel, fontsize=14)
-
-
-def display_gaia_sources(pointing, radius=0.1):
-    ''' Display Gaia EDR3 sources around the coordinate
-
-    Arguments:
-      pointing (SkyCoord):
-          Celestial coordinate of the search center.
-      radius (float or Angle):
-          A search radius in degree.
-
-    Returns:
-      A tuble of (figure, axis).
-    '''
-    src = retrieve_gaia_sources(pointing, radius)
-    return display_sources(pointing, src)
+    record['non_single_star'] = record['non_single_star'] > 0
+    return SourceTable(QTable(record))
