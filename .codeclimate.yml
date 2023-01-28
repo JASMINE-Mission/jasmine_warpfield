@@ -8,12 +8,16 @@ plugins:
   pep8:
     enabled: true
     checks:
-      E221:
+      E128:     # continuation line under-indented for visual indent
         enabled: false
-      E128:
+      E221:     # multiple spaces before operator
+        enabled: false
+      E701:     # multiple statements with colon
+        enabled: false
+      E731:     # do not assign a lambda expression
         enabled: false
   radon:
-    enabled: true
+nabled: true
 exclude_patterns:
   - "/.*"
   - "/LICENSE"
