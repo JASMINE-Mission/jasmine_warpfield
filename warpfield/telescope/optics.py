@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 ''' Definition of Optics class '''
 
-import sys
-
 from dataclasses import dataclass
 from typing import Callable
 from astropy.coordinates import SkyCoord, Angle
@@ -14,9 +12,9 @@ from shapely.prepared import prep
 from matplotlib.patches import Polygon as PolygonPatch
 import astropy.units as u
 import numpy as np
-import pandas as pd
 
 from .util import get_projection
+from .source import SourceTable
 from .distortion import identity_transformation
 
 
@@ -87,8 +85,8 @@ class Optics:
         '''
         self.distortion = distortion
 
-    def block(self, position):
-        ''' Block sources outside the field of view
+    def contains(self, position):
+        ''' Check if sources are inside the field of view
 
         Arguments:
           position (ndarray):
@@ -100,47 +98,31 @@ class Optics:
         '''
         mp = MultiPoint(position.reshape((2, -1)).T)
         polygon = prep(self.field_of_view.buffer(self.margin.to_value(u.um)))
-        return np.array([not polygon.contains(p) for p in mp.geoms])
+        return np.array([polygon.contains(p) for p in mp.geoms])
 
     def imaging(self, sources, epoch=None):
         ''' Map celestial positions onto the focal plane
 
         Arguments:
-          sources (SkyCoord): The coordinates of sources.
+          sources (SourceTable): A `SourceTable` instance
           epoch (Time): The epoch of the observation.
 
         Returns:
-          A `DataFrame` instance.
-          The DataFrame contains four columns: the "x" and "y" columns are
-          the positions on the focal plane in micron, and the "ra" and "dec"
-          columns are the original celestial positions in the ICRS frame.
+          A `SourceTable` instance with positions on the focal plane.
         '''
-        try:
-            if epoch is not None:
-                sources = sources.apply_space_motion(epoch)
-        except Exception as e:
-            print(str(e), file=sys.stderr)
-            print('No proper motion information is available.',
-                  file=sys.stderr)
-            print('The positions are not updated to new epoch.',
-                  file=sys.stderr)
-        # icrs = sources.transform_to('icrs')
-        # xyz = icrs.cartesian.xyz
-        # r = Rotation.from_euler('zyx', -self.pointing_angle)
-        # pqr = np.atleast_2d(r.as_matrix() @ xyz)
-        # obj = SkyCoord(pqr.T, obstime=epoch,
-        #                representation_type='cartesian').transform_to('icrs')
-        # obj.representation_type = 'spherical'
-        # pos = np.array(obj.to_pixel(self.projection, origin=0))
+        temp = SourceTable(sources.table)
+        if epoch is not None:
+            temp.apply_space_motion(epoch)
+        skycoord = temp.skycoord
 
-        pos = sources.to_pixel(self.projection, 0)
+        pos = skycoord.to_pixel(self.projection, 0)
         pos = np.array(pos).reshape((2, -1))
-        blocked = self.block(pos)
+        within_fov = self.contains(pos)
         pos = self.distortion(pos.copy())
 
-        return pd.DataFrame({
-            'x': pos[0],
-            'y': pos[1],
-            'ra': sources.icrs.ra,
-            'dec': sources.icrs.dec,
-        })[~blocked]
+        table = temp.table
+        table['x'] = pos[0] * u.um
+        table['y'] = pos[1] * u.um
+        table = table[within_fov]
+
+        return SourceTable(table=table)

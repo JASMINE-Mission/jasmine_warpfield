@@ -5,9 +5,14 @@
 
 from astropy.wcs import WCS
 import numpy as np
+import sys
 
 __debug_mode__ = False
 __arcsec_to_um__ = 1.0 / 3600
+
+
+def eprint(message):
+    print(message, file=sys.stderr)
 
 
 def estimate_frame_from_ctype(ctype):
