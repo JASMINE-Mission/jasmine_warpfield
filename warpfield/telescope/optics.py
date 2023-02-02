@@ -52,17 +52,6 @@ class Optics:
         return SkyCoord(0 * u.deg, 0 * u.deg, frame='icrs')
 
     @property
-    def pointing_angle(self):
-        ''' Angles to define the pointing position and orientation '''
-        # use the ICRS frame in calculation.
-        icrs = self.pointing.icrs
-        # calculate position angle in the ICRS frame.
-        north = self.pointing.directional_offset_by(0.0, 1 * u.arcsec)
-        delta = self.pointing.icrs.position_angle(north)
-        position_angle = -self.position_angle.rad - delta.rad
-        return np.array((icrs.ra.rad, -icrs.dec.rad, position_angle))
-
-    @property
     def projection(self):
         ''' Get the projection of the optics '''
         return self.get_projection(self.pointing.frame)
