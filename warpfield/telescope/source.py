@@ -10,8 +10,10 @@ from astroquery.gaia import Gaia
 import astropy.io.fits as fits
 import astropy.units as u
 
-__debug_mode__ = False
+from .util import eprint
 
+
+__debug_mode__ = False
 
 __columns__ = {
     'source_id': None,
@@ -63,10 +65,13 @@ class SourceTable:
             ra=self.table['ra'], dec=self.table['dec'],
             pm_ra_cosdec=self.table['pmra'], pm_dec=self.table['pmdec'],
             distance=distance, obstime=epoch)
-        object.__setattr__(self, 'skycoord', skycoord)
+        self.__set_skycoord(skycoord)
 
     def __len__(self):
         return len(self.table)
+
+    def __set_skycoord(self, skycoord):
+        object.__setattr__(self, 'skycoord', skycoord)
 
     @staticmethod
     def from_fitsfile(filename, key='table'):
@@ -74,6 +79,15 @@ class SourceTable:
         hdul = fits.open(filename)
         table = QTable.read(hdul[key])
         return SourceTable(table=table)
+
+    def apply_space_motion(self, epoch):
+        try:
+            skycoord = self.skycoord.apply_space_motion(epoch)
+            self.__set_skycoord(skycoord)
+        except Exception as e:
+            eprint(str(e))
+            eprint('No proper motion information is available.')
+            eprint('The positions are not updated to new epoch.')
 
     def writeto(self, filename, overwrite=False):
         ''' Dump a SourceTable into a FITS file
