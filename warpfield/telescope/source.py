@@ -110,14 +110,18 @@ class SourceTable(withFITSIO):
     def __get_epoch(time):
         return Time(time, format='decimalyear', scale='tcb')
 
-    def __post_init__(self):
+    def __safe_epoch(self):
+        ''' generate epoch '''
         if 'ref_epoch' in self.table.colnames:
-            epoch = self.__get_epoch(self.table['ref_epoch'].data)
+            return self.__get_epoch(self.table['ref_epoch'].data)
         elif 'epoch' in self.table.colnames:
-            epoch = self.__get_epoch(self.table['epoch'].data)
+            return self.__get_epoch(self.table['epoch'].data)
         else:
             # obstime is assumed to be J2000.0 if epoch is not given.
-            epoch = self.__get_epoch(2000.0)
+            return self.__get_epoch(2000.0)
+
+    def __safe_pm(self):
+        ''' generate proper motion '''
         try:
             pmra = self.table['pmra']
             pmdec = self.table['pmdec']
@@ -125,11 +129,21 @@ class SourceTable(withFITSIO):
             # proper motion is set zero if not given.
             pmra = np.zeros(len(self.table)) * u.mas / u.year
             pmdec = np.zeros(len(self.table)) * u.mas / u.year
+        return pmra, pmdec
+
+    def __safe_distance(self):
+        ''' generate distance '''
         try:
-            distance = Distance(parallax=self.table['parallax'])
+            return Distance(parallax=self.table['parallax'])
         except KeyError:
             # distance is not specified if parallax is not given.
-            distance = None
+            return = None
+
+    def __post_init__(self):
+        epoch = self.__safe_epoch()
+        pmra, pmdec = self.__safe_pm()
+        distance = self.__safe_distance()
+
         try:
             skycoord = SkyCoord(
                 ra=self.table['ra'], dec=self.table['dec'],
