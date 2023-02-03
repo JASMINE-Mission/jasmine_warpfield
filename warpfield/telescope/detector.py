@@ -8,6 +8,7 @@ from astropy.table import QTable
 from astropy.coordinates import Angle
 from astropy.units.quantity import Quantity
 from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 from shapely.geometry import Polygon
 import astropy.units as u
 import numpy as np
@@ -58,36 +59,13 @@ class Detector:
         return np.array((-self.naxis2 / 2, self.naxis2 / 2))
 
     @property
-    def detector_origin(self):
-        ''' Returns the location of the lower left corner '''
-        c = np.cos(self.position_angle.rad)
-        s = np.sin(self.position_angle.rad)
-        x0 = self.offset_dx.to(u.um)
-        y0 = self.offset_dy.to(u.um)
-        return Quantity([
-            x0 - (self.width * c - self.height * s) / 2,
-            y0 - (self.width * s + self.height * c) / 2,
-        ])
-
-    def get_footprint_as_patch(self):
-        ''' The focal-plane footprint as a patch '''
-        return Rectangle(
-            self.detector_origin.to_value(u.um),
-            width=self.width.to_value(u.um),
-            height=self.height.to_value(u.um),
-            angle=self.position_angle.deg,
-            ec='r',
-            linewidth=2,
-            fill=False)
-
-    def get_footprint_as_polygon(self):
-        ''' The focal-plane footprint as a polygon '''
+    def corners(self):
         cos = np.cos(self.position_angle.rad)
         sin = np.sin(self.position_angle.rad)
-        x0 = self.offset_dx.to_value(u.um)
-        y0 = self.offset_dy.to_value(u.um)
         width = self.width.to_value(u.um)
         height = self.height.to_value(u.um)
+        x0 = self.offset_dx.to_value(u.um)
+        y0 = self.offset_dy.to_value(u.um)
         x1 = x0 - (+width * cos - height * sin) / 2
         y1 = y0 - (+width * sin + height * cos) / 2
         x2 = x0 - (-width * cos - height * sin) / 2
@@ -96,7 +74,37 @@ class Detector:
         y3 = y0 - (-width * sin - height * cos) / 2
         x4 = x0 - (+width * cos + height * sin) / 2
         y4 = y0 - (+width * sin - height * cos) / 2
-        return Polygon(([x1, y1], [x2, y2], [x3, y3], [x4, y4]))
+        return [[x1, y1], [x2, y2], [x3, y3], [x4, y4]] * u.um
+
+    @property
+    def detector_origin(self):
+        ''' Returns the location of the lower left corner '''
+        return self.corners[0]
+
+    def get_footprint_as_patch(self, **options):
+        ''' The focal-plane footprint as a patch '''
+        options['edgecolor'] = options.get('edgecolor', 'r')
+        options['linewidth'] = options.get('linewidth', 2)
+        options['fill'] = options.get('fill', False)
+        return Rectangle(
+            self.detector_origin.to_value(u.um),
+            width=self.width.to_value(u.um),
+            height=self.height.to_value(u.um),
+            angle=self.position_angle.deg,
+            **options)
+
+    def get_first_line_as_patch(self, **options):
+        ''' The detector first line as a patch '''
+        options['linewidth'] = options.get('linewidth', 4.0)
+        options['color'] = options.get('color', 'b')
+        options['alpha'] = options.get('alpha', 0.5)
+        xdata = self.corners[0:2, 0]
+        ydata = self.corners[0:2, 1]
+        return Line2D(xdata, ydata, **options)
+
+    def get_footprint_as_polygon(self, **options):
+        ''' The focal-plane footprint as a polygon '''
+        return Polygon(self.corners.to_value(u.um), **options)
 
     def align(self, position):
         ''' Align the source position to the detector

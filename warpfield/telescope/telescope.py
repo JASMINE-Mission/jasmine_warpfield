@@ -133,6 +133,7 @@ class Telescope:
             axis.scatter(fp['x'], fp['y'], markersize, marker=marker)
         for d in self.detectors:
             axis.add_patch(d.get_footprint_as_patch())
+            axis.add_patch(d.get_first_line_as_patch())
         axis.autoscale_view()
         axis.grid()
         axis.set_xlabel(r'Displacement on the focal plane ($\mu$m)',
