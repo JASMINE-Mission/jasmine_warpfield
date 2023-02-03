@@ -7,6 +7,7 @@ from typing import List
 from astropy.coordinates import SkyCoord, Angle
 import numpy as np
 
+from .source import convert_skycoord_to_sourcetable
 from .optics import Optics
 from .detector import Detector
 from .util import estimate_frame_from_ctype
@@ -44,16 +45,6 @@ class Telescope:
             self.detectors = [Detector()]
         assert self.optics is not None, 'no optics found'
         assert self.detectors is not None, 'no detector found'
-
-    def set_distortion(self, distortion):
-        ''' Set a distortion function to the optics
-
-        See `Optics.set_distortion` for details.
-
-        Arguments:
-          distortion (function): A function to distort focal plane image.
-        '''
-        self.optics.set_distortion(distortion)
 
     def get_footprints(self, frame, **options):
         ''' Obtain detector footprints on the sky
@@ -99,12 +90,11 @@ class Telescope:
 
         for footprint in self.get_footprints(frame, **options):
             v = np.array(proj.all_world2pix(footprint, 0))
-            # v = np.array(footprint.boundary.coords)
             axis.plot(v[:, 0], v[:, 1], c=color, label=label, **options)
         return axis
 
     def display_focal_plane(
-            self, axis, sources=None, epoch=None, **options):
+            self, axis, source=None, epoch=None, **options):
         ''' Display the layout of the detectors
 
         Show the layout of the detectors on the focal plane. The detectors are
@@ -112,9 +102,12 @@ class Telescope:
         detectors are overlaid on the sources on the focal plane.
 
         Arguments:
-          axis (Axes)       : a Matplotlib Axes instance.
-          sources (SkyCoord): A list of astronomical sources.
-          epoch (Time)      : The observation epoch.
+          axis (Axes):
+              a Matplotlib Axes instance.
+          source (SkyCoord or SourceTable):
+              A list of astronomical sources.
+          epoch (Time):
+              The observation epoch.
 
         Options:
           figsize (tuple(int,int)): The figure size.
@@ -127,11 +120,13 @@ class Telescope:
         alpha = options.pop('alpha', 0.2)
         axis.set_aspect(1.0)
         axis.add_patch(self.optics.get_fov_patch(color=color, alpha=alpha))
-        if sources is not None:
-            position = self.optics.imaging(sources, epoch)
-            axis.scatter(position.x, position.y, markersize, marker=marker)
+        if source is not None:
+            if isinstance(source, SkyCoord):
+                source = convert_skycoord_to_sourcetable(source)
+            fp = self.optics.imaging(source, epoch).table
+            axis.scatter(fp['x'], fp['y'], markersize, marker=marker)
         for d in self.detectors:
-            axis.add_patch(d.get_footprint_as_patch)
+            axis.add_patch(d.get_footprint_as_patch())
         axis.autoscale_view()
         axis.grid()
         axis.set_xlabel(r'Displacement on the focal plane ($\mu$m)',
@@ -158,7 +153,7 @@ class Telescope:
         '''
         position = self.optics.imaging(sources, epoch)
         fov = []
-        for det in self.detectors:
+        for n, det in enumerate(self.detectors):
             fov.append(det.capture(position))
 
         return fov
