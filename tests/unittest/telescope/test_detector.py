@@ -40,8 +40,8 @@ def test_build_detector(detector):
 
 
 def test_detector_footprint(detector):
-    assert isinstance(detector.footprint_as_patch, Rectangle)
-    assert isinstance(detector.footprint_as_polygon, Polygon)
+    assert isinstance(detector.get_footprint_as_patch(), Rectangle)
+    assert isinstance(detector.get_footprint_as_polygon(), Polygon)
 
 
 def test_detector_capture(detector, fp_position):

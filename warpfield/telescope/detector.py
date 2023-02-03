@@ -69,8 +69,7 @@ class Detector:
             y0 - (self.width * s + self.height * c) / 2,
         ]
 
-    @property
-    def footprint_as_patch(self):
+    def get_footprint_as_patch(self):
         ''' The focal-plane footprint as a patch '''
         return Rectangle(self.detector_origin,
                          width=self.width,
@@ -80,8 +79,7 @@ class Detector:
                          linewidth=2,
                          fill=False)
 
-    @property
-    def footprint_as_polygon(self):
+    def get_footprint_as_polygon(self):
         ''' The focal-plane footprint as a polygon '''
         c, s = np.cos(self.position_angle.rad), np.sin(self.position_angle.rad)
         x0, y0 = self.offset_dx.to_value(u.um), self.offset_dy.to_value(u.um)
