@@ -12,6 +12,7 @@ from shapely.geometry import Polygon
 import astropy.units as u
 import numpy as np
 
+from .source import DetectorPositionTable
 from .distortion import identity_transformation
 
 
@@ -114,11 +115,24 @@ class Detector:
             (s * dx + c * dy) / self.pixel_scale,
         ], names=['nx', 'ny'])
 
+    def contains(self, pos):
+        ''' Return True if objects are on the detector
+
+        Argument:
+          pos (QTable): The (nx,ny)-coordinates on the detector.
+
+        Returns:
+          A boolean array.
+        '''
+        xf = ((self.xrange[0] < pos['nx']) & (pos['nx'] < self.xrange[1]))
+        yf = ((self.yrange[0] < pos['ny']) & (pos['ny'] < self.yrange[1]))
+        return xf & yf
+
     def capture(self, position):
         ''' Calculate the positions of the sources on the detector
 
         Arguments:
-          position (SourceTable):
+          position (FocalPlaneTable):
               The positions of the sources on the focal plane. the "x" and "y"
               columns are respectively the x- and y-positions of the sources
               in units of micron.
@@ -129,10 +143,9 @@ class Detector:
           The "x" and "y" columns are the positions on each detector. The "ra"
           and "dec" columns are the original positions in the ICRS frame.
         '''
-        xy = self.align(position.table)
-        xy = self.displacement(xy)
-        position.x = xy[:, 0]
-        position.y = xy[:, 1]
-        xf = ((self.xrange[0] < position.x) & (position.x < self.xrange[1]))
-        yf = ((self.yrange[0] < position.y) & (position.y < self.yrange[1]))
-        return position.loc[xf & yf, :]
+        table = position.table.copy()
+        xy = self.displacement(self.align(table))
+        table['nx'] = xy['nx']
+        table['ny'] = xy['ny']
+        within = self.contains(table)
+        return DetectorPositionTable(table[within])
