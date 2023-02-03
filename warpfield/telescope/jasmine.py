@@ -55,7 +55,7 @@ def get_jasmine( \
     Returns:
       A telescope instance defined by the nominal JASMINE design.
     '''
-    optics = Optics( \
+    optics = Optics(
       pointing,
       position_angle,
       focal_length  = 4.86*u.m,
