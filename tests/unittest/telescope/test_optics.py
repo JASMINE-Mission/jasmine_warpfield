@@ -26,19 +26,20 @@ def optics():
 def target():
     tics = np.array([-0.2, -0.1, 0.0, 0.1, 0.2])
     na, nd = np.meshgrid(tics, tics)
+    idx = np.arange(na.size)
     a = 10 + na.ravel()
     d = 30 + nd.ravel()
-    return SourceTable(
-        QTable([
-            a * u.degree,
-            d * u.degree,
-            np.zeros_like(a) * u.mas / u.year,
-            np.zeros_like(d) * u.mas / u.year,
-            np.ones_like(a) * u.uas,
-            2016.0 * np.ones_like(a) * u.year,
-        ], names=[
-            'ra', 'dec', 'pmra', 'pmdec', 'parallax', 'ref_epoch',
-        ]))
+    return SourceTable(QTable([
+        idx,
+        a * u.degree,
+        d * u.degree,
+        np.zeros_like(a) * u.mas / u.year,
+        np.zeros_like(d) * u.mas / u.year,
+        np.ones_like(a) * u.uas,
+        2016.0 * np.ones_like(a) * u.year,
+    ], names=[
+        'source_id', 'ra', 'dec', 'pmra', 'pmdec', 'parallax', 'ref_epoch',
+    ]))
 
 
 def test_build_optics_pointing(optics):
