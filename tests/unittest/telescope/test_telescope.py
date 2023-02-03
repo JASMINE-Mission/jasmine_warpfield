@@ -32,6 +32,9 @@ def test_telescope_pointing(telescope):
 
 def test_telescope_observe(telescope, target):
     result = telescope.observe(target)
+    assert len(result[0]) == len(target)
+
+    result = telescope.observe(target, stack=True)
     assert len(result) == len(target)
 
 
