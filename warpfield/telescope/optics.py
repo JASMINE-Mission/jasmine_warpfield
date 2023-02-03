@@ -9,6 +9,7 @@ from astropy.units.quantity import Quantity
 from shapely.geometry import Polygon, Point
 from shapely.geometry import MultiPoint
 from shapely.prepared import prep
+from shapely.measurement import minimum_bounding_radius
 from matplotlib.patches import Polygon as PolygonPatch
 import astropy.units as u
 import numpy as np
@@ -45,9 +46,14 @@ class Optics:
         return (1.0 * u.rad / self.focal_length).to(u.deg / u.um)
 
     @property
-    def center(self):
-        ''' A dummy position to defiine the center of the focal plane '''
-        return SkyCoord(0 * u.deg, 0 * u.deg, frame='icrs')
+    def focal_plane_radius(self):
+        ''' Calculate the bounding radius of the focal plane in um '''
+        return minimum_bounding_radius(self.field_of_view) * u.um
+
+    @property
+    def field_of_view_radius(self):
+        ''' Calculate the bouding radius of the field of view in degree '''
+        return self.focal_plane_radius * self.scale
 
     @property
     def projection(self):
@@ -68,7 +74,7 @@ class Optics:
         delta = origin.position_angle(original)
         return self.position_angle + delta
 
-    def get_polygon(self, **options):
+    def get_fov_patch(self, **options):
         ''' Get a patch of the field of view for Matplotlib '''
         xy = self.field_of_view.exterior.xy
         return PolygonPatch(np.array(xy).T, **options)

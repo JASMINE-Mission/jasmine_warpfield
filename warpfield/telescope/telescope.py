@@ -131,7 +131,7 @@ class Telescope:
         color = options.pop('color', (0.8, 0.8, 0.8))
         alpha = options.pop('alpha', 0.2)
         axis.set_aspect(1.0)
-        axis.add_patch(self.optics.get_polygon(color=color, alpha=alpha))
+        axis.add_patch(self.optics.get_fov_patch(color=color, alpha=alpha))
         if sources is not None:
             position = self.optics.imaging(sources, epoch)
             axis.scatter(position.x, position.y, markersize, marker=marker)
