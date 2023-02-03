@@ -41,12 +41,24 @@ def target():
         ]))
 
 
-def test_build_optics(optics):
+def test_build_optics_pointing(optics):
     assert optics.pointing.icrs.ra.deg == approx(10.0)
     assert optics.pointing.icrs.dec.deg == approx(30.0)
+
+
+def test_build_optics_focal_length(optics):
     assert optics.focal_length.to_value('meter') == approx(4.00)
+
+
+def test_build_optics_focal_diamter(optics):
     assert optics.diameter.to_value('meter') == approx(0.3)
+
+
+def test_build_optics_focal_plane_radius(optics):
     assert optics.focal_plane_radius.to_value('cm') == approx(3.0)
+
+
+def test_build_optics_field_of_view_radius(optics):
     assert optics.field_of_view_radius.to_value('degree') == approx(0.43, 0.1)
 
 
