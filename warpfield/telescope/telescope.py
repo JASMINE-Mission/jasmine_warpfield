@@ -65,21 +65,16 @@ class Telescope:
         limit = options.pop('limit', True)
 
         footprints = []
-        field_of_view = self.optics.field_of_view
+        fov = self.optics.field_of_view
         proj = self.optics.get_projection(frame)
 
         for d in self.detectors:
-            fp = field_of_view.intersection(
-                d.footprint_as_polygon) if limit else d.footprint_as_polygon
+            if limit:
+                fp = fov.intersection(d.get_footprint_as_polygon())
+            else:
+                fp = d.get_footprint_as_polygon()
             edge = np.array(fp.boundary.coords)
             sky = np.array(proj.all_pix2world(edge, 0))
-            # sky = SkyCoord(pos[:, 0] * u.deg, pos[:, 1] * u.deg, frame=frame)
-            # if frame == 'galactic':
-            #     sky = sky.galactic
-            #     pos = Polygon(np.stack([sky.l.deg, sky.b.deg]).T)
-            # else:
-            #     sky = sky.icrs
-            #     pos = Polygon(np.stack([sky.ra.deg, sky.dec.deg]).T)
             footprints.append(sky)
         return footprints
 
@@ -136,7 +131,7 @@ class Telescope:
             position = self.optics.imaging(sources, epoch)
             axis.scatter(position.x, position.y, markersize, marker=marker)
         for d in self.detectors:
-            axis.add_patch(d.footprint_as_patch)
+            axis.add_patch(d.get_footprint_as_patch)
         axis.autoscale_view()
         axis.grid()
         axis.set_xlabel(r'Displacement on the focal plane ($\mu$m)',
