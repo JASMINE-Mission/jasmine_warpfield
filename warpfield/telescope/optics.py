@@ -15,7 +15,7 @@ import astropy.units as u
 import numpy as np
 
 from .util import get_projection
-from .source import SourceTable
+from .source import SourceTable, FocalPlaneTable
 from .distortion import identity_transformation
 
 
@@ -131,4 +131,4 @@ class Optics:
         table['y'] = pos[1] * u.um
         table = table[within_fov]
 
-        return SourceTable(table=table)
+        return FocalPlaneTable(table=table)
