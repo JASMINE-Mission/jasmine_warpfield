@@ -5,8 +5,10 @@
 from dataclasses import dataclass
 from typing import List
 from astropy.coordinates import SkyCoord, Angle
+from astropy.table import vstack
 import numpy as np
 
+from .source import DetectorPositionTable
 from .source import convert_skycoord_to_sourcetable
 from .optics import Optics
 from .detector import Detector
@@ -52,6 +54,10 @@ class Telescope:
         Options:
           limit (bool):
               Limit the footprints within the valid region if True.
+
+        Returns:
+          A list of detector footprints on the sky. Each footprint is
+          given as a 2-dimensional numpy array [[x,y], ...].
         '''
         limit = options.pop('limit', True)
 
@@ -134,7 +140,7 @@ class Telescope:
         axis.set_ylabel(r'Displacement on the focal plane ($\mu$m)',
                         fontsize=14)
 
-    def observe(self, sources, epoch=None):
+    def observe(self, source, epoch=None):
         ''' Observe astronomical sources
 
         Map the sky coordinates of astronomical sources into the physical
@@ -151,9 +157,11 @@ class Telescope:
           line is the coordinates along the NAXIS1 axis, and the second one
           is the coordinates along the NAXIS2 axis.
         '''
-        position = self.optics.imaging(sources, epoch)
-        fov = []
+        fp_position = self.optics.imaging(source, epoch)
+        dets = []
         for n, det in enumerate(self.detectors):
-            fov.append(det.capture(position))
+            table = det.capture(fp_position).table
+            table['detector'] = n
+            dets.append(table)
 
-        return fov
+        return DetectorPositionTable(vstack(dets))

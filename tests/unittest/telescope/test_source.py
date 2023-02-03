@@ -15,6 +15,7 @@ from warpfield.telescope.source import retrieve_gaia_sources
 @fixture
 def table():
     return QTable([
+        np.array([0, 1, 2]),
         np.array([+0.0, +0.1, +0.2]) * u.degree,
         np.array([-0.1, +0.0, +0.1]) * u.degree,
         np.array([+0.0, +0.1, -1.0]) * u.mas / u.year,
@@ -22,7 +23,7 @@ def table():
         np.array([1.0, 2.0, 3.0]) * u.mas,
         np.array([2016.0, 2016.0, 2016.0]) * u.year,
     ], names=[
-        'ra', 'dec', 'pmra', 'pmdec', 'parallax', 'ref_epoch',
+        'source_id', 'ra', 'dec', 'pmra', 'pmdec', 'parallax', 'ref_epoch',
     ])
 
 
