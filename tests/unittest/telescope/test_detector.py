@@ -36,7 +36,7 @@ def test_build_detector(detector):
     assert detector.naxis1 == 1920
     assert detector.naxis2 == 1920
     assert detector.pixel_scale == 10 * u.um
-    assert detector.detector_origin == approx([-9600, -9600])
+    assert detector.detector_origin.to_value('um') == approx([-9600, -9600])
 
 
 def test_detector_footprint(detector):

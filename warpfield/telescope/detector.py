@@ -40,12 +40,12 @@ class Detector:
     @property
     def width(self):
         ''' The physical width of the detector '''
-        return self.naxis1 * self.pixel_scale.to_value(u.um)
+        return self.naxis1 * self.pixel_scale.to(u.um)
 
     @property
     def height(self):
         ''' The physical height of the detector '''
-        return self.naxis2 * self.pixel_scale.to_value(u.um)
+        return self.naxis2 * self.pixel_scale.to(u.um)
 
     @property
     def xrange(self):
@@ -62,35 +62,40 @@ class Detector:
         ''' Returns the location of the lower left corner '''
         c = np.cos(self.position_angle.rad)
         s = np.sin(self.position_angle.rad)
-        x0 = self.offset_dx.to_value(u.um)
-        y0 = self.offset_dy.to_value(u.um)
-        return [
+        x0 = self.offset_dx.to(u.um)
+        y0 = self.offset_dy.to(u.um)
+        return Quantity([
             x0 - (self.width * c - self.height * s) / 2,
             y0 - (self.width * s + self.height * c) / 2,
-        ]
+        ])
 
     def get_footprint_as_patch(self):
         ''' The focal-plane footprint as a patch '''
-        return Rectangle(self.detector_origin,
-                         width=self.width,
-                         height=self.height,
-                         angle=self.position_angle.deg,
-                         ec='r',
-                         linewidth=2,
-                         fill=False)
+        return Rectangle(
+            self.detector_origin.to_value(u.um),
+            width=self.width.to_value(u.um),
+            height=self.height.to_value(u.um),
+            angle=self.position_angle.deg,
+            ec='r',
+            linewidth=2,
+            fill=False)
 
     def get_footprint_as_polygon(self):
         ''' The focal-plane footprint as a polygon '''
-        c, s = np.cos(self.position_angle.rad), np.sin(self.position_angle.rad)
-        x0, y0 = self.offset_dx.to_value(u.um), self.offset_dy.to_value(u.um)
-        x1 = x0 - (+self.width * c - self.height * s) / 2
-        y1 = y0 - (+self.width * s + self.height * c) / 2
-        x2 = x0 - (-self.width * c - self.height * s) / 2
-        y2 = y0 - (-self.width * s + self.height * c) / 2
-        x3 = x0 - (-self.width * c + self.height * s) / 2
-        y3 = y0 - (-self.width * s - self.height * c) / 2
-        x4 = x0 - (+self.width * c + self.height * s) / 2
-        y4 = y0 - (+self.width * s - self.height * c) / 2
+        cos = np.cos(self.position_angle.rad)
+        sin = np.sin(self.position_angle.rad)
+        x0 = self.offset_dx.to_value(u.um)
+        y0 = self.offset_dy.to_value(u.um)
+        width = self.width.to_value(u.um)
+        height = self.height.to_value(u.um)
+        x1 = x0 - (+width * cos - height * sin) / 2
+        y1 = y0 - (+width * sin + height * cos) / 2
+        x2 = x0 - (-width * cos - height * sin) / 2
+        y2 = y0 - (-width * sin + height * cos) / 2
+        x3 = x0 - (-width * cos + height * sin) / 2
+        y3 = y0 - (-width * sin - height * cos) / 2
+        x4 = x0 - (+width * cos + height * sin) / 2
+        y4 = y0 - (+width * sin - height * cos) / 2
         return Polygon(([x1, y1], [x2, y2], [x3, y3], [x4, y4]))
 
     def align(self, position):
@@ -106,8 +111,8 @@ class Detector:
         x, y = position['x'], position['y']
         c = np.cos(-self.position_angle.rad)
         s = np.sin(-self.position_angle.rad)
-        dx = x - self.offset_dx.to_value(u.um)
-        dy = y - self.offset_dy.to_value(u.um)
+        dx = x - self.offset_dx
+        dy = y - self.offset_dy
         return QTable([
             (c * dx - s * dy) / self.pixel_scale,
             (s * dx + c * dy) / self.pixel_scale,

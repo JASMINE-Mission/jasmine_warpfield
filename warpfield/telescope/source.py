@@ -9,6 +9,7 @@ from astropy.time import Time
 from astroquery.gaia import Gaia
 import astropy.io.fits as fits
 import astropy.units as u
+import numpy as np
 
 from .util import eprint
 
@@ -49,6 +50,9 @@ class withFITSIO:
     def __len__(self):
         return len(self.table)
 
+    def __getitem__(self, key):
+        return self.table[key]
+
     @staticmethod
     def from_fitsfile(filename, key='table'):
         ''' Generate a SourceTable from a FITS file '''
@@ -72,6 +76,13 @@ class withFITSIO:
             fits.BinTableHDU(data=self.table, name='table')
         ])
         hdul.writeto(filename, overwrite=overwrite)
+
+
+def convert_skycoord_to_sourcetable(skycoord):
+    return SourceTable(QTable([
+        skycoord.icrs.ra,
+        skycoord.icrs.dec,
+    ], names=['ra', 'dec']))
 
 
 @dataclass(frozen=True)
@@ -100,20 +111,29 @@ class SourceTable(withFITSIO):
         return Time(time, format='decimalyear', scale='tcb')
 
     def __post_init__(self):
-        try:
+        if 'ref_epoch' in self.table.colnames:
             epoch = self.__get_epoch(self.table['ref_epoch'].data)
-        except KeyError as e:
-            eprint(f'{e} is not given, obstime is assumed to be J2000.0.')
+        elif 'epoch' in self.table.colnames:
+            epoch = self.__get_epoch(self.table['epoch'].data)
+        else:
+            # obstime is assumed to be J2000.0 if epoch is not given.
             epoch = self.__get_epoch(2000.0)
         try:
+            pmra = self.table['pmra']
+            pmdec = self.table['pmdec']
+        except KeyError:
+            # proper motion is set zero if not given.
+            pmra = np.zeros(len(self.table)) * u.mas / u.year
+            pmdec = np.zeros(len(self.table)) * u.mas / u.year
+        try:
             distance = Distance(parallax=self.table['parallax'])
-        except KeyError as e:
-            eprint(f'distance is not specified since {e} is not given.')
+        except KeyError:
+            # distance is not specified if parallax is not given.
             distance = None
         try:
             skycoord = SkyCoord(
                 ra=self.table['ra'], dec=self.table['dec'],
-                pm_ra_cosdec=self.table['pmra'], pm_dec=self.table['pmdec'],
+                pm_ra_cosdec=pmra, pm_dec=pmdec,
                 distance=distance, obstime=epoch)
             self.__set_skycoord(skycoord)
         except KeyError as e:
