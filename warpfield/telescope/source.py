@@ -9,7 +9,6 @@ from astropy.time import Time
 from astroquery.gaia import Gaia
 import astropy.io.fits as fits
 import astropy.units as u
-import numpy as np
 
 from .util import eprint
 
