@@ -37,41 +37,14 @@ __columns__ = {
 
 
 @dataclass(frozen=True)
-class SourceTable:
-    ''' Source Table
+class withFITSIO:
+    ''' QTable with I/O functions
 
     Attributes:
       table (QTable):
           Table of celestial objects.
-      skycoord (SkyCoord):
-          Auto-generated SkyCoord object.
-
-     The table should contain the following columns.
-
-        - ra: right ascension
-        - dec: declination
-        - parallax: parallax
-        - pmra: proper motion in right ascension (μα*)
-        - pmdec: proper motion in declination (μδ)
-        - ref_epoch: measurement epoch
     '''
     table: QTable
-    skycoord: SkyCoord = field(init=False)
-
-    def __post_init__(self):
-        epoch = Time(self.table['ref_epoch'].data, format='decimalyear')
-        distance = Distance(parallax=self.table['parallax'])
-        skycoord = SkyCoord(
-            ra=self.table['ra'], dec=self.table['dec'],
-            pm_ra_cosdec=self.table['pmra'], pm_dec=self.table['pmdec'],
-            distance=distance, obstime=epoch)
-        self.__set_skycoord(skycoord)
-
-    def __len__(self):
-        return len(self.table)
-
-    def __set_skycoord(self, skycoord):
-        object.__setattr__(self, 'skycoord', skycoord)
 
     @staticmethod
     def from_fitsfile(filename, key='table'):
@@ -79,15 +52,6 @@ class SourceTable:
         hdul = fits.open(filename)
         table = QTable.read(hdul[key])
         return SourceTable(table=table)
-
-    def apply_space_motion(self, epoch):
-        try:
-            skycoord = self.skycoord.apply_space_motion(epoch)
-            self.__set_skycoord(skycoord)
-        except Exception as e:
-            eprint(str(e))
-            eprint('No proper motion information is available.')
-            eprint('The positions are not updated to new epoch.')
 
     def writeto(self, filename, overwrite=False):
         ''' Dump a SourceTable into a FITS file
@@ -105,6 +69,60 @@ class SourceTable:
             fits.BinTableHDU(data=self.table, name='table')
         ])
         hdul.writeto(filename, overwrite=overwrite)
+
+
+@dataclass(frozen=True)
+class SourceTable(withFITSIO):
+    ''' Source Table
+
+    Attributes:
+      table (QTable):
+          Table of celestial objects.
+      skycoord (SkyCoord):
+          Auto-generated SkyCoord object.
+
+     The table should contain the following columns.
+
+        - ra: right ascension
+        - dec: declination
+        - parallax: parallax
+        - pmra: proper motion in right ascension (μα*)
+        - pmdec: proper motion in declination (μδ)
+        - ref_epoch: measurement epoch
+    '''
+    skycoord: SkyCoord = field(init=False)
+
+    def __post_init__(self):
+        epoch = Time(self.table['ref_epoch'].data, format='decimalyear')
+        distance = Distance(parallax=self.table['parallax'])
+        skycoord = SkyCoord(
+            ra=self.table['ra'], dec=self.table['dec'],
+            pm_ra_cosdec=self.table['pmra'], pm_dec=self.table['pmdec'],
+            distance=distance, obstime=epoch)
+        self.__set_skycoord(skycoord)
+
+    def __len__(self):
+        return len(self.table)
+
+    def __set_skycoord(self, skycoord):
+        object.__setattr__(self, 'skycoord', skycoord)
+
+    def apply_space_motion(self, epoch):
+        try:
+            skycoord = self.skycoord.apply_space_motion(epoch)
+            self.__set_skycoord(skycoord)
+        except Exception as e:
+            eprint(str(e))
+            eprint('No proper motion information is available.')
+            eprint('The positions are not updated to new epoch.')
+
+
+@dataclass(frozen=True)
+class FocalPlaneTable(SourceTable):
+    def __poit_init__(self):
+        names = self.table
+        assert 'x' in names
+        assert 'y' in names
 
 
 def gaia_query_builder(
