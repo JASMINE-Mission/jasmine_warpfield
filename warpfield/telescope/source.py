@@ -106,32 +106,47 @@ class SourceTable(withFITSIO):
     '''
     skycoord: SkyCoord = field(init=False)
 
+    def __ra(self):
+        ''' return Right Ascension '''
+        return self.table['ra']
+
+    def __dec(self):
+        ''' return Declination '''
+        return self.table['dec']
+
     @staticmethod
-    def __get_epoch(time):
+    def __convert_epoch(time):
         return Time(time, format='decimalyear', scale='tcb')
 
-    def __safe_epoch(self):
+    def __epoch(self):
         ''' generate epoch '''
         if 'ref_epoch' in self.table.colnames:
-            return self.__get_epoch(self.table['ref_epoch'].data)
+            return self.__convert_epoch(self.table['ref_epoch'].data)
         elif 'epoch' in self.table.colnames:
-            return self.__get_epoch(self.table['epoch'].data)
+            return self.__convert_epoch(self.table['epoch'].data)
         else:
             # obstime is assumed to be J2000.0 if epoch is not given.
-            return self.__get_epoch(2000.0)
+            return self.__convert_epoch(2000.0)
 
-    def __safe_pm(self):
+    def __pmra(self):
         ''' generate proper motion '''
         try:
             pmra = self.table['pmra']
-            pmdec = self.table['pmdec']
         except KeyError:
             # proper motion is set zero if not given.
             pmra = np.zeros(len(self.table)) * u.mas / u.year
-            pmdec = np.zeros(len(self.table)) * u.mas / u.year
-        return pmra, pmdec
+        return pmra
 
-    def __safe_distance(self):
+    def __pmdec(self):
+        ''' generate proper motion '''
+        try:
+            pmdec = self.table['pmdec']
+        except KeyError:
+            # proper motion is set zero if not given.
+            pmdec = np.zeros(len(self.table)) * u.mas / u.year
+        return pmdec
+
+    def __distance(self):
         ''' generate distance '''
         try:
             return Distance(parallax=self.table['parallax'])
@@ -140,15 +155,14 @@ class SourceTable(withFITSIO):
             return = None
 
     def __post_init__(self):
-        epoch = self.__safe_epoch()
-        pmra, pmdec = self.__safe_pm()
-        distance = self.__safe_distance()
-
         try:
             skycoord = SkyCoord(
-                ra=self.table['ra'], dec=self.table['dec'],
-                pm_ra_cosdec=pmra, pm_dec=pmdec,
-                distance=distance, obstime=epoch)
+                ra=self.table['ra'],
+                dec=self.table['dec'],
+                pm_ra_cosdec=self.__pmra(),
+                pm_dec=self.__pmdec(),
+                distance=self.__distance(),
+                obstime=self.__epoch())
             self.__set_skycoord(skycoord)
         except KeyError as e:
             eprint(f'skip updating `skycoord` since {e} is not given.')
