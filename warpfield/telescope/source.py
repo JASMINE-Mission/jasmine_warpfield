@@ -152,7 +152,7 @@ class SourceTable(withFITSIO):
             return Distance(parallax=self.table['parallax'])
         except KeyError:
             # distance is not specified if parallax is not given.
-            return = None
+            return None
 
     def __post_init__(self):
         try:
