@@ -4,6 +4,7 @@
 
 from dataclasses import dataclass
 from typing import Callable
+from astropy.table import QTable
 from astropy.coordinates import Angle
 from astropy.units.quantity import Quantity
 from matplotlib.patches import Rectangle
@@ -97,27 +98,27 @@ class Detector:
         ''' Align the source position to the detector
 
         Arguments:
-          position (DataFrame): The xy-coordinates on the focal plane.
+          position (QTable): The xy-coordinates on the focal plane.
 
         Returns:
-          A numpy array of the xy-positions of the sources,
+          A QTable instance of the positions of the sources,
           which are remapped onto the detector coordinates.
         '''
-        x, y = position.x, position.y
+        x, y = position['x'], position['y']
         c = np.cos(-self.position_angle.rad)
         s = np.sin(-self.position_angle.rad)
         dx = x - self.offset_dx.to_value(u.um)
         dy = y - self.offset_dy.to_value(u.um)
-        return np.stack([
+        return QTable([
             (c * dx - s * dy) / self.pixel_scale,
             (s * dx + c * dy) / self.pixel_scale,
-        ]).T
+        ], names=['nx', 'ny'])
 
     def capture(self, position):
         ''' Calculate the positions of the sources on the detector
 
         Arguments:
-          position (DataFrame):
+          position (SourceTable):
               The positions of the sources on the focal plane. the "x" and "y"
               columns are respectively the x- and y-positions of the sources
               in units of micron.
@@ -128,7 +129,7 @@ class Detector:
           The "x" and "y" columns are the positions on each detector. The "ra"
           and "dec" columns are the original positions in the ICRS frame.
         '''
-        xy = self.align(position)
+        xy = self.align(position.table)
         xy = self.displacement(xy)
         position.x = xy[:, 0]
         position.y = xy[:, 1]
