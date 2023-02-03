@@ -9,6 +9,7 @@ from astropy.time import Time
 from astroquery.gaia import Gaia
 import astropy.io.fits as fits
 import astropy.units as u
+import numpy as np
 
 from .util import eprint
 
@@ -45,6 +46,9 @@ class withFITSIO:
           Table of celestial objects.
     '''
     table: QTable
+
+    def __len__(self):
+        return len(self.table)
 
     @staticmethod
     def from_fitsfile(filename, key='table'):
@@ -92,17 +96,30 @@ class SourceTable(withFITSIO):
     '''
     skycoord: SkyCoord = field(init=False)
 
-    def __post_init__(self):
-        epoch = Time(self.table['ref_epoch'].data, format='decimalyear')
-        distance = Distance(parallax=self.table['parallax'])
-        skycoord = SkyCoord(
-            ra=self.table['ra'], dec=self.table['dec'],
-            pm_ra_cosdec=self.table['pmra'], pm_dec=self.table['pmdec'],
-            distance=distance, obstime=epoch)
-        self.__set_skycoord(skycoord)
+    @staticmethod
+    def __get_epoch(time):
+        return Time(time, format='decimalyear', scale='tcb')
 
-    def __len__(self):
-        return len(self.table)
+    def __post_init__(self):
+        try:
+            epoch = self.__get_epoch(self.table['ref_epoch'].data)
+        except KeyError as e:
+            eprint(f'{e} is not given, obstime is assumed to be J2000.0.')
+            epoch = self.__get_epoch(2000.0)
+        try:
+            distance = Distance(parallax=self.table['parallax'])
+        except KeyError as e:
+            eprint(f'distance is not specified since {e} is not given.')
+            distance = None
+        try:
+            skycoord = SkyCoord(
+                ra=self.table['ra'], dec=self.table['dec'],
+                pm_ra_cosdec=self.table['pmra'], pm_dec=self.table['pmdec'],
+                distance=distance, obstime=epoch)
+            self.__set_skycoord(skycoord)
+        except KeyError as e:
+            eprint(f'skip updating `skycoord` since {e} is not given.')
+            self.__set_skycoord(None)
 
     def __set_skycoord(self, skycoord):
         object.__setattr__(self, 'skycoord', skycoord)
@@ -118,11 +135,21 @@ class SourceTable(withFITSIO):
 
 
 @dataclass(frozen=True)
-class FocalPlaneTable(SourceTable):
-    def __poit_init__(self):
-        names = self.table
+class FocalPlanePositionTable(SourceTable):
+    def __post_init__(self):
+        super().__post_init__()
+        names = self.table.colnames
         assert 'x' in names
         assert 'y' in names
+
+
+@dataclass(frozen=True)
+class DetectorPositionTable(FocalPlanePositionTable):
+    def __post_init__(self):
+        super().__post_init__()
+        names = self.table.colnames
+        assert 'nx' in names
+        assert 'ny' in names
 
 
 def gaia_query_builder(
