@@ -140,28 +140,36 @@ class Telescope:
         axis.set_ylabel(r'Displacement on the focal plane ($\mu$m)',
                         fontsize=14)
 
-    def observe(self, source, epoch=None):
+    def observe(self, source, epoch=None, stack=False):
         ''' Observe astronomical sources
 
         Map the sky coordinates of astronomical sources into the physical
         positions on the detectors of the telescope.
 
         Arguments:
-          sources (SkyCoord): A list of astronomical sources.
-          epoch (Time): The datetime of the observation.
+          sources (SourceTable):
+              A list of astronomical sources.
+
+        Options:
+          epoch (Time):
+              The datetime of the observation.
+          stack (bool):
+              A stacked table is returned if true.
 
         Returns:
-          A numpy.ndarray with the shape of (N(detector), 2, N(source)).
+          A list of DetectorPlaneTable, with the shape of N(detector).
           The first index specifies the detector of the telescope.
-          A two dimensional array is assigned for each detector. The first
-          line is the coordinates along the NAXIS1 axis, and the second one
-          is the coordinates along the NAXIS2 axis.
+          All tables are stacked into a single table if `stack` is True.
         '''
         fp_position = self.optics.imaging(source, epoch)
         dets = []
         for n, det in enumerate(self.detectors):
-            table = det.capture(fp_position).table
-            table['detector'] = n
-            dets.append(table)
+            det_position = det.capture(fp_position)
+            det_position.table['detector'] = n
+            dets.append(det_position)
 
-        return DetectorPositionTable(vstack(dets))
+        if stack is False:
+            return dets
+        else:
+            stacked = vstack([d.table for d in dets])
+            return DetectorPositionTable(stacked)
