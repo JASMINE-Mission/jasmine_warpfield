@@ -1,3 +1,18 @@
+# 気になりメモ
+
+* distortionの型制約がCallableなのは弱い気がするなぁ
+* 「**」が厳密に何を指すかわかんないですが、引数で渡されたモノを書き換えるのは好ましくないかな？
+* Detectorと、Opticsのcontains引数名は合わしておきたいかな
+* withFITSIO -> WithFITSIOの方が良い
+* FocalPlanePositionTableとDetectorPositionTableはassertionのためだけに存在してるのか...
+  * どうするかなぁ。。。無くしたいなぁ...
+  * 親クラスが子クラスを意識するのは避けたい。from_fitsfileはSourceTableにあるのがいいかも... 
+* Legendreのプロパティに大文字のモノがある
+* AltLegendreでcenterプロパティを多重定義してるの避けたい。
+  * こういうケースってコンストラクタで値補正して親クラスのコンストラクタ呼び出すんじゃ無いかな？
+* Legendre関係のクラス、多重継承しねいとイケないのかな？LegendreがBaseDestortion継承するのに実害あるのかな？
+  * Sipも構造的には同じですね
+
 ```uml
 @startuml
 allowmixing 
