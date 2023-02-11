@@ -132,8 +132,8 @@ Client -> Telescope : display_focal_plane
   Telescope -> Optics : imaging()
     activate Optics
     Optics -> tmp_SourceTable : new
-    Optics -> tmp_sourceTable : apply_space_motion()
-    Optics -> tmp_sourceTable : SkyCoordの取得
+    Optics -> tmp_SourceTable : apply_space_motion()
+    Optics -> tmp_SourceTable : SkyCoordの取得
     tmp_sourceTable -> 
     deactivate Optics
   deactivate Telescope
