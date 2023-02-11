@@ -139,4 +139,4 @@ Client -> Telescope : display_focal_plane
   deactivate Telescope
 end          
 @enduml
-```uml
+```
