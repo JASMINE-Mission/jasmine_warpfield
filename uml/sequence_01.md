@@ -39,8 +39,7 @@ activate Client
 Client -> QTable : read('./data/source_table.txt', format='ascii.ipac')
 Client -> unique : unique(↑, 'catalog_id')
 Client -> catalog : new(↑)
-Client -> QTable : read('./data/pointing.txt', format='ascii.ipac')
-QTable --> Client : return pointing
+Client -> QTable : pointing　= read('./data/pointing.txt', format='ascii.ipac')
 end
 group 5 
 Client -> "pointing:QTable" : to_pandas()
