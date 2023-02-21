@@ -40,8 +40,8 @@ def source_simple():
     ])
 
 
-def generate_grid(l, r, n):
-    tics = np.arange(l, r, n)
+def generate_grid(a, b, n):
+    tics = np.arange(a, b, n)
     x, y = np.meshgrid(tics, tics)
     sid = np.arange(x.size)
     return x, y, sid

@@ -8,6 +8,7 @@ import astropy.units as u
 import numpy as np
 
 from warpfield.telescope.source import SourceTable
+from warpfield.telescope.source import FocalPlanePositionTable
 from warpfield.telescope.optics import Optics
 
 
@@ -33,12 +34,8 @@ def target():
         idx,
         a * u.degree,
         d * u.degree,
-        np.zeros_like(a) * u.mas / u.year,
-        np.zeros_like(d) * u.mas / u.year,
-        np.ones_like(a) * u.uas,
-        2016.0 * np.ones_like(a) * u.year,
     ], names=[
-        'source_id', 'ra', 'dec', 'pmra', 'pmdec', 'parallax', 'ref_epoch',
+        'source_id', 'ra', 'dec',
     ]))
 
 
@@ -83,4 +80,6 @@ def test_optics_patch(optics):
 
 def test_optics_imaging(optics, target):
     table = optics.imaging(target)
+
+    assert isinstance(table, FocalPlanePositionTable)
     assert len(table) == len(target)
