@@ -53,6 +53,13 @@ class withFITSIO:
     def __getitem__(self, key):
         return self.table[key]
 
+    def has(self, *items):
+        names = self.table.colnames
+        return all([name in names for name in items])
+
+    def get_dimension(self, name):
+        return u.get_physical_type(self.table[name])
+
     @classmethod
     def from_fitsfile(cls, filename, key='table'):
         ''' Generate a SourceTable from a FITS file
@@ -107,14 +114,24 @@ class SourceTable(withFITSIO):
 
      The table should contain the following columns.
 
+        - source_id: unique source ID
         - ra: right ascension
         - dec: declination
+
+     The following columns are recognized when defining the `skycoord`.
+     If they are not defined, parallax is set `None`, proper motions are
+     set to zeros, and ref_epoch is set J2000.0 (TCB).
+
         - parallax: parallax
         - pmra: proper motion in right ascension (μα*)
         - pmdec: proper motion in declination (μδ)
         - ref_epoch: measurement epoch
     '''
     skycoord: SkyCoord = field(init=False)
+
+    @staticmethod
+    def __convert_epoch(time):
+        return Time(time, format='decimalyear', scale='tcb')
 
     def __ra(self):
         ''' return Right Ascension '''
@@ -123,10 +140,6 @@ class SourceTable(withFITSIO):
     def __dec(self):
         ''' return Declination '''
         return self.table['dec']
-
-    @staticmethod
-    def __convert_epoch(time):
-        return Time(time, format='decimalyear', scale='tcb')
 
     def __epoch(self):
         ''' generate epoch '''
@@ -165,18 +178,15 @@ class SourceTable(withFITSIO):
             return None
 
     def __post_init__(self):
-        try:
-            skycoord = SkyCoord(
-                ra=self.table['ra'],
-                dec=self.table['dec'],
-                pm_ra_cosdec=self.__pmra(),
-                pm_dec=self.__pmdec(),
-                distance=self.__distance(),
-                obstime=self.__epoch())
-            self.__set_skycoord(skycoord)
-        except KeyError as e:
-            eprint(f'skip updating `skycoord` since {e} is not given.')
-            self.__set_skycoord(None)
+        assert self.has('source_id', 'ra', 'dec')
+        skycoord = SkyCoord(
+            ra=self.__ra(),
+            dec=self.__dec(),
+            pm_ra_cosdec=self.__pmra(),
+            pm_dec=self.__pmdec(),
+            distance=self.__distance(),
+            obstime=self.__epoch())
+        self.__set_skycoord(skycoord)
 
     def __set_skycoord(self, skycoord):
         object.__setattr__(self, 'skycoord', skycoord)
@@ -192,21 +202,48 @@ class SourceTable(withFITSIO):
 
 
 @dataclass(frozen=True)
-class FocalPlanePositionTable(SourceTable):
+class FocalPlanePositionTable(withFITSIO):
+    ''' FocalPlanePositionTable
+
+    Attributes:
+      table (QTable):
+          Table of celestial objects.
+
+     The table should contain the following columns.
+
+        - source_id: unique source ID
+        - x: x-coordinate on the focal plane as length
+        - y: y-coordinate on the focal plane as length
+    '''
     def __post_init__(self):
-        super().__post_init__()
-        names = self.table.colnames
-        assert 'x' in names
-        assert 'y' in names
+        assert self.has('source_id', 'x', 'y')
+        assert self.get_dimension('source_id') == 'dimensionless'
+        assert self.get_dimension('x') == 'length'
+        assert self.get_dimension('y') == 'length'
 
 
 @dataclass(frozen=True)
-class DetectorPositionTable(FocalPlanePositionTable):
+class DetectorPositionTable(withFITSIO):
+    ''' DetectorPositionTable
+
+    Attributes:
+      table (QTable):
+          Table of celestial objects.
+
+     The table should contain the following columns.
+
+        - source_id: right ascension
+        - dec: declination
+        - parallax: parallax
+        - pmra: proper motion in right ascension (μα*)
+        - pmdec: proper motion in declination (μδ)
+        - ref_epoch: measurement epoch
+    '''
     def __post_init__(self):
-        super().__post_init__()
-        names = self.table.colnames
-        assert 'nx' in names
-        assert 'ny' in names
+        assert self.has('source_id', 'nx', 'ny')
+        assert self.get_dimension('source_id') == 'dimensionless'
+        assert self.get_dimension('nx') == 'dimensionless'
+        assert self.get_dimension('ny') == 'dimensionless'
 
 
 def gaia_query_builder(
