@@ -2,45 +2,28 @@
 # -*- coding: utf-8 -*-
 ''' Define distortion function by the Legendre polynomials '''
 
-from dataclasses import dataclass, field
-from .base import BaseDistortion
+from dataclasses import dataclass
+from .base import BiPolynomialFunction, InvertibleFunction
 from numpy.polynomial.legendre import legval2d
 import numpy as np
 
 
-@dataclass
-class Legendre:
+class Legendre(BiPolynomialFunction, InvertibleFunction):
     ''' Displacement function by the Legendre polynomials
 
-    Attributes:
-      order (int):
-          The polynomial order of the Legendre convention.
-      A (ndarray):
-          The coefficient matrix for the x-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-      B (ndarray):
-          The coefficient matrix for the y-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-    '''
-    order: int
-    center: np.ndarray = field(init=False)
-    A: np.ndarray
-    B: np.ndarray
-    scale: float = 30000.
+    This class does not work properly by itself.
+    The following attributes should be defined in child classes.
 
-    def __post_init__(self):
-        self.center = np.array((0, 0)).reshape((2, 1))
-        dim = self.order + 1
-        assert self.order >= 0, \
-            'The polynomical order should be non-negative.'
-        assert self.A.shape == (dim, dim), \
-            f'The shape of A matris should be ({dim}, {dim}).'
-        assert self.B.shape == (dim, dim), \
-            f'The shape of B matris should be ({dim}, {dim}).'
+    Attributes:
+      order: the maximum order of the polynomials.
+      center: the distortion center (optional).
+      A: coefficients for the x-coordinate.
+      B: coefficients for the y-coordinate.
+    '''
 
     def normalize(self, position: np.ndarray):
         ''' Normalize position '''
-        return (position.copy() - self.center) / self.scale
+        return (position.copy() - self.get_center()) / self.scale
 
     def apply(self, position: np.ndarray):
         ''' Modify xy-coordinates with the Legendre polynomial function
@@ -63,12 +46,32 @@ class Legendre:
 
 
 @dataclass
-class AltLegendre(Legendre):
+class LegendreDistortion(Legendre):
+    ''' Distortion function with the Legendre polynomials
+
+    Attributes:
+      order (int):
+          The maximum order of the Legendre polynomials.
+      A (ndarray):
+          The coefficient matrix for the x-coordinate.
+          The shape of the matrix should be (order+1, order+1).
+      B (ndarray):
+          The coefficient matrix for the y-coordinate.
+          The shape of the matrix should be (order+1, order+1).
+    '''
+    order: int
+    A: np.ndarray
+    B: np.ndarray
+    scale: float = 30000.
+
+
+@dataclass
+class DisplacedLegendreDistortion(Legendre):
     ''' Displacement function by the Legendre polynomials
 
     Attributes:
       order (int):
-          The polynomial order of the Legendre convention.
+          The maximum order of the Legendre polynomials.
       center (ndarray):
           The distortion center.
       A (ndarray):
@@ -78,43 +81,8 @@ class AltLegendre(Legendre):
           The coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
     '''
+    order: int
     center: np.ndarray
-
-    def __post_init__(self):
-        assert self.center.size == 2, \
-          'The center position should have two elements.'
-        self.center = self.center.reshape((2, 1))
-
-
-class LegendreDistortion(Legendre, BaseDistortion):
-    ''' Distortion function with the Legendre polynomials
-
-    Attributes:
-      order (int):
-          The maximum order of the Legendre polynomials.
-      A (ndarray):
-          The coefficient matrix for the x-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-      B (ndarray):
-          The coefficient matrix for the y-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-    '''
-    pass
-
-
-class AltLegendreDistortion(AltLegendre, BaseDistortion):
-    ''' Distortion function with the Legendre polynomials
-
-    Attributes:
-      order (int):
-          The maximum order of the Legendre polynomials.
-      center (ndarray):
-          The distortion center.
-      A (ndarray):
-          The coefficient matrix for the x-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-      B (ndarray):
-          The coefficient matrix for the y-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-    '''
-    pass
+    A: np.ndarray
+    B: np.ndarray
+    scale: float = 30000.
