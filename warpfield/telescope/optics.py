@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 ''' Definition of Optics class '''
 
-import sys
-
 from dataclasses import dataclass
 from typing import Callable
 from astropy.coordinates import SkyCoord, Angle
@@ -11,12 +9,13 @@ from astropy.units.quantity import Quantity
 from shapely.geometry import Polygon, Point
 from shapely.geometry import MultiPoint
 from shapely.prepared import prep
+from shapely.measurement import minimum_bounding_radius
 from matplotlib.patches import Polygon as PolygonPatch
 import astropy.units as u
 import numpy as np
-import pandas as pd
 
 from .util import get_projection
+from .source import SourceTable, FocalPlanePositionTable
 from .distortion import identity_transformation
 
 
@@ -47,20 +46,14 @@ class Optics:
         return (1.0 * u.rad / self.focal_length).to(u.deg / u.um)
 
     @property
-    def center(self):
-        ''' A dummy position to defiine the center of the focal plane '''
-        return SkyCoord(0 * u.deg, 0 * u.deg, frame='icrs')
+    def focal_plane_radius(self):
+        ''' Calculate the bounding radius of the focal plane in um '''
+        return minimum_bounding_radius(self.field_of_view) * u.um
 
     @property
-    def pointing_angle(self):
-        ''' Angles to define the pointing position and orientation '''
-        # use the ICRS frame in calculation.
-        icrs = self.pointing.icrs
-        # calculate position angle in the ICRS frame.
-        north = self.pointing.directional_offset_by(0.0, 1 * u.arcsec)
-        delta = self.pointing.icrs.position_angle(north)
-        position_angle = -self.position_angle.rad - delta.rad
-        return np.array((icrs.ra.rad, -icrs.dec.rad, position_angle))
+    def field_of_view_radius(self):
+        ''' Calculate the bouding radius of the field of view in degree '''
+        return self.focal_plane_radius * self.scale
 
     @property
     def projection(self):
@@ -81,7 +74,7 @@ class Optics:
         delta = origin.position_angle(original)
         return self.position_angle + delta
 
-    def get_polygon(self, **options):
+    def get_fov_patch(self, **options):
         ''' Get a patch of the field of view for Matplotlib '''
         xy = self.field_of_view.exterior.xy
         return PolygonPatch(np.array(xy).T, **options)
@@ -98,8 +91,8 @@ class Optics:
         '''
         self.distortion = distortion
 
-    def block(self, position):
-        ''' Block sources outside the field of view
+    def contains(self, position):
+        ''' Check if sources are inside the field of view
 
         Arguments:
           position (ndarray):
@@ -111,47 +104,31 @@ class Optics:
         '''
         mp = MultiPoint(position.reshape((2, -1)).T)
         polygon = prep(self.field_of_view.buffer(self.margin.to_value(u.um)))
-        return np.array([not polygon.contains(p) for p in mp.geoms])
+        return np.array([polygon.contains(p) for p in mp.geoms])
 
     def imaging(self, sources, epoch=None):
         ''' Map celestial positions onto the focal plane
 
         Arguments:
-          sources (SkyCoord): The coordinates of sources.
+          sources (SourceTable): A `SourceTable` instance
           epoch (Time): The epoch of the observation.
 
         Returns:
-          A `DataFrame` instance.
-          The DataFrame contains four columns: the "x" and "y" columns are
-          the positions on the focal plane in micron, and the "ra" and "dec"
-          columns are the original celestial positions in the ICRS frame.
+          A `SourceTable` instance with positions on the focal plane.
         '''
-        try:
-            if epoch is not None:
-                sources = sources.apply_space_motion(epoch)
-        except Exception as e:
-            print(str(e), file=sys.stderr)
-            print('No proper motion information is available.',
-                  file=sys.stderr)
-            print('The positions are not updated to new epoch.',
-                  file=sys.stderr)
-        # icrs = sources.transform_to('icrs')
-        # xyz = icrs.cartesian.xyz
-        # r = Rotation.from_euler('zyx', -self.pointing_angle)
-        # pqr = np.atleast_2d(r.as_matrix() @ xyz)
-        # obj = SkyCoord(pqr.T, obstime=epoch,
-        #                representation_type='cartesian').transform_to('icrs')
-        # obj.representation_type = 'spherical'
-        # pos = np.array(obj.to_pixel(self.projection, origin=0))
+        temp = SourceTable(sources.table)
+        if epoch is not None:
+            temp.apply_space_motion(epoch)
+        skycoord = temp.skycoord
 
-        pos = sources.to_pixel(self.projection, 0)
+        pos = skycoord.to_pixel(self.projection, 0)
         pos = np.array(pos).reshape((2, -1))
-        blocked = self.block(pos)
+        within_fov = self.contains(pos)
         pos = self.distortion(pos.copy())
 
-        return pd.DataFrame({
-            'x': pos[0],
-            'y': pos[1],
-            'ra': sources.icrs.ra,
-            'dec': sources.icrs.dec,
-        })[~blocked]
+        table = temp.table
+        table['x'] = pos[0] * u.um
+        table['y'] = pos[1] * u.um
+        table = table[within_fov]
+
+        return FocalPlanePositionTable(table=table)

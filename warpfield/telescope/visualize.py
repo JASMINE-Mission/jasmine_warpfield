@@ -5,6 +5,7 @@
 import matplotlib.pyplot as plt
 
 from .util import get_projection, estimate_frame_from_ctype
+from .source import SourceTable
 
 
 def get_subplot(pointing, key=111, figsize=(8, 8)):
@@ -30,11 +31,11 @@ def display_sources(axis, sources, **options):
     Arguments:
       axis (Axes):
           Matplotlib Axes instance.
-      pointing (SkyCoord):
-          The direction of the telescope pointing.
-      sources (SkyCoord):
+      sources (SkyCoord or SourceTable):
           The list of sources.
     '''
+    if isinstance(sources, SourceTable):
+        sources = sources.skycoord
     ctype = axis.wcs.wcs.ctype
     frame = estimate_frame_from_ctype(ctype)
 

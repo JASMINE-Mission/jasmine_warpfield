@@ -2,7 +2,7 @@
 \pointing_ra=266.3291996301222
 \pointing_dec=-28.66124338558378
 \position_angle=301.4374988733345
-|                  x|                  y|catalog_id|field_id|block_id|plate_id|              x_orig|             y_orig|                ra|                dec|
+|                  x|                  y| source_id|field_id|block_id|plate_id|              x_orig|             y_orig|                ra|                dec|
 |             double|             double|      long|    long|    long|    long|              double|             double|            double|             double|
 |                 um|                 um|          |        |        |        |                  um|                 um|               deg|                deg|
 |               null|               null|      null|    null|    null|    null|                null|               null|              null|               null|

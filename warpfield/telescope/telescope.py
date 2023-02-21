@@ -5,8 +5,11 @@
 from dataclasses import dataclass
 from typing import List
 from astropy.coordinates import SkyCoord, Angle
+from astropy.table import vstack
 import numpy as np
 
+from .source import DetectorPositionTable
+from .source import convert_skycoord_to_sourcetable
 from .optics import Optics
 from .detector import Detector
 from .util import estimate_frame_from_ctype
@@ -45,41 +48,30 @@ class Telescope:
         assert self.optics is not None, 'no optics found'
         assert self.detectors is not None, 'no detector found'
 
-    def set_distortion(self, distortion):
-        ''' Set a distortion function to the optics
-
-        See `Optics.set_distortion` for details.
-
-        Arguments:
-          distortion (function): A function to distort focal plane image.
-        '''
-        self.optics.set_distortion(distortion)
-
     def get_footprints(self, frame, **options):
         ''' Obtain detector footprints on the sky
 
         Options:
           limit (bool):
               Limit the footprints within the valid region if True.
+
+        Returns:
+          A list of detector footprints on the sky. Each footprint is
+          given as a 2-dimensional numpy array [[x,y], ...].
         '''
         limit = options.pop('limit', True)
 
         footprints = []
-        field_of_view = self.optics.field_of_view
+        fov = self.optics.field_of_view
         proj = self.optics.get_projection(frame)
 
         for d in self.detectors:
-            fp = field_of_view.intersection(
-                d.footprint_as_polygon) if limit else d.footprint_as_polygon
+            if limit:
+                fp = fov.intersection(d.get_footprint_as_polygon())
+            else:
+                fp = d.get_footprint_as_polygon()
             edge = np.array(fp.boundary.coords)
             sky = np.array(proj.all_pix2world(edge, 0))
-            # sky = SkyCoord(pos[:, 0] * u.deg, pos[:, 1] * u.deg, frame=frame)
-            # if frame == 'galactic':
-            #     sky = sky.galactic
-            #     pos = Polygon(np.stack([sky.l.deg, sky.b.deg]).T)
-            # else:
-            #     sky = sky.icrs
-            #     pos = Polygon(np.stack([sky.ra.deg, sky.dec.deg]).T)
             footprints.append(sky)
         return footprints
 
@@ -104,12 +96,11 @@ class Telescope:
 
         for footprint in self.get_footprints(frame, **options):
             v = np.array(proj.all_world2pix(footprint, 0))
-            # v = np.array(footprint.boundary.coords)
             axis.plot(v[:, 0], v[:, 1], c=color, label=label, **options)
         return axis
 
     def display_focal_plane(
-            self, axis, sources=None, epoch=None, **options):
+            self, axis, source=None, epoch=None, **options):
         ''' Display the layout of the detectors
 
         Show the layout of the detectors on the focal plane. The detectors are
@@ -117,9 +108,12 @@ class Telescope:
         detectors are overlaid on the sources on the focal plane.
 
         Arguments:
-          axis (Axes)       : a Matplotlib Axes instance.
-          sources (SkyCoord): A list of astronomical sources.
-          epoch (Time)      : The observation epoch.
+          axis (Axes):
+              a Matplotlib Axes instance.
+          source (SkyCoord or SourceTable):
+              A list of astronomical sources.
+          epoch (Time):
+              The observation epoch.
 
         Options:
           figsize (tuple(int,int)): The figure size.
@@ -131,12 +125,15 @@ class Telescope:
         color = options.pop('color', (0.8, 0.8, 0.8))
         alpha = options.pop('alpha', 0.2)
         axis.set_aspect(1.0)
-        axis.add_patch(self.optics.get_polygon(color=color, alpha=alpha))
-        if sources is not None:
-            position = self.optics.imaging(sources, epoch)
-            axis.scatter(position.x, position.y, markersize, marker=marker)
+        axis.add_patch(self.optics.get_fov_patch(color=color, alpha=alpha))
+        if source is not None:
+            if isinstance(source, SkyCoord):
+                source = convert_skycoord_to_sourcetable(source)
+            fp = self.optics.imaging(source, epoch).table
+            axis.scatter(fp['x'], fp['y'], markersize, marker=marker)
         for d in self.detectors:
-            axis.add_patch(d.footprint_as_patch)
+            axis.add_patch(d.get_footprint_as_patch())
+            axis.add_patch(d.get_first_line_as_patch())
         axis.autoscale_view()
         axis.grid()
         axis.set_xlabel(r'Displacement on the focal plane ($\mu$m)',
@@ -144,26 +141,36 @@ class Telescope:
         axis.set_ylabel(r'Displacement on the focal plane ($\mu$m)',
                         fontsize=14)
 
-    def observe(self, sources, epoch=None):
+    def observe(self, source, epoch=None, stack=False):
         ''' Observe astronomical sources
 
         Map the sky coordinates of astronomical sources into the physical
         positions on the detectors of the telescope.
 
         Arguments:
-          sources (SkyCoord): A list of astronomical sources.
-          epoch (Time): The datetime of the observation.
+          sources (SourceTable):
+              A list of astronomical sources.
+
+        Options:
+          epoch (Time):
+              The datetime of the observation.
+          stack (bool):
+              A stacked table is returned if true.
 
         Returns:
-          A numpy.ndarray with the shape of (N(detector), 2, N(source)).
+          A list of DetectorPlaneTable, with the shape of N(detector).
           The first index specifies the detector of the telescope.
-          A two dimensional array is assigned for each detector. The first
-          line is the coordinates along the NAXIS1 axis, and the second one
-          is the coordinates along the NAXIS2 axis.
+          All tables are stacked into a single table if `stack` is True.
         '''
-        position = self.optics.imaging(sources, epoch)
-        fov = []
-        for det in self.detectors:
-            fov.append(det.capture(position))
+        fp_position = self.optics.imaging(source, epoch)
+        dets = []
+        for n, det in enumerate(self.detectors):
+            det_position = det.capture(fp_position)
+            det_position.table['detector'] = n
+            dets.append(det_position)
 
-        return fov
+        if stack is False:
+            return dets
+        else:
+            stacked = vstack([d.table for d in dets])
+            return DetectorPositionTable(stacked)

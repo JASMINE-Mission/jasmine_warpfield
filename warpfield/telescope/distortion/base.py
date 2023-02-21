@@ -5,13 +5,55 @@
 import numpy as np
 
 
-class BaseDistortion:
+class BiPolynomialFunction:
+    ''' Requiremnts to define a bi-polynomial function
+
+    This class does not work properly by itself.
+    The following attributes should be defined in child classes.
+
+    Attributes:
+      order: the maximum order of the polynomials.
+      center: the distortion center (optional).
+      A: coefficients for the x-coordinate.
+      B: coefficients for the y-coordinate.
+    '''
+
+    def __post_init__(self):
+        ''' This function will be called from a child class '''
+        self.check_integrity()
+
+    def get_center(self):
+        ''' Return (0,0) if `center` is not defined '''
+        if hasattr(self, 'center'):
+            return np.reshape(self.center, (2, 1))
+        else:
+            return np.array((0, 0)).reshape((2, 1))
+
+    def check_integrity(self):
+        ''' Check if the attributes are properly defined '''
+        dim = self.order + 1
+        assert self.order >= 0, \
+            'The polynomical order should be non-negative.'
+        assert self.get_center().size == 2, \
+            'The center position should have two elements.'
+        assert self.A.shape == (dim, dim), \
+            f'The shape of A matris should be ({dim}, {dim}).'
+        assert self.B.shape == (dim, dim), \
+            f'The shape of B matris should be ({dim}, {dim}).'
+
+
+class InvertibleFunction:
+
+    def apply():
+        raise NotImplementedError('should be overriden')
 
     def __call__(self, position: np.ndarray):
-        ''' Distortion function with SIP convention
+        ''' Inverse function of `self.apply()`
 
-        Converts _correct_ coordinates into _distorted_ coordinates.
-        The distorted coordinates are obtained by an interative method.
+        Provides the inverse function of `self.apply()`.
+        This function is used to convert _correct_ coordinate into
+        _distorted_ coordinates. The distorted coordiantes are obtained
+        by an interative method.
 
         Arguments:
           position (ndarray):

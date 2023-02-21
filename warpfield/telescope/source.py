@@ -9,9 +9,12 @@ from astropy.time import Time
 from astroquery.gaia import Gaia
 import astropy.io.fits as fits
 import astropy.units as u
+import numpy as np
+
+from .util import eprint
+
 
 __debug_mode__ = False
-
 
 __columns__ = {
     'source_id': None,
@@ -35,52 +38,51 @@ __columns__ = {
 
 
 @dataclass(frozen=True)
-class SourceTable:
-    ''' Source Table
+class QTableContainer:
+    ''' QTable with I/O functions
 
     Attributes:
       table (QTable):
           Table of celestial objects.
-      skycoord (SkyCoord):
-          Auto-generated SkyCoord object.
-
-     The table should contain the following columns.
-
-        - ra: right ascension
-        - dec: declination
-        - parallax: parallax
-        - pmra: proper motion in right ascension (μα*)
-        - pmdec: proper motion in declination (μδ)
-        - ref_epoch: measurement epoch
     '''
     table: QTable
-    skycoord: SkyCoord = field(init=False)
-
-    def __post_init__(self):
-        epoch = Time(self.table['ref_epoch'].data, format='decimalyear')
-        distance = Distance(parallax=self.table['parallax'])
-        skycoord = SkyCoord(
-            ra=self.table['ra'], dec=self.table['dec'],
-            pm_ra_cosdec=self.table['pmra'], pm_dec=self.table['pmdec'],
-            distance=distance, obstime=epoch)
-        object.__setattr__(self, 'skycoord', skycoord)
 
     def __len__(self):
         return len(self.table)
 
-    @staticmethod
-    def from_fitsfile(filename, key='table'):
-        ''' Generate a SourceTable from a FITS file '''
+    def __getitem__(self, key):
+        return self.table[key]
+
+    def has(self, *items):
+        names = self.table.colnames
+        return all([name in names for name in items])
+
+    def get_dimension(self, name):
+        return u.get_physical_type(self.table[name])
+
+    @classmethod
+    def from_fitsfile(cls, filename, key='table'):
+        ''' Generate a SourceTable from a FITS file
+
+        Arguments:
+          filename (str):
+              The path to the source FITS file.
+          key (str):
+              The name of the FITS extension containing the table data.
+
+        Returns:
+          A table instance.
+        '''
         hdul = fits.open(filename)
         table = QTable.read(hdul[key])
-        return SourceTable(table=table)
+        return cls(table=table)
 
     def writeto(self, filename, overwrite=False):
         ''' Dump a SourceTable into a FITS file
 
         Arguments:
           filename (str):
-              A filename to be saved.
+              The path to the output filename.
 
         Options:
           overwrite (bool):
@@ -91,6 +93,159 @@ class SourceTable:
             fits.BinTableHDU(data=self.table, name='table')
         ])
         hdul.writeto(filename, overwrite=overwrite)
+
+
+def convert_skycoord_to_sourcetable(skycoord):
+    source_id = np.arange(len(skycoord))
+    return SourceTable(QTable([
+        source_id,
+        skycoord.icrs.ra,
+        skycoord.icrs.dec,
+    ], names=['source_id', 'ra', 'dec']))
+
+
+@dataclass(frozen=True)
+class SourceTable(QTableContainer):
+    ''' Source Table
+
+    Attributes:
+      table (QTable):
+          Table of celestial objects.
+      skycoord (SkyCoord):
+          Auto-generated SkyCoord object.
+
+     The table should contain the following columns.
+
+        - source_id: unique source ID
+        - ra: right ascension
+        - dec: declination
+
+     The following columns are recognized when defining the `skycoord`.
+     If they are not defined, parallax is set `None`, proper motions are
+     set to zeros, and ref_epoch is set J2000.0 (TCB).
+
+        - parallax: parallax
+        - pmra: proper motion in right ascension (μα*)
+        - pmdec: proper motion in declination (μδ)
+        - ref_epoch: measurement epoch
+    '''
+    skycoord: SkyCoord = field(init=False)
+
+    @staticmethod
+    def __convert_epoch(time):
+        return Time(time, format='decimalyear', scale='tcb')
+
+    def __ra(self):
+        ''' return Right Ascension '''
+        return self.table['ra']
+
+    def __dec(self):
+        ''' return Declination '''
+        return self.table['dec']
+
+    def __epoch(self):
+        ''' generate epoch '''
+        if 'ref_epoch' in self.table.colnames:
+            return self.__convert_epoch(self.table['ref_epoch'].data)
+        elif 'epoch' in self.table.colnames:
+            return self.__convert_epoch(self.table['epoch'].data)
+        else:
+            # obstime is assumed to be J2000.0 if epoch is not given.
+            return self.__convert_epoch(2000.0)
+
+    def __pmra(self):
+        ''' generate proper motion '''
+        try:
+            pmra = self.table['pmra']
+        except KeyError:
+            # proper motion is set zero if not given.
+            pmra = np.zeros(len(self.table)) * u.mas / u.year
+        return pmra
+
+    def __pmdec(self):
+        ''' generate proper motion '''
+        try:
+            pmdec = self.table['pmdec']
+        except KeyError:
+            # proper motion is set zero if not given.
+            pmdec = np.zeros(len(self.table)) * u.mas / u.year
+        return pmdec
+
+    def __distance(self):
+        ''' generate distance '''
+        try:
+            return Distance(parallax=self.table['parallax'])
+        except KeyError:
+            # distance is not specified if parallax is not given.
+            return None
+
+    def __post_init__(self):
+        assert self.has('source_id', 'ra', 'dec')
+        skycoord = SkyCoord(
+            ra=self.__ra(),
+            dec=self.__dec(),
+            pm_ra_cosdec=self.__pmra(),
+            pm_dec=self.__pmdec(),
+            distance=self.__distance(),
+            obstime=self.__epoch())
+        self.__set_skycoord(skycoord)
+
+    def __set_skycoord(self, skycoord):
+        object.__setattr__(self, 'skycoord', skycoord)
+
+    def apply_space_motion(self, epoch):
+        try:
+            skycoord = self.skycoord.apply_space_motion(epoch)
+            self.__set_skycoord(skycoord)
+        except Exception as e:
+            eprint(str(e))
+            eprint('No proper motion information is available.')
+            eprint('The positions are not updated to new epoch.')
+
+
+@dataclass(frozen=True)
+class FocalPlanePositionTable(QTableContainer):
+    ''' FocalPlanePositionTable
+
+    Attributes:
+      table (QTable):
+          Table of celestial objects.
+
+     The table should contain the following columns.
+
+        - source_id: unique source ID
+        - x: x-coordinate on the focal plane as length
+        - y: y-coordinate on the focal plane as length
+    '''
+    def __post_init__(self):
+        assert self.has('source_id', 'x', 'y')
+        assert self.get_dimension('source_id') == 'dimensionless'
+        assert self.get_dimension('x') == 'length'
+        assert self.get_dimension('y') == 'length'
+
+
+@dataclass(frozen=True)
+class DetectorPositionTable(QTableContainer):
+    ''' DetectorPositionTable
+
+    Attributes:
+      table (QTable):
+          Table of celestial objects.
+
+     The table should contain the following columns.
+
+        - source_id: right ascension
+        - dec: declination
+        - parallax: parallax
+        - pmra: proper motion in right ascension (μα*)
+        - pmdec: proper motion in declination (μδ)
+        - ref_epoch: measurement epoch
+    '''
+    def __post_init__(self):
+        assert self.has('source_id', 'nx', 'ny')
+        assert self.get_dimension('source_id') == 'dimensionless'
+        assert self.get_dimension('nx') == 'dimensionless'
+        assert self.get_dimension('ny') == 'dimensionless'
 
 
 def gaia_query_builder(
