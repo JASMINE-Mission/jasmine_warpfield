@@ -4,13 +4,16 @@
 
 from dataclasses import dataclass
 from typing import Callable
+from astropy.table import QTable
 from astropy.coordinates import Angle
 from astropy.units.quantity import Quantity
 from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 from shapely.geometry import Polygon
 import astropy.units as u
 import numpy as np
 
+from .source import DetectorPositionTable
 from .distortion import identity_transformation
 
 
@@ -38,12 +41,12 @@ class Detector:
     @property
     def width(self):
         ''' The physical width of the detector '''
-        return self.naxis1 * self.pixel_scale.to_value(u.um)
+        return self.naxis1 * self.pixel_scale.to(u.um)
 
     @property
     def height(self):
         ''' The physical height of the detector '''
-        return self.naxis2 * self.pixel_scale.to_value(u.um)
+        return self.naxis2 * self.pixel_scale.to(u.um)
 
     @property
     def xrange(self):
@@ -56,82 +59,150 @@ class Detector:
         return np.array((-self.naxis2 / 2, self.naxis2 / 2))
 
     @property
-    def detector_origin(self):
-        ''' Returns the location of the lower left corner '''
-        c = np.cos(self.position_angle.rad)
-        s = np.sin(self.position_angle.rad)
+    def corners(self):
+        ''' The detector corner positions in units of micron '''
+        cos = np.cos(self.position_angle.rad)
+        sin = np.sin(self.position_angle.rad)
+        width = self.width.to_value(u.um)
+        height = self.height.to_value(u.um)
         x0 = self.offset_dx.to_value(u.um)
         y0 = self.offset_dy.to_value(u.um)
-        return [
-            x0 - (self.width * c - self.height * s) / 2,
-            y0 - (self.width * s + self.height * c) / 2,
-        ]
+        x1 = x0 - (+width * cos - height * sin) / 2
+        y1 = y0 - (+width * sin + height * cos) / 2
+        x2 = x0 - (-width * cos - height * sin) / 2
+        y2 = y0 - (-width * sin + height * cos) / 2
+        x3 = x0 - (-width * cos + height * sin) / 2
+        y3 = y0 - (-width * sin - height * cos) / 2
+        x4 = x0 - (+width * cos + height * sin) / 2
+        y4 = y0 - (+width * sin - height * cos) / 2
+        return [[x1, y1], [x2, y2], [x3, y3], [x4, y4]] * u.um
 
     @property
-    def footprint_as_patch(self):
-        ''' The focal-plane footprint as a patch '''
-        return Rectangle(self.detector_origin,
-                         width=self.width,
-                         height=self.height,
-                         angle=self.position_angle.deg,
-                         ec='r',
-                         linewidth=2,
-                         fill=False)
+    def detector_origin(self):
+        ''' Returns the location of the lower left corner (origin) '''
+        return self.corners[0]
 
-    @property
-    def footprint_as_polygon(self):
-        ''' The focal-plane footprint as a polygon '''
-        c, s = np.cos(self.position_angle.rad), np.sin(self.position_angle.rad)
-        x0, y0 = self.offset_dx.to_value(u.um), self.offset_dy.to_value(u.um)
-        x1 = x0 - (+self.width * c - self.height * s) / 2
-        y1 = y0 - (+self.width * s + self.height * c) / 2
-        x2 = x0 - (-self.width * c - self.height * s) / 2
-        y2 = y0 - (-self.width * s + self.height * c) / 2
-        x3 = x0 - (-self.width * c + self.height * s) / 2
-        y3 = y0 - (-self.width * s - self.height * c) / 2
-        x4 = x0 - (+self.width * c + self.height * s) / 2
-        y4 = y0 - (+self.width * s - self.height * c) / 2
-        return Polygon(([x1, y1], [x2, y2], [x3, y3], [x4, y4]))
+    def within(self, axis, position):
+        ''' Check if positions are within the detector range
+
+        Arguments:
+          axis (str):
+              The name of the axis ('x' or 'y').
+          position (QTable):
+              Table with 'nx' and 'ny' columns.
+
+        Returns:
+          True if positions are within `self.xrange` or `self.yrange`.
+        '''
+        assert axis in ('x', 'y'), '`axis` should be "x" or "y".'
+        range = self.xrange if axis == 'x' else self.yrange
+        return (range[0] <= position) & (position <= range[1])
+
+    def get_footprint_as_patch(self, **options):
+        ''' Returns a focal-plane footprint as a patch
+
+        Options:
+          edgecolor: default='r'
+          linewidth: default=2
+          fill: default=False
+
+        Returns:
+          A `Rectangle` instance for Matplotlib.
+          The origin of the axes should be the telescope's optical center.
+          The units of the axes should be micron.
+        '''
+        options['edgecolor'] = options.get('edgecolor', 'r')
+        options['linewidth'] = options.get('linewidth', 2)
+        options['fill'] = options.get('fill', False)
+        return Rectangle(
+            self.detector_origin.to_value(u.um),
+            width=self.width.to_value(u.um),
+            height=self.height.to_value(u.um),
+            angle=self.position_angle.deg,
+            **options)
+
+    def get_first_line_as_patch(self, **options):
+        ''' Returns the detector's first line as a patch
+
+        Options:
+          linewidth: default=4.0
+          color: default='b'
+          alpha: default=0.5
+
+        Returns:
+          A `Line2D` instance for MatplotLib.
+          The origin of the axes should be the telescope's optical center.
+          The units of the axes should be micron.
+        '''
+        options['linewidth'] = options.get('linewidth', 4.0)
+        options['color'] = options.get('color', 'b')
+        options['alpha'] = options.get('alpha', 0.5)
+        xdata = self.corners[0:2, 0]
+        ydata = self.corners[0:2, 1]
+        return Line2D(xdata, ydata, **options)
+
+    def get_footprint_as_polygon(self, **options):
+        ''' The focal-plane footprint as a polygon
+
+        Returns:
+          A `Polygon` object for Shapely.
+          The origin of the canvas should be the tehescope's optical center.
+          The units of the canvas should be micron.
+        '''
+        return Polygon(self.corners.to_value(u.um), **options)
 
     def align(self, position):
         ''' Align the source position to the detector
 
         Arguments:
-          position (DataFrame): The xy-coordinates on the focal plane.
+          position (QTable):
+              The (x,y)-coordinates on the focal plane.
 
         Returns:
-          A numpy array of the xy-positions of the sources,
+          A QTable instance of the positions of the sources,
           which are remapped onto the detector coordinates.
         '''
-        x, y = position.x, position.y
+        x, y = position['x'], position['y']
         c = np.cos(-self.position_angle.rad)
         s = np.sin(-self.position_angle.rad)
-        dx = x - self.offset_dx.to_value(u.um)
-        dy = y - self.offset_dy.to_value(u.um)
-        return np.stack([
+        dx = x - self.offset_dx
+        dy = y - self.offset_dy
+        return QTable([
             (c * dx - s * dy) / self.pixel_scale,
             (s * dx + c * dy) / self.pixel_scale,
-        ]).T
+        ], names=['nx', 'ny'])
+
+    def contains(self, position):
+        ''' Return True if objects are on the detector
+
+        Argument:
+          position (QTable):
+              The (nx,ny)-coordinates on the detector.
+
+        Returns:
+          A boolean array.
+          True if positions are on the detector.
+        '''
+        xf = self.within('x', position['nx'])
+        yf = self.within('y', position['ny'])
+        return xf & yf
 
     def capture(self, position):
         ''' Calculate the positions of the sources on the detector
 
         Arguments:
-          position (DataFrame):
+          position (FocalPlaneTable):
               The positions of the sources on the focal plane. the "x" and "y"
               columns are respectively the x- and y-positions of the sources
               in units of micron.
 
         Returns:
-          A list of `DataFrame`s which contains the positions on the detectors.
-          The number of the `DataFrame`s are the same as the detectors.
-          The "x" and "y" columns are the positions on each detector. The "ra"
-          and "dec" columns are the original positions in the ICRS frame.
+          A `DetectorPositionTable`.
+          The "nx" and "ny" columns are the positions on each detector.
         '''
-        xy = self.align(position)
-        xy = self.displacement(xy)
-        position.x = xy[:, 0]
-        position.y = xy[:, 1]
-        xf = ((self.xrange[0] < position.x) & (position.x < self.xrange[1]))
-        yf = ((self.yrange[0] < position.y) & (position.y < self.yrange[1]))
-        return position.loc[xf & yf, :]
+        table = position.table.copy()
+        xy = self.displacement(self.align(table))
+        table['nx'] = xy['nx']
+        table['ny'] = xy['ny']
+        within = self.contains(table)
+        return DetectorPositionTable(table[within])

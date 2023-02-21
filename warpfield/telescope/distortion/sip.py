@@ -2,44 +2,28 @@
 # -*- coding: utf-8 -*-
 ''' Define distortion function by the SIP convention '''
 
-from dataclasses import dataclass, field
-from .base import BaseDistortion
+from dataclasses import dataclass
+from .base import BiPolynomialFunction, InvertibleFunction
 import numpy as np
 
 
-@dataclass
-class Sip:
+class Sip(BiPolynomialFunction, InvertibleFunction):
     ''' SIP (simple imaging polynomical) convention
 
-    Attributes:
-      order (int):
-          The polynomial order of the SIP convention.
-      A (ndarray):
-          The SIP coefficient matrix for the x-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-      B (ndarray):
-          The SIP coefficient matrix for the y-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-    '''
-    order: int
-    center: np.ndarray = field(init=False)
-    A: np.ndarray
-    B: np.ndarray
+    This class does not work properly by itself.
+    The following attributes should be defined in child classes.
 
-    def __post_init__(self):
-        self.center = np.array((0, 0)).reshape((2, 1))
-        dim = self.order + 1
-        assert self.order >= 0, \
-            'The polynomical order should be non-negative.'
-        assert self.A.shape == (dim, dim), \
-            f'The shape of A matris should be ({dim}, {dim}).'
-        assert self.B.shape == (dim, dim), \
-            f'The shape of B matris should be ({dim}, {dim}).'
+    Attributes:
+      order: the maximum order of the polynomials.
+      center: the distortion center (optional).
+      A: coefficients for the x-coordinate.
+      B: coefficients for the y-coordinate.
+    '''
 
     def normalize(self, position: np.ndarray):
         ''' Normalize position '''
         position = position.copy()
-        return position - self.center
+        return position - self.get_center()
 
     def apply(self, position: np.ndarray):
         ''' Modify xy-coordinates with the SIP function
@@ -77,7 +61,26 @@ class Sip:
 
 
 @dataclass
-class AltSip(Sip):
+class SipDistortion(Sip):
+    ''' Distortion function with the SIP convention
+
+    Attributes:
+      order (int):
+          The polynomial order of the SIP convention.
+      A (ndarray):
+          The SIP coefficient matrix for the x-coordinate.
+          The shape of the matrix should be (order+1, order+1).
+      B (ndarray):
+          The SIP coefficient matrix for the y-coordinate.
+          The shape of the matrix should be (order+1, order+1).
+    '''
+    order: int
+    A: np.ndarray
+    B: np.ndarray
+
+
+@dataclass
+class DisplacedSipDistortion(Sip):
     ''' SIP convention with the displaed distortion center
 
     Attributes:
@@ -92,43 +95,7 @@ class AltSip(Sip):
           The SIP coefficient matrix for the y-coordinate.
           The shape of the matrix should be (order+1, order+1).
     '''
+    order: int
     center: np.ndarray
-
-    def __post_init__(self):
-        assert self.center.size == 2, \
-            'The center position should have two elements.'
-        self.center = np.array(self.center).reshape((2, 1))
-
-
-class SipDistortion(Sip, BaseDistortion):
-    ''' Distortion function with the SIP convention
-
-    Attributes:
-      order (int):
-          The polynomial order of the SIP convention.
-      A (ndarray):
-          The SIP coefficient matrix for the x-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-      B (ndarray):
-          The SIP coefficient matrix for the y-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-    '''
-    pass
-
-
-class AltSipDistortion(AltSip, BaseDistortion):
-    ''' Distortion function with the SIP convention
-
-    Attributes:
-      order (int):
-          The polynomial order of the SIP convention.
-      center (ndarray):
-          The distortion center.
-      A (ndarray):
-          The SIP coefficient matrix for the x-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-      B (ndarray):
-          The SIP coefficient matrix for the y-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-    '''
-    pass
+    A: np.ndarray
+    B: np.ndarray

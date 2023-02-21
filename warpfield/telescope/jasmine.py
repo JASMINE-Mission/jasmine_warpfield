@@ -34,7 +34,7 @@ def octagonal_mask():
     return square.intersection(affine_transform(square, affine_matrix))
 
 
-def get_jasmine( \
+def get_jasmine(
       pointing: SkyCoord,
       position_angle: Angle,
       distortion: Callable = identity_transformation,
@@ -55,20 +55,28 @@ def get_jasmine( \
     Returns:
       A telescope instance defined by the nominal JASMINE design.
     '''
-    optics = Optics( \
+    optics = Optics(
       pointing,
       position_angle,
-      focal_length  = 4.86*u.m,
-      diameter      = 0.4*u.m,
+      focal_length  = 4.86 * u.m,
+      diameter      = 0.4 * u.m,
       field_of_view = octagonal_mask() if octagonal else square_mask(),
-      margin        = 5000*u.um,
+      margin        = 5000 * u.um,
       distortion    = distortion)
 
-    arr = np.array([-1, 1]) * (1920 * 5 * u.um + 1.5 * u.mm)
-    xx, yy = np.meshgrid(arr, arr)
+    step = 1920 * 5 * u.um + 1.5 * u.mm
+    xx = step * np.array([-1, 1, 1, -1])
+    yy = step * np.array([-1, -1, 1, 1])
+    pa = Angle([0, 90, 180, 270], unit='degree')
     detectors = [
-        Detector(1920, 1920, pixel_scale=10 * u.um, offset_dx=x, offset_dy=y)
-        for x, y in zip(xx.flat, yy.flat)
+        Detector(
+            naxis1=1920,
+            naxis2=1920,
+            pixel_scale=10 * u.um,
+            offset_dx=x,
+            offset_dy=y,
+            position_angle=p)
+        for x, y, p in zip(xx, yy, pa)
     ]
 
     return Telescope(optics=optics, detectors=detectors)

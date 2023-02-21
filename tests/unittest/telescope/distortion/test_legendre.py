@@ -13,8 +13,8 @@ def test_legendre_distortion_zero(seed=42, Nsrc=1000):
     np.random.seed(seed)
     position = np.random.uniform(-1000, 1000, size=(2, Nsrc))
 
-    sip = LegendreDistortion(order, A, B)
-    converted = sip(position)
+    func = LegendreDistortion(order, A, B)
+    converted = func(position)
     assert converted == approx(position)
 
 
@@ -23,9 +23,9 @@ def test_altlegendre_distortion_zero(seed=42, Nsrc=1000):
     A = np.zeros((order + 1, order + 1))
     B = np.zeros((order + 1, order + 1))
     np.random.seed(seed)
-    c = np.random.uniform(-10, 10, size=(2, 1))
+    center = np.random.uniform(-10, 10, size=(2, 1))
     position = np.random.uniform(-1000, 1000, size=(2, Nsrc))
 
-    sip = AltLegendreDistortion(order, c, A, B)
-    converted = sip(position)
+    func = DisplacedLegendreDistortion(order, center, A, B)
+    converted = func(position)
     assert converted == approx(position)
