@@ -60,6 +60,7 @@ class Detector:
 
     @property
     def corners(self):
+        ''' The detector corner positions in units of micron '''
         cos = np.cos(self.position_angle.rad)
         sin = np.sin(self.position_angle.rad)
         width = self.width.to_value(u.um)
@@ -78,11 +79,38 @@ class Detector:
 
     @property
     def detector_origin(self):
-        ''' Returns the location of the lower left corner '''
+        ''' Returns the location of the lower left corner (origin) '''
         return self.corners[0]
 
+    def within(self, axis, position):
+        ''' Check if positions are within the detector range
+
+        Arguments:
+          axis (str):
+              The name of the axis ('x' or 'y').
+          position (QTable):
+              Table with 'nx' and 'ny' columns.
+
+        Returns:
+          True if positions are within `self.xrange` or `self.yrange`.
+        '''
+        assert axis in ('x', 'y'), '`axis` should be "x" or "y".'
+        range = self.xrange if axis == 'x' else self.yrange
+        return (range[0] <= position) & (position <= range[1])
+
     def get_footprint_as_patch(self, **options):
-        ''' The focal-plane footprint as a patch '''
+        ''' Returns a focal-plane footprint as a patch
+
+        Options:
+          edgecolor: default='r'
+          linewidth: default=2
+          fill: default=False
+
+        Returns:
+          A `Rectangle` instance for Matplotlib.
+          The origin of the axes should be the telescope's optical center.
+          The units of the axes should be micron.
+        '''
         options['edgecolor'] = options.get('edgecolor', 'r')
         options['linewidth'] = options.get('linewidth', 2)
         options['fill'] = options.get('fill', False)
@@ -94,7 +122,18 @@ class Detector:
             **options)
 
     def get_first_line_as_patch(self, **options):
-        ''' The detector first line as a patch '''
+        ''' Returns the detector's first line as a patch
+
+        Options:
+          linewidth: default=4.0
+          color: default='b'
+          alpha: default=0.5
+
+        Returns:
+          A `Line2D` instance for MatplotLib.
+          The origin of the axes should be the telescope's optical center.
+          The units of the axes should be micron.
+        '''
         options['linewidth'] = options.get('linewidth', 4.0)
         options['color'] = options.get('color', 'b')
         options['alpha'] = options.get('alpha', 0.5)
@@ -103,14 +142,21 @@ class Detector:
         return Line2D(xdata, ydata, **options)
 
     def get_footprint_as_polygon(self, **options):
-        ''' The focal-plane footprint as a polygon '''
+        ''' The focal-plane footprint as a polygon
+
+        Returns:
+          A `Polygon` object for Shapely.
+          The origin of the canvas should be the tehescope's optical center.
+          The units of the canvas should be micron.
+        '''
         return Polygon(self.corners.to_value(u.um), **options)
 
     def align(self, position):
         ''' Align the source position to the detector
 
         Arguments:
-          position (QTable): The xy-coordinates on the focal plane.
+          position (QTable):
+              The (x,y)-coordinates on the focal plane.
 
         Returns:
           A QTable instance of the positions of the sources,
@@ -126,17 +172,19 @@ class Detector:
             (s * dx + c * dy) / self.pixel_scale,
         ], names=['nx', 'ny'])
 
-    def contains(self, pos):
+    def contains(self, position):
         ''' Return True if objects are on the detector
 
         Argument:
-          pos (QTable): The (nx,ny)-coordinates on the detector.
+          position (QTable):
+              The (nx,ny)-coordinates on the detector.
 
         Returns:
           A boolean array.
+          True if positions are on the detector.
         '''
-        xf = ((self.xrange[0] < pos['nx']) & (pos['nx'] < self.xrange[1]))
-        yf = ((self.yrange[0] < pos['ny']) & (pos['ny'] < self.yrange[1]))
+        xf = self.within('x', position['nx'])
+        yf = self.within('y', position['ny'])
         return xf & yf
 
     def capture(self, position):
@@ -149,10 +197,8 @@ class Detector:
               in units of micron.
 
         Returns:
-          A list of `DataFrame`s which contains the positions on the detectors.
-          The number of the `DataFrame`s are the same as the detectors.
-          The "x" and "y" columns are the positions on each detector. The "ra"
-          and "dec" columns are the original positions in the ICRS frame.
+          A `DetectorPositionTable`.
+          The "nx" and "ny" columns are the positions on each detector.
         '''
         table = position.table.copy()
         xy = self.displacement(self.align(table))
