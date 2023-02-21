@@ -38,7 +38,7 @@ __columns__ = {
 
 
 @dataclass(frozen=True)
-class withFITSIO:
+class QTableContainer:
     ''' QTable with I/O functions
 
     Attributes:
@@ -105,7 +105,7 @@ def convert_skycoord_to_sourcetable(skycoord):
 
 
 @dataclass(frozen=True)
-class SourceTable(withFITSIO):
+class SourceTable(QTableContainer):
     ''' Source Table
 
     Attributes:
@@ -204,7 +204,7 @@ class SourceTable(withFITSIO):
 
 
 @dataclass(frozen=True)
-class FocalPlanePositionTable(withFITSIO):
+class FocalPlanePositionTable(QTableContainer):
     ''' FocalPlanePositionTable
 
     Attributes:
@@ -225,7 +225,7 @@ class FocalPlanePositionTable(withFITSIO):
 
 
 @dataclass(frozen=True)
-class DetectorPositionTable(withFITSIO):
+class DetectorPositionTable(QTableContainer):
     ''' DetectorPositionTable
 
     Attributes:
