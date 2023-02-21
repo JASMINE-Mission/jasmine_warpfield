@@ -6,10 +6,10 @@ from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
 from shapely.geometry import Polygon
 import astropy.units as u
-import numpy as np
 
 from warpfield.telescope.source import FocalPlanePositionTable
 from warpfield.telescope.detector import Detector
+from .test_source import focalplane
 
 
 @fixture
@@ -21,17 +21,8 @@ def detector():
 
 
 @fixture
-def fp_position():
-    tics = np.arange(-9000, 9001, 1000)
-    x, y = np.meshgrid(tics, tics)
-    return FocalPlanePositionTable(
-        QTable([
-            x.ravel() * u.um,
-            y.ravel() * u.um,
-        ], names=[
-            'x', 'y',
-        ]))
-
+def fptable(focalplane):
+    return FocalPlanePositionTable(focalplane)
 
 def test_build_detector(detector):
     assert detector.naxis1 == 1920
@@ -49,6 +40,6 @@ def test_detector_footprint(detector):
     assert isinstance(detector.get_first_line_as_patch(), Line2D)
 
 
-def test_detector_capture(detector, fp_position):
-    det_position = detector.capture(fp_position)
-    assert len(det_position) == len(fp_position)
+def test_detector_capture(detector, fptable):
+    det_position = detector.capture(fptable)
+    assert len(det_position) == len(fptable)
