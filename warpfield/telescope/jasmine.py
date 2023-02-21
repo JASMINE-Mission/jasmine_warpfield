@@ -34,7 +34,7 @@ def octagonal_mask():
     return square.intersection(affine_transform(square, affine_matrix))
 
 
-def get_jasmine( \
+def get_jasmine(
       pointing: SkyCoord,
       position_angle: Angle,
       distortion: Callable = identity_transformation,
@@ -58,10 +58,10 @@ def get_jasmine( \
     optics = Optics(
       pointing,
       position_angle,
-      focal_length  = 4.86*u.m,
-      diameter      = 0.4*u.m,
+      focal_length  = 4.86 * u.m,
+      diameter      = 0.4 * u.m,
       field_of_view = octagonal_mask() if octagonal else square_mask(),
-      margin        = 5000*u.um,
+      margin        = 5000 * u.um,
       distortion    = distortion)
 
     step = 1920 * 5 * u.um + 1.5 * u.mm
