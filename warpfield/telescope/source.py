@@ -53,19 +53,29 @@ class withFITSIO:
     def __getitem__(self, key):
         return self.table[key]
 
-    @staticmethod
-    def from_fitsfile(filename, key='table'):
-        ''' Generate a SourceTable from a FITS file '''
+    @classmethod
+    def from_fitsfile(cls, filename, key='table'):
+        ''' Generate a SourceTable from a FITS file
+
+        Arguments:
+          filename (str):
+              The path to the source FITS file.
+          key (str):
+              The name of the FITS extension containing the table data.
+
+        Returns:
+          A table instance.
+        '''
         hdul = fits.open(filename)
         table = QTable.read(hdul[key])
-        return SourceTable(table=table)
+        return cls(table=table)
 
     def writeto(self, filename, overwrite=False):
         ''' Dump a SourceTable into a FITS file
 
         Arguments:
           filename (str):
-              A filename to be saved.
+              The path to the output filename.
 
         Options:
           overwrite (bool):
