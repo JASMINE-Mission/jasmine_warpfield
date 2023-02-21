@@ -25,7 +25,7 @@ class BiPolynomialFunction:
     def get_center(self):
         ''' Return (0,0) if `center` is not defined '''
         if hasattr(self, 'center'):
-            return self.center
+            return np.reshape(self.center, (2, 1))
         else:
             return np.array((0, 0)).reshape((2, 1))
 

@@ -96,10 +96,12 @@ class withFITSIO:
 
 
 def convert_skycoord_to_sourcetable(skycoord):
+    source_id = np.arange(len(skycoord))
     return SourceTable(QTable([
+        source_id,
         skycoord.icrs.ra,
         skycoord.icrs.dec,
-    ], names=['ra', 'dec']))
+    ], names=['source_id', 'ra', 'dec']))
 
 
 @dataclass(frozen=True)
