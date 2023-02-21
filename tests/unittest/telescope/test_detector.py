@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from pytest import approx, fixture
-from astropy.table import QTable
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
 from shapely.geometry import Polygon
@@ -23,6 +22,7 @@ def detector():
 @fixture
 def fptable(focalplane):
     return FocalPlanePositionTable(focalplane)
+
 
 def test_build_detector(detector):
     assert detector.naxis1 == 1920
