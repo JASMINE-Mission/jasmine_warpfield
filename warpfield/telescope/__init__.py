@@ -3,6 +3,7 @@
 ''' A telescope module '''
 
 from .util import get_projection
+from .frame import GCGRS
 from .source import SourceTable, retrieve_gaia_sources
 from .visualize import get_subplot, display_sources
 from .optics import Optics

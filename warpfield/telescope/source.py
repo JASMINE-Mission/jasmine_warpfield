@@ -117,8 +117,8 @@ class SourceTable(QTableContainer):
      The table should contain the following columns.
 
         - source_id: unique source ID
-        - ra: right ascension
-        - dec: declination
+        - ra: right ascension in the ICRS frame
+        - dec: declination in the ICRS frame
 
      The following columns are recognized when defining the `skycoord`.
      If they are not defined, parallax is set `None`, proper motions are
@@ -216,6 +216,7 @@ class SourceTable(QTableContainer):
         try:
             skycoord = self.skycoord.apply_space_motion(epoch)
             self.__set_skycoord(skycoord)
+            self.table = self.table.copy()
             self.table['ra'] = self.skycoord.ra
             self.table['dec'] = self.skycoord.dec
         except Exception as e:

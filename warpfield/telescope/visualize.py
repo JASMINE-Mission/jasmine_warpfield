@@ -41,19 +41,19 @@ def display_sources(axis, sources, **options):
         ctype = axis.wcs.wcs.ctype
         frame = estimate_frame_from_ctype(ctype)
 
-    if frame == 'galactic':
-        get_lon = lambda x: getattr(x, 'galactic').l
-        get_lat = lambda x: getattr(x, 'galactic').b
-        xlabel = 'Galactic Longitude'
-        ylabel = 'Galactic Latitude'
-    if frame == 'geocentric':
-        get_lon = lambda x: getattr(x, 'gcrs').ra
-        get_lat = lambda x: getattr(x, 'gcrs').dec
+    if frame == ('icrs', 'barycentric'):
+        get_lon = lambda x: getattr(x, 'icrs').spherical.lon
+        get_lat = lambda x: getattr(x, 'icrs').spherical.lat
         xlabel = 'Right Ascension'
         ylabel = 'Declination'
+    elif frame in ('galactic'):
+        get_lon = lambda x: getattr(x, 'gcgrs').spherical.lon
+        get_lat = lambda x: getattr(x, 'gcgrs').spherical.lat
+        xlabel = 'Galactic Longitude'
+        ylabel = 'Galactic Latitude'
     else:
-        get_lon = lambda x: getattr(x, 'icrs').ra
-        get_lat = lambda x: getattr(x, 'icrs').dec
+        get_lon = lambda x: getattr(x, 'gcrs').spherical.lon
+        get_lat = lambda x: getattr(x, 'gcrs').spherical.lat
         xlabel = 'Right Ascension'
         ylabel = 'Declination'
 
