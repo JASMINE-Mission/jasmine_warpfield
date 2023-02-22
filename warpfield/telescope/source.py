@@ -125,8 +125,8 @@ class SourceTable(QTableContainer):
      set to zeros, and ref_epoch is set J2000.0 (TCB).
 
         - parallax: parallax
-        - pmra: proper motion in right ascension (μα*)
-        - pmdec: proper motion in declination (μδ)
+        - pmra: net proper motion in right ascension (μα*)
+        - pmdec: net proper motion in declination (μδ)
         - ref_epoch: measurement epoch
     '''
     skycoord: SkyCoord = field(init=False)
@@ -136,25 +136,19 @@ class SourceTable(QTableContainer):
         return Time(time, format='decimalyear', scale='tcb')
 
     def __ra(self):
-        ''' return Right Ascension '''
+        ''' right ascension '''
         return self.table['ra']
 
     def __dec(self):
-        ''' return Declination '''
+        ''' declination '''
         return self.table['dec']
 
-    def __epoch(self):
-        ''' generate epoch '''
-        if 'ref_epoch' in self.table.colnames:
-            return self.__convert_epoch(self.table['ref_epoch'].data)
-        elif 'epoch' in self.table.colnames:
-            return self.__convert_epoch(self.table['epoch'].data)
-        else:
-            # obstime is assumed to be J2000.0 if epoch is not given.
-            return self.__convert_epoch(2000.0)
-
     def __pmra(self):
-        ''' generate proper motion '''
+        ''' net proper motion in right ascension
+
+        Note:
+          Returns zero mas/year if `pmra` is not defined.
+        '''
         try:
             pmra = self.table['pmra']
         except KeyError:
@@ -163,7 +157,11 @@ class SourceTable(QTableContainer):
         return pmra
 
     def __pmdec(self):
-        ''' generate proper motion '''
+        ''' net proper motion in declination
+
+        Note:
+          Returns zero mas/year if `pmdec` is not defined.
+        '''
         try:
             pmdec = self.table['pmdec']
         except KeyError:
@@ -172,12 +170,33 @@ class SourceTable(QTableContainer):
         return pmdec
 
     def __distance(self):
-        ''' generate distance '''
-        try:
+        ''' generate distance from parallax
+
+        Note:
+          Returns `None` if `parallax` nor `distance` is not defined.
+          The `distance` column should be given as length.
+        '''
+        if self.has('parallax'):
             return Distance(parallax=self.table['parallax'])
-        except KeyError:
-            # distance is not specified if parallax is not given.
+        elif self.has('distance'):
+            assert self.get_dimension('distance') == 'length'
+            return Distance(value=self.table['distance'])
+        else:
             return None
+
+    def __epoch(self):
+        ''' epoch of catalog
+
+        Note:
+          Returns J2000.0 (TCB) if `ref_epoch` nor `epoch` is not defined.
+        '''
+        if self.has('ref_epoch'):
+            return self.__convert_epoch(self.table['ref_epoch'].data)
+        elif self.has('epoch'):
+            return self.__convert_epoch(self.table['epoch'].data)
+        else:
+            # obstime is assumed to be J2000.0 if epoch is not given.
+            return self.__convert_epoch(2000.0)
 
     def __post_init__(self):
         assert self.has('source_id', 'ra', 'dec')
@@ -197,6 +216,8 @@ class SourceTable(QTableContainer):
         try:
             skycoord = self.skycoord.apply_space_motion(epoch)
             self.__set_skycoord(skycoord)
+            self.table['ra'] = self.skycoord.ra
+            self.table['dec'] = self.skycoord.dec
         except Exception as e:
             eprint(str(e))
             eprint('No proper motion information is available.')

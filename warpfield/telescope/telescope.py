@@ -9,9 +9,9 @@ from astropy.table import vstack
 import numpy as np
 
 from .source import DetectorPositionTable
-from .source import convert_skycoord_to_sourcetable
 from .optics import Optics
 from .detector import Detector
+from .source import convert_skycoord_to_sourcetable
 from .util import estimate_frame_from_ctype
 
 
@@ -25,10 +25,14 @@ class Telescope:
     on the detectors.
 
     Attributes:
-      pointing (SkyCoord)         : A pointing direction of the telescope.
-      position_angle (Angle)      : A position angle of the telescope.
-      optics (Optics)             : An optics.
-      detectors (List of Detector): A list of detectors.
+      pointing (SkyCoord):
+          A pointing direction of the telescope.
+      position_angle (Angle):
+          A position angle of the telescope.
+      optics (Optics):
+          An `Optics` instance.
+      detectors (List of Detector):
+          A list of `Detector` instances.
     '''
     pointing: SkyCoord = None
     position_angle: Angle = None
@@ -56,8 +60,8 @@ class Telescope:
               Limit the footprints within the valid region if True.
 
         Returns:
-          A list of detector footprints on the sky. Each footprint is
-          given as a 2-dimensional numpy array [[x,y], ...].
+          A list of detector footprints on the sky.
+          Each footprint is given as a 2-dimensional numpy array [[x,y], ...].
         '''
         limit = options.pop('limit', True)
 
@@ -76,7 +80,10 @@ class Telescope:
         return footprints
 
     def overlay_footprints(self, axis, **options):
-        ''' Display the footprints on the given axis
+        ''' Overlay the detector footprints on the sky
+
+        Display the footprints of the detectors on the given canvas.
+        Note that this function does not take into account the distortion.
 
         Arguments:
           axis (WCSAxesSubplot):
