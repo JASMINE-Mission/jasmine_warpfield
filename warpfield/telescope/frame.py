@@ -17,9 +17,12 @@ import astropy.units as u
 
 
 class GCGRS(Galactic):
-    """
-    A Geocentric coordinate or frame in the Galactic coordinate system.
-    """
+    ''' A Geocentric coordinate or frame in the Galactic coordinate system
+
+    This frame is defined based on the `Galactic` frame. The observer is
+    located to the center of the Earth. The relative velocity to the Earth
+    is set zero.
+    '''
 
     obstime = TimeAttribute(default=utils.DEFAULT_OBSTIME)
     obsgeoloc = CRA(default=[0, 0, 0], unit=u.m)
@@ -28,6 +31,8 @@ class GCGRS(Galactic):
 
 @frame_transform_graph.transform(DynamicMatrixTransform, GCRS, GCGRS)
 def gcrs_to_gcgrs(gcrscoord, gcgrsframe):
+    # First, rotate the frame from ICRS to FK5 without correcting precession.
+    # Then, the frame is aligned to the Galactic coordiante.
     return (
         rotation_matrix(180 - GCGRS._lon0_J2000.degree, "z")
         @ rotation_matrix(90 - GCGRS._ngp_J2000.dec.degree, "y")
