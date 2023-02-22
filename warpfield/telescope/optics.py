@@ -15,7 +15,7 @@ import astropy.units as u
 import numpy as np
 
 from .util import get_projection
-from .source import SourceTable, FocalPlanePositionTable
+from .source import FocalPlanePositionTable
 from .distortion import identity_transformation
 
 
@@ -110,23 +110,24 @@ class Optics:
         ''' Map celestial positions onto the focal plane
 
         Arguments:
-          sources (SourceTable): A `SourceTable` instance
-          epoch (Time): The epoch of the observation.
+          sources (SourceTable):
+              A `SourceTable` instance
+          epoch (Time):
+              The epoch of the observation (optional).
 
         Returns:
           A `SourceTable` instance with positions on the focal plane.
         '''
-        temp = SourceTable(sources.table)
+        skycoord = sources.skycoord.copy()
         if epoch is not None:
-            temp.apply_space_motion(epoch)
-        skycoord = temp.skycoord
+            skycoord.apply_space_motion(epoch)
 
         pos = skycoord.to_pixel(self.projection, 0)
         pos = np.array(pos).reshape((2, -1))
         within_fov = self.contains(pos)
         pos = self.distortion(pos.copy())
 
-        table = temp.table
+        table = sources.table.copy()
         table['x'] = pos[0] * u.um
         table['y'] = pos[1] * u.um
         table = table[within_fov]
