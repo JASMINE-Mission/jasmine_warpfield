@@ -128,14 +128,13 @@ def test_apply_space_motion(source):
     epoch = Time(2026.0, format='decimalyear', scale='tcb')
     delta = 10 * u.year
     st.apply_space_motion(epoch)
-    ra_est = st.table['ra'] + delta * st.table['pmra']
-    dec_est = st.table['dec'] + delta * st.table['pmdec']
+    ra_est = source['ra'] + delta * source['pmra']
+    dec_est = source['dec'] + delta * source['pmdec']
 
     d_ra = st.skycoord.ra - ra_est
     d_dec = st.skycoord.dec - dec_est
-    print(d_ra, d_dec)
-    assert d_ra.to_value('degree') == approx(0.0, abs=1e-6)
-    assert d_dec.to_value('degree') == approx(0.0, abs=1e-6)
+    assert d_ra.to_value('degree') == approx(0.0, abs=1e-8)
+    assert d_dec.to_value('degree') == approx(0.0, abs=1e-8)
 
 
 def test_gaia_source():

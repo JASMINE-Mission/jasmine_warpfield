@@ -44,23 +44,3 @@ def gcrs_to_gcgrs(gcrscoord, gcgrsframe):
 @frame_transform_graph.transform(DynamicMatrixTransform, GCGRS, GCRS)
 def gcgrs_to_gcrs(gcgrscoord, gcrsframe):
     return matrix_transpose(gcrs_to_gcgrs(gcrsframe, gcgrscoord))
-
-
-if __name__ == '__main__':
-    from astropy.coordinates import SkyCoord
-    gg = GCGRS()
-    print(gg)
-
-    def get_skycoord(x, frame, ax=['ra', 'dec']):
-        y = x.transform_to(frame)
-        return SkyCoord(getattr(y, ax[0]), getattr(y, ax[1]))
-
-    target = SkyCoord.from_name('M2')
-
-    cooi = get_skycoord(target, 'icrs')
-    coog = get_skycoord(target, 'gcrs')
-    print(cooi.separation(coog))
-
-    coox = get_skycoord(target, 'galactic', ['l', 'b'])
-    cooy = get_skycoord(target, 'gcgrs', ['l', 'b'])
-    print(coox.separation(cooy))
