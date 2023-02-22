@@ -36,14 +36,21 @@ def display_sources(axis, sources, **options):
     '''
     if isinstance(sources, SourceTable):
         sources = sources.skycoord
-    ctype = axis.wcs.wcs.ctype
-    frame = estimate_frame_from_ctype(ctype)
+    frame = options.get('frame')
+    if frame is None:
+        ctype = axis.wcs.wcs.ctype
+        frame = estimate_frame_from_ctype(ctype)
 
     if frame == 'galactic':
         get_lon = lambda x: getattr(x, 'galactic').l
         get_lat = lambda x: getattr(x, 'galactic').b
         xlabel = 'Galactic Longitude'
         ylabel = 'Galactic Latitude'
+    if frame == 'geocentric':
+        get_lon = lambda x: getattr(x, 'gcrs').ra
+        get_lat = lambda x: getattr(x, 'gcrs').dec
+        xlabel = 'Right Ascension'
+        ylabel = 'Declination'
     else:
         get_lon = lambda x: getattr(x, 'icrs').ra
         get_lat = lambda x: getattr(x, 'icrs').dec
