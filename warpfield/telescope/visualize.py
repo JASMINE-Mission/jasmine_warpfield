@@ -4,7 +4,8 @@
 
 import matplotlib.pyplot as plt
 
-from .util import get_projection, estimate_frame_from_ctype
+from .util import get_axis_name, get_projection
+from .util import frame_conversion, estimate_frame_from_ctype
 from .source import SourceTable
 
 
@@ -41,28 +42,15 @@ def display_sources(axis, sources, **options):
         ctype = axis.wcs.wcs.ctype
         frame = estimate_frame_from_ctype(ctype)
 
-    if frame == ('icrs', 'barycentric'):
-        get_lon = lambda x: getattr(x, 'icrs').spherical.lon
-        get_lat = lambda x: getattr(x, 'icrs').spherical.lat
-        xlabel = 'Right Ascension'
-        ylabel = 'Declination'
-    elif frame in ('galactic'):
-        get_lon = lambda x: getattr(x, 'gcgrs').spherical.lon
-        get_lat = lambda x: getattr(x, 'gcgrs').spherical.lat
-        xlabel = 'Galactic Longitude'
-        ylabel = 'Galactic Latitude'
-    else:
-        get_lon = lambda x: getattr(x, 'gcrs').spherical.lon
-        get_lat = lambda x: getattr(x, 'gcrs').spherical.lat
-        xlabel = 'Right Ascension'
-        ylabel = 'Declination'
+    skycoord = frame_conversion(sources, frame)
+    xlabel, ylabel = get_axis_name(frame)
 
     title = options.pop('title', None)
     marker = options.pop('marker', 'x')
     axis.set_aspect(1.0)
     axis.set_position([0.13, 0.10, 0.85, 0.85])
-    axis.scatter(get_lon(sources),
-                 get_lat(sources),
+    axis.scatter(skycoord.spherical.lon,
+                 skycoord.spherical.lat,
                  transform=axis.get_transform(frame),
                  marker=marker,
                  label=title,

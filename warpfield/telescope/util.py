@@ -35,6 +35,47 @@ def estimate_frame_from_ctype(ctype):
         raise ValueError(f'unsupported CTYPE: {ctype}')
 
 
+def get_axis_name(frame):
+    ''' Estimate the axes names from the coordinate frame name
+
+    Arguments:
+      frame (str):
+          The name of the cooridante frame.
+
+    Returns:
+      xlabel: the name of the Longitude
+      ylabel: the name of the Latitude
+    '''
+    if frame in ('galactic'):
+        xlabel = 'Galactic Longitude'
+        ylabel = 'Galactic Latitude'
+    else:
+        xlabel = 'Right Ascension'
+        ylabel = 'Declination'
+
+    return xlabel, ylabel
+
+
+def frame_conversion(skycoord, frame):
+    ''' Return functions to retrieve spherical coordinates
+
+    Arguments:
+      frame (str):
+          The name of the cooridante frame.
+
+    Returns:
+      A converted skycoord object.
+    '''
+    func = lambda x: getattr(x, 'gcrs')
+
+    if frame == ('icrs', 'barycentric'):
+        func = lambda x: getattr(x, 'icrs')
+    elif frame in ('galactic'):
+        func = lambda x: getattr(x, 'gcgrs')
+
+    return func(skycoord)
+
+
 def get_projection(
         pointing,
         scale=__arcsec_to_um__,

@@ -11,8 +11,6 @@ import astropy.io.fits as fits
 import astropy.units as u
 import numpy as np
 
-from .util import eprint
-
 
 __debug_mode__ = False
 
@@ -211,18 +209,6 @@ class SourceTable(QTableContainer):
 
     def __set_skycoord(self, skycoord):
         object.__setattr__(self, 'skycoord', skycoord)
-
-    def apply_space_motion(self, epoch):
-        try:
-            skycoord = self.skycoord.apply_space_motion(epoch)
-            self.__set_skycoord(skycoord)
-            self.table = self.table.copy()
-            self.table['ra'] = self.skycoord.ra
-            self.table['dec'] = self.skycoord.dec
-        except Exception as e:
-            eprint(str(e))
-            eprint('No proper motion information is available.')
-            eprint('The positions are not updated to new epoch.')
 
 
 @dataclass(frozen=True)

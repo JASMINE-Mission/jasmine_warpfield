@@ -4,7 +4,6 @@ from tempfile import NamedTemporaryFile as tempfile
 from pytest import approx, fixture
 from astropy.coordinates import SkyCoord
 from astropy.table import QTable
-from astropy.time import Time
 import astropy.units as u
 import numpy as np
 
@@ -121,20 +120,6 @@ def test_build_detectorpositiontable(detector):
     dpt = DetectorPositionTable(detector)
 
     assert len(dpt) == 101 * 101
-
-
-def test_apply_space_motion(source):
-    st = SourceTable(source)
-    epoch = Time(2026.0, format='decimalyear', scale='tcb')
-    delta = 10 * u.year
-    st.apply_space_motion(epoch)
-    ra_est = source['ra'] + delta * source['pmra']
-    dec_est = source['dec'] + delta * source['pmdec']
-
-    d_ra = st.skycoord.ra - ra_est
-    d_dec = st.skycoord.dec - dec_est
-    assert d_ra.to_value('degree') == approx(0.0, abs=1e-8)
-    assert d_dec.to_value('degree') == approx(0.0, abs=1e-8)
 
 
 def test_gaia_source():
