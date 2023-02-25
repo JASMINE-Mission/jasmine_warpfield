@@ -132,15 +132,15 @@ class Telescope:
         color = options.pop('color', (0.8, 0.8, 0.8))
         alpha = options.pop('alpha', 0.2)
         axis.set_aspect(1.0)
-        axis.add_patch(self.optics.get_fov_patch(color=color, alpha=alpha))
+        axis.add_artist(self.optics.get_fov_patch(color=color, alpha=alpha))
         if source is not None:
             if isinstance(source, SkyCoord):
                 source = convert_skycoord_to_sourcetable(source)
             fp = self.optics.imaging(source, epoch).table
             axis.scatter(fp['x'], fp['y'], markersize, marker=marker)
         for d in self.detectors:
-            axis.add_patch(d.get_footprint_as_patch())
-            axis.add_patch(d.get_first_line_as_patch())
+            axis.add_artist(d.get_footprint_as_patch())
+            axis.add_artist(d.get_first_line_as_patch())
         axis.autoscale_view()
         axis.grid()
         axis.set_xlabel(r'Displacement on the focal plane ($\mu$m)',
