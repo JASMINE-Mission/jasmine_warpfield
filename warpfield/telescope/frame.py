@@ -12,7 +12,6 @@ from astropy.coordinates import TimeAttribute
 from astropy.coordinates import DynamicMatrixTransform
 from astropy.coordinates import frame_transform_graph
 
-# import astropy.coordinates.representation as r
 import astropy.units as u
 
 
