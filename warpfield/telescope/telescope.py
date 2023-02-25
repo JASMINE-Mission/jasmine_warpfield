@@ -173,7 +173,8 @@ class Telescope:
         dets = []
         for n, det in enumerate(self.detectors):
             det_position = det.capture(fp_position)
-            det_position.table['detector'] = n
+            if len(det_position) > 0:
+                det_position.table['detector'] = n
             dets.append(det_position)
 
         if stack is False:
