@@ -7,11 +7,10 @@ from astropy.coordinates import SkyCoord, Angle, Distance
 from astropy.table import QTable
 from astropy.time import Time
 from astroquery.gaia import Gaia
-import astropy.io.fits as fits
 import astropy.units as u
 import numpy as np
 
-from .util import eprint
+from .container import QTableContainer
 
 
 __debug_mode__ = False
@@ -37,64 +36,6 @@ __columns__ = {
 }
 
 
-@dataclass(frozen=True)
-class QTableContainer:
-    ''' QTable with I/O functions
-
-    Attributes:
-      table (QTable):
-          Table of celestial objects.
-    '''
-    table: QTable
-
-    def __len__(self):
-        return len(self.table)
-
-    def __getitem__(self, key):
-        return self.table[key]
-
-    def has(self, *items):
-        names = self.table.colnames
-        return all([name in names for name in items])
-
-    def get_dimension(self, name):
-        return u.get_physical_type(self.table[name])
-
-    @classmethod
-    def from_fitsfile(cls, filename, key='table'):
-        ''' Generate a SourceTable from a FITS file
-
-        Arguments:
-          filename (str):
-              The path to the source FITS file.
-          key (str):
-              The name of the FITS extension containing the table data.
-
-        Returns:
-          A table instance.
-        '''
-        hdul = fits.open(filename)
-        table = QTable.read(hdul[key])
-        return cls(table=table)
-
-    def writeto(self, filename, overwrite=False):
-        ''' Dump a SourceTable into a FITS file
-
-        Arguments:
-          filename (str):
-              The path to the output filename.
-
-        Options:
-          overwrite (bool):
-              An existing file will be overwritten if true.
-        '''
-        hdul = fits.HDUList([
-            fits.PrimaryHDU(),
-            fits.BinTableHDU(data=self.table, name='table')
-        ])
-        hdul.writeto(filename, overwrite=overwrite)
-
-
 def convert_skycoord_to_sourcetable(skycoord):
     source_id = np.arange(len(skycoord))
     return SourceTable(QTable([
@@ -117,16 +58,16 @@ class SourceTable(QTableContainer):
      The table should contain the following columns.
 
         - source_id: unique source ID
-        - ra: right ascension
-        - dec: declination
+        - ra: right ascension in the ICRS frame
+        - dec: declination in the ICRS frame
 
      The following columns are recognized when defining the `skycoord`.
      If they are not defined, parallax is set `None`, proper motions are
      set to zeros, and ref_epoch is set J2000.0 (TCB).
 
         - parallax: parallax
-        - pmra: proper motion in right ascension (μα*)
-        - pmdec: proper motion in declination (μδ)
+        - pmra: net proper motion in right ascension (μα*)
+        - pmdec: net proper motion in declination (μδ)
         - ref_epoch: measurement epoch
     '''
     skycoord: SkyCoord = field(init=False)
@@ -136,25 +77,19 @@ class SourceTable(QTableContainer):
         return Time(time, format='decimalyear', scale='tcb')
 
     def __ra(self):
-        ''' return Right Ascension '''
+        ''' right ascension '''
         return self.table['ra']
 
     def __dec(self):
-        ''' return Declination '''
+        ''' declination '''
         return self.table['dec']
 
-    def __epoch(self):
-        ''' generate epoch '''
-        if 'ref_epoch' in self.table.colnames:
-            return self.__convert_epoch(self.table['ref_epoch'].data)
-        elif 'epoch' in self.table.colnames:
-            return self.__convert_epoch(self.table['epoch'].data)
-        else:
-            # obstime is assumed to be J2000.0 if epoch is not given.
-            return self.__convert_epoch(2000.0)
-
     def __pmra(self):
-        ''' generate proper motion '''
+        ''' net proper motion in right ascension
+
+        Note:
+          Returns zero mas/year if `pmra` is not defined.
+        '''
         try:
             pmra = self.table['pmra']
         except KeyError:
@@ -163,7 +98,11 @@ class SourceTable(QTableContainer):
         return pmra
 
     def __pmdec(self):
-        ''' generate proper motion '''
+        ''' net proper motion in declination
+
+        Note:
+          Returns zero mas/year if `pmdec` is not defined.
+        '''
         try:
             pmdec = self.table['pmdec']
         except KeyError:
@@ -172,12 +111,33 @@ class SourceTable(QTableContainer):
         return pmdec
 
     def __distance(self):
-        ''' generate distance '''
-        try:
+        ''' generate distance from parallax
+
+        Note:
+          Returns `None` if `parallax` nor `distance` is not defined.
+          The `distance` column should be given as length.
+        '''
+        if self.has('parallax'):
             return Distance(parallax=self.table['parallax'])
-        except KeyError:
-            # distance is not specified if parallax is not given.
+        elif self.has('distance'):
+            assert self.get_dimension('distance') == 'length'
+            return Distance(value=self.table['distance'])
+        else:
             return None
+
+    def __epoch(self):
+        ''' epoch of catalog
+
+        Note:
+          Returns J2000.0 (TCB) if `ref_epoch` nor `epoch` is not defined.
+        '''
+        if self.has('ref_epoch'):
+            return self.__convert_epoch(self.table['ref_epoch'].data)
+        elif self.has('epoch'):
+            return self.__convert_epoch(self.table['epoch'].data)
+        else:
+            # obstime is assumed to be J2000.0 if epoch is not given.
+            return self.__convert_epoch(2000.0)
 
     def __post_init__(self):
         assert self.has('source_id', 'ra', 'dec')
@@ -192,15 +152,6 @@ class SourceTable(QTableContainer):
 
     def __set_skycoord(self, skycoord):
         object.__setattr__(self, 'skycoord', skycoord)
-
-    def apply_space_motion(self, epoch):
-        try:
-            skycoord = self.skycoord.apply_space_motion(epoch)
-            self.__set_skycoord(skycoord)
-        except Exception as e:
-            eprint(str(e))
-            eprint('No proper motion information is available.')
-            eprint('The positions are not updated to new epoch.')
 
 
 @dataclass(frozen=True)

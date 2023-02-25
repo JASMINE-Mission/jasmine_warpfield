@@ -1,3 +1,6 @@
+name: unittest
+description: Check the package integrity via unittest.
+
 runs:
   using: "composite"
   steps:

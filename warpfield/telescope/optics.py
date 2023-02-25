@@ -14,8 +14,8 @@ from matplotlib.patches import Polygon as PolygonPatch
 import astropy.units as u
 import numpy as np
 
-from .util import get_projection
-from .source import SourceTable, FocalPlanePositionTable
+from .util import frame_conversion, get_projection
+from .source import FocalPlanePositionTable
 from .distortion import identity_transformation
 
 
@@ -110,25 +110,32 @@ class Optics:
         ''' Map celestial positions onto the focal plane
 
         Arguments:
-          sources (SourceTable): A `SourceTable` instance
-          epoch (Time): The epoch of the observation.
+          sources (SourceTable):
+              A `SourceTable` instance
+          epoch (Time):
+              The epoch of the observation (optional).
 
         Returns:
           A `SourceTable` instance with positions on the focal plane.
         '''
-        temp = SourceTable(sources.table)
+        skycoord = sources.skycoord.copy()
         if epoch is not None:
-            temp.apply_space_motion(epoch)
-        skycoord = temp.skycoord
+            skycoord = skycoord.apply_space_motion(epoch)
 
-        pos = skycoord.to_pixel(self.projection, 0)
-        pos = np.array(pos).reshape((2, -1))
+        skycoord = frame_conversion(skycoord, self.pointing.frame.name)
+
+        coo = np.array([
+            skycoord.spherical.lon,
+            skycoord.spherical.lat
+        ]).T.reshape((-1, 2))
+        pos = self.distortion(
+            np.reshape(self.projection.wcs_world2pix(coo, 0).T, (2, -1)))
         within_fov = self.contains(pos)
-        pos = self.distortion(pos.copy())
 
-        table = temp.table
+        table = sources.table.copy()
         table['x'] = pos[0] * u.um
         table['y'] = pos[1] * u.um
+        table['obstime'] = skycoord.obstime.decimalyear * u.year
         table = table[within_fov]
 
         return FocalPlanePositionTable(table=table)

@@ -4,7 +4,8 @@
 
 import matplotlib.pyplot as plt
 
-from .util import get_projection, estimate_frame_from_ctype
+from .util import get_axis_name, get_projection
+from .util import frame_conversion, estimate_frame_from_ctype
 from .source import SourceTable
 
 
@@ -36,26 +37,20 @@ def display_sources(axis, sources, **options):
     '''
     if isinstance(sources, SourceTable):
         sources = sources.skycoord
-    ctype = axis.wcs.wcs.ctype
-    frame = estimate_frame_from_ctype(ctype)
+    frame = options.get('frame')
+    if frame is None:
+        ctype = axis.wcs.wcs.ctype
+        frame = estimate_frame_from_ctype(ctype)
 
-    if frame == 'galactic':
-        get_lon = lambda x: getattr(x, 'galactic').l
-        get_lat = lambda x: getattr(x, 'galactic').b
-        xlabel = 'Galactic Longitude'
-        ylabel = 'Galactic Latitude'
-    else:
-        get_lon = lambda x: getattr(x, 'icrs').ra
-        get_lat = lambda x: getattr(x, 'icrs').dec
-        xlabel = 'Right Ascension'
-        ylabel = 'Declination'
+    skycoord = frame_conversion(sources, frame)
+    xlabel, ylabel = get_axis_name(frame)
 
     title = options.pop('title', None)
     marker = options.pop('marker', 'x')
     axis.set_aspect(1.0)
     axis.set_position([0.13, 0.10, 0.85, 0.85])
-    axis.scatter(get_lon(sources),
-                 get_lat(sources),
+    axis.scatter(skycoord.spherical.lon,
+                 skycoord.spherical.lat,
                  transform=axis.get_transform(frame),
                  marker=marker,
                  label=title,

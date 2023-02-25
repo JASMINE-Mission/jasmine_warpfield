@@ -7,7 +7,6 @@ from astropy.wcs import WCS
 import numpy as np
 import sys
 
-__debug_mode__ = False
 __arcsec_to_um__ = 1.0 / 3600
 
 
@@ -33,6 +32,49 @@ def estimate_frame_from_ctype(ctype):
         return 'icrs'
     else:
         raise ValueError(f'unsupported CTYPE: {ctype}')
+
+
+def get_axis_name(frame):
+    ''' Estimate the axes names from the coordinate frame name
+
+    Arguments:
+      frame (str):
+          The name of the cooridante frame.
+
+    Returns:
+      xlabel: the name of the Longitude
+      ylabel: the name of the Latitude
+    '''
+    if frame in ('galactic'):
+        xlabel = 'Galactic Longitude'
+        ylabel = 'Galactic Latitude'
+    else:
+        xlabel = 'Right Ascension'
+        ylabel = 'Declination'
+
+    return xlabel, ylabel
+
+
+def frame_conversion(skycoord, frame):
+    ''' Return functions to retrieve spherical coordinates
+
+    Arguments:
+      frame (str):
+          The name of the cooridante frame.
+
+    Returns:
+      A converted skycoord object.
+    '''
+    if frame == ('gcrs'):
+        func = lambda x: getattr(x, 'gcrs')
+    elif frame in ('icrs', 'barycentric'):
+        func = lambda x: getattr(x, 'icrs')
+    elif frame in ('gcgrs', 'galactic'):
+        func = lambda x: getattr(x, 'gcgrs')
+    else:
+        raise ValueError(f'unsupported frame: {frame}')
+
+    return func(skycoord)
 
 
 def get_projection(
@@ -65,13 +107,11 @@ def get_projection(
     # and `origin = 0` will fullfil the requirements.
     proj = WCS(naxis=2)
     proj.wcs.crpix = [1., 1.]
+    lon = pointing.spherical.lon.deg
+    lat = pointing.spherical.lat.deg
     if pointing.frame.name == 'galactic':
-        lon = pointing.galactic.l.deg
-        lat = pointing.galactic.b.deg
         proj.wcs.ctype = [f'GLON-{projection}', f'GLAT-{projection}']
     else:
-        lon = pointing.icrs.ra.deg
-        lat = pointing.icrs.dec.deg
         proj.wcs.ctype = [f'RA---{projection}', f'DEC--{projection}']
     proj.wcs.crval = [lon, lat]
     rot = np.array([
@@ -80,9 +120,5 @@ def get_projection(
     delt = np.diag([-scale, scale] if left_hand_system else [scale, scale])
     proj.wcs.cd = rot @ delt
     proj.wcs.cunit = ['deg', 'deg']
-
-    if __debug_mode__ is True:
-        print(proj)
-        print(proj.wcs)
 
     return proj
