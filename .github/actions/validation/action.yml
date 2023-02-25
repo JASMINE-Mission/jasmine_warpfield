@@ -1,3 +1,6 @@
+name: validation
+description: Check the package integrity via validation tests
+
 runs:
   using: "composite"
   steps:
