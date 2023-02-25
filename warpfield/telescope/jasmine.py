@@ -15,9 +15,12 @@ from .telescope import Telescope
 from .distortion import identity_transformation
 
 
-def square_mask():
+def square_mask(
+        naxis = 1920,
+        pixel_scale = 10 * u.um,
+        sensor_gap = 3.0 * u.mm):
     ''' Generate a square field of view '''
-    side = (1920 * 10 * u.um + 1.5 * u.mm).to_value(u.um)
+    side = (naxis * pixel_scale + sensor_gap / 2.0).to_value(u.um)
     return Polygon([
         [-side, -side],
         [+side, -side],
