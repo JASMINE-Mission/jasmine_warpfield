@@ -1,0 +1,16 @@
+name: notebook
+description: Check if the notebooks are successfully executed.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Jupyter Lab
+      run: |
+        pip install jupyter jupyterlab nbconvert
+      shell: bash
+
+    - name: Execute Jupyter notebook
+      run: |
+        cd notebook;
+        bash ./update.sh
+      shell: bash

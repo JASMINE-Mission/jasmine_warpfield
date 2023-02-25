@@ -1,0 +1,23 @@
+name: notebook
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * *'
+
+jobs:
+  notebook:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+
+    - name: get dependencies
+      uses: ./.github/actions/get_dependencies
+
+    - name: notebook
+      uses: ./.github/actions/notebook

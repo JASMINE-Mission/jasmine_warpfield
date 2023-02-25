@@ -1,3 +1,6 @@
+name: get dependencies
+description: Install dependencies for warpfield.
+
 runs:
   using: "composite"
   steps:
