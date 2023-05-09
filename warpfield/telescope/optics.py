@@ -130,6 +130,8 @@ class Optics:
         ]).T.reshape((-1, 2))
         pos = self.distortion(
             np.reshape(self.projection.wcs_world2pix(coo, 0).T, (2, -1)))
+        if np.isnan(pos).all():
+            raise RuntimeError('no source within the field of view')
         within_fov = self.contains(pos)
 
         table = sources.table.copy()
