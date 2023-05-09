@@ -8,7 +8,8 @@ extend-ignore =
     E221, # multiple spaces before operator
     E251, # unexpected spaces around keyword / parameter equals
     E701, # multiple statements with colon
-    E731  # do not assign a lambda expression
+    E731, # do not assign a lambda expression
+    E741  # ambiguous variable name 'l'
 extend-select =
     E127, # continuation line over-indented for visual indent
     E226, # missing whitespace around arithmetic operator
