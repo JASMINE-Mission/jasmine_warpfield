@@ -26,4 +26,4 @@ gnomonic_conversion = \
 
 gnomonic = generate_projection(gnomonic_conversion)
 
-projection = vmap(gnomonic, (0, 0, 0, 0, 0, 0), 0)
+projection = vmap(gnomonic, (0, 0, 0, 0, 0, 0, 0), 0)

@@ -29,7 +29,7 @@ def test_gnomonic_rotate():
     def gnomonic_rotate(pa):
         a0 = 266.415  # Right Ascension of the Galactic Center
         d0 = -29.006  # Declination of the Galactic Center
-        return gnomonic(a0, d0, pa, a0 + 1.0, d0 + 1.0, 1.0)
+        return gnomonic(a0, d0, pa, a0 + 1.0, d0 + 1.0, 1.0, 1.0)
 
     X0, Y0 = gnomonic_rotate(0.0)
 

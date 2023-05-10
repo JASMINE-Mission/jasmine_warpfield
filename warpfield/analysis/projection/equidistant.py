@@ -40,4 +40,4 @@ equidistant_conversion = \
 
 equidistant = generate_projection(equidistant_conversion)
 
-projection = vmap(equidistant, (0, 0, 0, 0, 0, 0), 0)
+projection = vmap(equidistant, (0, 0, 0, 0, 0, 0, 0), 0)

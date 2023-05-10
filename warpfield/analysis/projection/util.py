@@ -40,7 +40,7 @@ def generate_conversion(xfunc, yfunc):
 
 
 def generate_projection(func):
-    def inner_func(tel_ra, tel_dec, tel_pa, ra, dec, scale):
+    def inner_func(tel_ra, tel_dec, tel_pa, ra, dec, sx, sy):
         ''' Gnomonic projection of the spherical coordinates
 
         Arguments:
@@ -49,7 +49,8 @@ def generate_projection(func):
         tel_pa: A position angle of the telescope in degree.
         ra: A right ascension of the target in degree.
         dec: A declination of the target in degree.
-        scale: A physical scale of the focal plane (mm/deg).
+        sx: A physical scale of the focal plane along x (mm/deg).
+        sx: A physical scale of the focal plane along y (mm/deg).
 
         Returns:
         Converted coordinates on the focal plane
@@ -60,5 +61,5 @@ def generate_projection(func):
         ra = degree_to_radian(ra)
         dec = degree_to_radian(dec)
         X, Y = func(tel_ra, tel_dec, ra, dec)
-        return (rotation_matrix(-tel_pa) @ jnp.stack([X, Y])).T * scale
+        return (rotation_matrix(-tel_pa) @ jnp.stack([sx * X, sy * Y])).T
     return inner_func
