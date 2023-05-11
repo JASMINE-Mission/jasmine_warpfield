@@ -40,7 +40,7 @@ def generate_projection(func):
           tel_pa: A position angle of the telescope in degree.
           ra: A right ascension of the target in degree.
           dec: A declination of the target in degree.
-          scale: A physical scale of the focal plane (mm/deg).
+          scale: Physical scales of the focal plane (mm/deg).
 
         Returns:
           Converted coordinates on the focal plane
