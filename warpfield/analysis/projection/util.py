@@ -35,16 +35,16 @@ def generate_projection(func):
         ''' Gnomonic projection of the spherical coordinates
 
         Arguments:
-        tel_ra: A right ascension of the telescope center in degree.
-        tel_dec: A declinatoin of the telescope center in degree.
-        tel_pa: A position angle of the telescope in degree.
-        ra: A right ascension of the target in degree.
-        dec: A declination of the target in degree.
-        sx: A physical scale of the focal plane along x (mm/deg).
-        sx: A physical scale of the focal plane along y (mm/deg).
+          tel_ra: A right ascension of the telescope center in degree.
+          tel_dec: A declinatoin of the telescope center in degree.
+          tel_pa: A position angle of the telescope in degree.
+          ra: A right ascension of the target in degree.
+          dec: A declination of the target in degree.
+          sx: A physical scale of the focal plane along x (mm/deg).
+          sx: A physical scale of the focal plane along y (mm/deg).
 
         Returns:
-        Converted coordinates on the focal plane
+          Converted coordinates on the focal plane
         '''
         tel_ra = degree_to_radian(tel_ra)
         tel_dec = degree_to_radian(tel_dec)
