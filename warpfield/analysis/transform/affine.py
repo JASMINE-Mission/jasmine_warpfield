@@ -24,4 +24,4 @@ def __inner_func(xy, rot, offset, scale):
     return rotation_matrix(rot) @ ((xy - offset).T) / scale
 
 
-affine = vmap(__inner_func, (0, 0, 0, 0), 0)
+transform = vmap(__inner_func, (0, 0, 0, 0), 0)

@@ -20,7 +20,7 @@ def generate(rot, offset, scale):
 
 def test_affine_identity(array):
     rot, offset, scale = generate(0.0, [0.0, 0.0], [1.0, 1.0])
-    res = affine(array, rot, offset, scale)
+    res = transform(array, rot, offset, scale)
 
     correct = jnp.array([[+1, -2], ] * 5)
     assert res == approx(correct)
@@ -28,7 +28,7 @@ def test_affine_identity(array):
 
 def test_affine_rot90(array):
     rot, offset, scale = generate(90.0, [0.0, 0.0], [1.0, 1.0])
-    res = affine(array, rot, offset, scale)
+    res = transform(array, rot, offset, scale)
 
     correct = jnp.array([[+2, +1], ] * 5)
     assert res == approx(correct)
@@ -36,7 +36,7 @@ def test_affine_rot90(array):
 
 def test_affine_rot180(array):
     rot, offset, scale = generate(180.0, [0.0, 0.0], [1.0, 1.0])
-    res = affine(array, rot, offset, scale)
+    res = transform(array, rot, offset, scale)
 
     correct = jnp.array([[-1, +2], ] * 5)
     assert res == approx(correct)
@@ -44,7 +44,7 @@ def test_affine_rot180(array):
 
 def test_affine_trans_x(array):
     rot, offset, scale = generate(0.0, [1.0, 0.0], [1.0, 1.0])
-    res = affine(array, rot, offset, scale)
+    res = transform(array, rot, offset, scale)
 
     correct = jnp.array([[+0, -2], ] * 5)
     assert res == approx(correct)
@@ -52,7 +52,7 @@ def test_affine_trans_x(array):
 
 def test_affine_trans_y(array):
     rot, offset, scale = generate(0.0, [0.0, 2.0], [1.0, 1.0])
-    res = affine(array, rot, offset, scale)
+    res = transform(array, rot, offset, scale)
 
     correct = jnp.array([[+1, -4], ] * 5)
     assert res == approx(correct)
@@ -60,7 +60,7 @@ def test_affine_trans_y(array):
 
 def test_affine_scale_x(array):
     rot, offset, scale = generate(0.0, [0.0, 0.0], [0.5, 1.0])
-    res = affine(array, rot, offset, scale)
+    res = transform(array, rot, offset, scale)
 
     correct = jnp.array([[+2, -2], ] * 5)
     assert res == approx(correct)
@@ -68,7 +68,7 @@ def test_affine_scale_x(array):
 
 def test_affine_scale_y(array):
     rot, offset, scale = generate(0.0, [0.0, 0.0], [1.0, 2.0])
-    res = affine(array, rot, offset, scale)
+    res = transform(array, rot, offset, scale)
 
     correct = jnp.array([[+1, -1], ] * 5)
     assert res == approx(correct)
