@@ -125,18 +125,22 @@ class Optics:
         skycoord = frame_conversion(skycoord, self.pointing.frame.name)
 
         coo = np.array([
-            skycoord.spherical.lon,
-            skycoord.spherical.lat
+            skycoord.spherical.lon.deg,
+            skycoord.spherical.lat.deg
         ]).T.reshape((-1, 2))
-        pos = self.distortion(
-            np.reshape(self.projection.wcs_world2pix(coo, 0).T, (2, -1)))
-        if np.isnan(pos).all():
+        xy0 = np.reshape(self.projection.wcs_world2pix(coo, 0).T, (2, -1))
+        xy = self.distortion(xy0)
+        if np.isnan(xy).all():
             raise RuntimeError('no source within the field of view')
-        within_fov = self.contains(pos)
+        within_fov = self.contains(xy)
 
         table = sources.table.copy()
-        table['x'] = pos[0] * u.um
-        table['y'] = pos[1] * u.um
+        table['lon'] = skycoord.spherical.lon
+        table['lat'] = skycoord.spherical.lat
+        table['x0'] = xy0[0] * u.um
+        table['y0'] = xy0[1] * u.um
+        table['x'] = xy[0] * u.um
+        table['y'] = xy[1] * u.um
         table['obstime'] = skycoord.obstime.decimalyear * u.year
         table = table[within_fov]
 
