@@ -2,5 +2,4 @@
 # -*- coding: utf-8 -*-
 ''' warpfield: JASMINE image stitching experiment module '''
 
-from warpfield import telescope as telescope
-from warpfield import analysis as analysis
+from .version import version as __version__
