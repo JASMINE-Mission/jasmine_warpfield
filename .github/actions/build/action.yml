@@ -6,5 +6,6 @@ runs:
   steps:
     - name: Build Package
       run: |
+        python -m pip install --upgrade pip build
         python -m build
       shell: bash
