@@ -1,0 +1,35 @@
+[build-system]
+requires = ['setuptools>=61.0.0', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'jasmine_warpfield'
+description = 'An experimental code to simulate a warped focal plane'
+readme = 'README.md'
+requires-python = '>=3.7'
+license = {file = 'LICENSE'}
+authors = [
+  {name = 'Ryou Ohsawa', email = 'ryou.ohsawa@nao.ac.jp'},
+]
+classifiers = [
+  'Development Status :: 3 - Alpha',
+  'Intended Audience :: Science/Research',
+  'License :: OSI Approved :: MIT License',
+  'Operating System :: POSIX :: Linux',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.7',
+  'Topic :: Scientific/Engineering :: Astronomy',
+]
+dynamic = ['version', 'dependencies']
+
+[project.urls]
+homepage = 'https://github.com/JASMINE-Mission/jasmine_warpfield'
+repository = 'https://github.com/JASMINE-Mission/jasmine_warpfield'
+
+[tool.setuptools.packages.find]
+include = ['warpfield*']
+exclude = ['tests*']
+
+[tool.setuptools.dynamic]
+version = {attr = 'warpfield.__version__'}
+dependencies = {file = ['requirements.txt']}
