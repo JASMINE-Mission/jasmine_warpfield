@@ -5,7 +5,7 @@ from hypothesis import given
 from hypothesis.strategies import floats
 import numpy as np
 
-from warpfield.analysis.projection.util import *
+from warpfield.analysis.conversion import *
 
 
 def degree():

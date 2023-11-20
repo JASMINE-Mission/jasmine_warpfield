@@ -3,7 +3,7 @@
 from pytest import approx
 import numpy as np
 
-from warpfield.analysis.projection.util import *
+from warpfield.analysis.conversion import *
 
 
 def test_degree_to_radian():

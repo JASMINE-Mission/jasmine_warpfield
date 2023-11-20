@@ -3,16 +3,7 @@
 
 import jax.numpy as jnp
 
-
-def degree_to_radian(theta):
-    ''' Convert degree to radian '''
-    return theta * jnp.pi / 180.
-
-
-def rotation_matrix(theta):
-    ''' Calculate rotation matrix R '''
-    rot = [jnp.cos(theta), -jnp.sin(theta), jnp.sin(theta), jnp.cos(theta)]
-    return jnp.array(rot).reshape([2, 2])
+from ..conversion import degree_to_radian, rotation_matrix
 
 
 def sptrig_cosr(tel_ra, tel_dec, ra, dec):
@@ -40,20 +31,19 @@ def generate_conversion(xfunc, yfunc):
 
 
 def generate_projection(func):
-    def inner_func(tel_ra, tel_dec, tel_pa, ra, dec, sx, sy):
+    def inner_func(tel_ra, tel_dec, tel_pa, ra, dec, scale):
         ''' Gnomonic projection of the spherical coordinates
 
         Arguments:
-        tel_ra: A right ascension of the telescope center in degree.
-        tel_dec: A declinatoin of the telescope center in degree.
-        tel_pa: A position angle of the telescope in degree.
-        ra: A right ascension of the target in degree.
-        dec: A declination of the target in degree.
-        sx: A physical scale of the focal plane along x (mm/deg).
-        sx: A physical scale of the focal plane along y (mm/deg).
+          tel_ra: A right ascension of the telescope center in degree.
+          tel_dec: A declinatoin of the telescope center in degree.
+          tel_pa: A position angle of the telescope in degree.
+          ra: A right ascension of the target in degree.
+          dec: A declination of the target in degree.
+          scale: Physical scales of the focal plane (mm/deg).
 
         Returns:
-        Converted coordinates on the focal plane
+          Converted coordinates on the focal plane
         '''
         tel_ra = degree_to_radian(tel_ra)
         tel_dec = degree_to_radian(tel_dec)
@@ -61,5 +51,5 @@ def generate_projection(func):
         ra = degree_to_radian(ra)
         dec = degree_to_radian(dec)
         X, Y = func(tel_ra, tel_dec, ra, dec)
-        return (rotation_matrix(-tel_pa) @ jnp.stack([sx * X, sy * Y])).T
+        return (rotation_matrix(-tel_pa) @ jnp.stack([X, Y])).T * scale
     return inner_func
