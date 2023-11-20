@@ -118,7 +118,7 @@ class SourceTable(QTableContainer):
           The `distance` column should be given as length.
         '''
         if self.has('parallax'):
-            parallax = np.clip(self.table['parallax'], 1e-6 *u.mas, np.inf)
+            parallax = np.clip(self.table['parallax'], 1e-6 * u.mas, np.inf)
             return Distance(parallax=parallax)
         elif self.has('distance'):
             assert self.get_dimension('distance') == 'length'
