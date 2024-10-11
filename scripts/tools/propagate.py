@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
-from jax.config import config
-
 from astropy.coordinates import SkyCoord
 from astropy.table import QTable, unique, join
 from astropy.time import Time
 import astropy.units as u
+import jax
 import numpy as np
 
 from warpfield.telescope.source import SourceTable
 from warpfield.telescope.source import convert_skycoord_to_sourcetable
 
-config.update('jax_enable_x64', True)
+jax.config.update('jax_enable_x64', True)
 
 
 def propagate(reference, obstime):

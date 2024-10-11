@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
-from jax.config import config
-
 from numpyro.infer import Predictive, SVI, Trace_ELBO
 import numpyro
+import jax
 import jax.random as random
 
 from astropy.table import QTable, unique
@@ -21,7 +20,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
-config.update('jax_enable_x64', True)
+jax.config.update('jax_enable_x64', True)
 
 
 if __name__ == '__main__':
