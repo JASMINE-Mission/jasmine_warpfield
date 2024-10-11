@@ -28,6 +28,7 @@ exclude_patterns:
   - "/notebook/"
   - "/challenge/"
   - "/tests/"
+  - "/scripts/"
   - "**/.*"
   - "**/__init__.py"
   - "**/*.txt"

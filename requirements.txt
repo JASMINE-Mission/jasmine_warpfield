@@ -1,10 +1,10 @@
-numpy>=1.24
-h5py>=3.8
+numpy>=2.1
+h5py>=3.11
 scipy>=1.9
-pandas>=1.4
-astropy>=5.2
+pandas>=1.14
+astropy>=6.1
 astroquery>=0.4
-matplotlib>=3.5
+matplotlib>=3.9
 shapely>=2.0
-jax>=0.3.7
-jaxlib>=0.3.7
+jax>=0.4.33
+jaxlib>=0.4.33
