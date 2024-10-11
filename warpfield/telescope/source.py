@@ -263,5 +263,7 @@ def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
         print(res)
 
     record = res.get_results()
+    if 'SOURCE_ID' in record.columns:
+        record.rename_column('SOURCE_ID', 'source_id')
     record['non_single_star'] = record['non_single_star'] > 0
     return SourceTable(QTable(record))

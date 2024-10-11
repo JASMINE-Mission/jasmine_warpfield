@@ -31,8 +31,8 @@ import warpfield as w
 pointing = SkyCoord(0.0*u.deg, 0.0*u.deg, frame="galactic")
 position_angle = Angle(5.0*u.deg)
 
-jasmine = w.Telescope(pointing, position_angle)
-source_table = w.retrieve_gaia_sources(pointing, radius=0.4*u.deg)
+jasmine = w.telescope.Telescope(pointing, position_angle)
+source_table = w.telescope.retrieve_gaia_sources(pointing, radius=0.4*u.deg)
 position = jasmine.observe(source_table.skycoord)
 
 import matplotlib.pyplot as plt
