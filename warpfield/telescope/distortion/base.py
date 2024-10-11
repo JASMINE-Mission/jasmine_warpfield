@@ -65,7 +65,7 @@ class InvertibleFunction:
           A numpy.ndarray of the input coordinates.
         '''
         position = np.array(position).reshape((2, -1))
-        p0, x0, d = position, position.copy(), np.infty
+        p0, x0, d = position, position.copy(), np.inf
         for n in range(100):
             x1 = x0 + (p0 - self.apply(x0))
             f, d, x0 = d, np.square(x1 - x0).mean(), x1
