@@ -6,7 +6,9 @@ runs:
   steps:
     - name: Install Jupyter Lab
       run: |
-        pip install jupyter jupyterlab nbconvert
+        python -m pip install --upgrade pip
+        python -m pip install .
+        python -m pip install jupyter jupyterlab nbconvert
       shell: bash
 
     - name: Execute Jupyter notebook
