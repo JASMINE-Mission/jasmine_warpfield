@@ -7,8 +7,8 @@
 
 An experimental code to demonstrate Plate Analysis, an algorithm for precise relative astrometric analysis. The code consists of two modules:
 
-- `telescope`: A code tOgenerate mock measurements.
-- `analysis`: A code to solve an astrometric solution.
+- `telescope`: A code to generate mock measurements.
+- `analysis`: A code to estimate an astrometric solution.
 
 
 ## Installation
