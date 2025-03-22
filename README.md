@@ -3,8 +3,12 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/92fcbdadd8b118238161/maintainability)](https://codeclimate.com/github/JASMINE-Mission/jasmine_warpfield/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/92fcbdadd8b118238161/test_coverage)](https://codeclimate.com/github/JASMINE-Mission/jasmine_warpfield/test_coverage)
 
-# JASMINE warpfield demonstration code
-An experimental code to simulate the image warp function.
+# warpfield: JASMINE Plate Analysis demonstration code
+
+An experimental code to demonstrate Plate Analysis, an algorithm for precise relative astrometric analysis. The code consists of two modules:
+
+- `telescope`: A code tOgenerate mock measurements.
+- `analysis`: A code to solve an astrometric solution.
 
 
 ## Installation
