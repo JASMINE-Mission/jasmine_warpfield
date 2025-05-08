@@ -2,6 +2,7 @@
 [![build](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/build.yml/badge.svg?branch=develop)](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/build.yml)
 [![Maintainability](https://api.codeclimate.com/v1/badges/92fcbdadd8b118238161/maintainability)](https://codeclimate.com/github/JASMINE-Mission/jasmine_warpfield/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/92fcbdadd8b118238161/test_coverage)](https://codeclimate.com/github/JASMINE-Mission/jasmine_warpfield/test_coverage)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/JASMINE-Mission/jasmine_warpfield)
 
 # warpfield: Plate Analysis demonstration code
 
