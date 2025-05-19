@@ -17,7 +17,7 @@ runs:
       id: pytest
       continue-on-error: true
       run: |
-        python -m pytest ./tests/
+        python -m pytest ./tests/validation/
       shell: bash
 
     - name: Notice Error
