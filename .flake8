@@ -1,22 +1,40 @@
 [flake8]
 indent-size = 4
 extend-ignore =
-    F403, # star imports
-    F405, # star imports
-    W503, # line break before binary operator
-    E128, # continuation line under-indented for visual indent
-    E221, # multiple spaces before operator
-    E251, # unexpected spaces around keyword / parameter equals
-    E701, # multiple statements with colon
-    E731, # do not assign a lambda expression
-    E741  # ambiguous variable name 'l'
+    # star imports
+    F403,
+    # star imports
+    F405,
+    # line break before binary operator
+    W503,
+    # continuation line under-indented for visual indent
+    E128,
+    # multiple spaces before operator
+    E221,
+    # unexpected spaces around keyword / parameter equals
+    E251,
+    # multiple statements with colon
+    E701,
+    # do not assign a lambda expression
+    E731,
+    # ambiguous variable name 'l'
+    E741
 extend-select =
-    E127, # continuation line over-indented for visual indent
-    E226, # missing whitespace around arithmetic operator
-    E231, # missing whitespace after ','
-    E251, # unexpected spaces around keyword / parameter equals
-    E266, # too many leading '#' for block comment
-    E302, # too few blank lines
-    E303, # too many blank lines
-    E501, # line too long
-    E541  # f-string is missing placeholders
+    # continuation line over-indented for visual indent
+    E127,
+    # missing whitespace around arithmetic operator
+    E226,
+    # missing whitespace after ','
+    E231,
+    # unexpected spaces around keyword / parameter equals
+    E251,
+    # too many leading '#' for block comment
+    E266,
+    # too few blank lines
+    E302,
+    # too many blank lines
+    E303,
+    # line too long
+    E501,
+    # f-string is missing placeholders
+    E541
