@@ -17,12 +17,12 @@ runs:
       id: pytest
       continue-on-error: true
       run: |
-        python -m pytest ./tests/unittest --cov=jasmine_warpfield --cov-report xml
+        python -m pytest ./tests/unittest --cov=. --cov-report xml
       shell: bash
 
     - name: Send Coverage Report to CodeClimate
       if: ${{ steps.pytest.outcome == 'success' && github.event_name == 'push'}}
-      uses: paambaati/codeclimate-action@v3.0.0
+      uses: paambaati/codeclimate-action@v9.0.0
       env:
         CC_TEST_REPORTER_ID: ${{ env.CC_TEST_REPORTER_ID }}
       with:
