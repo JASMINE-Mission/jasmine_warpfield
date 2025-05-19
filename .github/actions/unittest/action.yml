@@ -17,7 +17,7 @@ runs:
       id: pytest
       continue-on-error: true
       run: |
-        python -m pytest ./tests/unittest --cov=. --cov-report xml
+        python -m pytest ./tests/unittest --cov=jasmine_warpfield --cov-report xml
       shell: bash
 
     - name: Send Coverage Report to CodeClimate
@@ -28,6 +28,12 @@ runs:
       with:
         debug: false
         coverageLocations: coverage.xml:coverage.py
+
+    - name: Send Coverage Report to qlty.cloud
+      uses: qltysh/qlty-action/coverage@v1
+      with:
+        token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+        files: coverage.xml
 
     - name: Notice Error
       if: ${{ steps.pytest.outcome == 'failure' }}
