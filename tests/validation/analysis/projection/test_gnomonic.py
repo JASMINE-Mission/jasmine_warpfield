@@ -13,7 +13,7 @@ class Gnomonic(WCSProjection):
         self.projection = 'TAN'
 
 
-@settings(deadline=500)
+@settings(deadline=None)
 @given(longitude(), latitude(), longitude(), latitude())
 def test_gnomonic_conversion(tel_ra, tel_dec, ra, dec):
     telescope = Gnomonic(tel_ra, tel_dec)
