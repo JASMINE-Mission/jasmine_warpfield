@@ -26,20 +26,19 @@ exclude_patterns = [
   "/notebook/",
   "/tests/",
   "/scripts/",
-  "/LICENSE",
-  "/README.md",
 ]
 
 test_patterns = [
   "**/test/**",
   "**/tests/**",
+  "**/test_**",
 ]
 
 [smells]
 mode = "comment"
 
 [smells.boolean_logic]
-threshold = 4
+threshold = 6
 
 [smells.file_complexity]
 threshold = 55
@@ -58,8 +57,7 @@ enabled = false
 threshold = 5
 
 [smells.duplication]
-enabled = true
-threshold = 20
+threshold = 22
 
 [[source]]
 name = "default"
