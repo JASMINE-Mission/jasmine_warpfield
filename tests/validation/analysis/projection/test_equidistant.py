@@ -4,6 +4,7 @@ from pytest import approx
 from hypothesis import given, assume, settings
 
 from .util import WCSProjection, longitude, latitude
+from .util import suppress_too_much_filter
 from warpfield.analysis.projection.equidistant import *
 
 
@@ -13,7 +14,7 @@ class Equidistant(WCSProjection):
         self.projection = 'ARC'
 
 
-@settings(deadline=None)
+@settings(deadline=None, suppress_health_check=suppress_too_much_filter)
 @given(longitude(), latitude(), longitude(), latitude())
 def test_equidistant_conversion(tel_ra, tel_dec, ra, dec):
     telescope = Equidistant(tel_ra, tel_dec)
