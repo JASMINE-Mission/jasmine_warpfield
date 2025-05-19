@@ -20,15 +20,6 @@ runs:
         python -m pytest ./tests/unittest --cov=warpfield --cov-report xml
       shell: bash
 
-    - name: Send Coverage Report to CodeClimate
-      if: ${{ steps.pytest.outcome == 'success' && github.event_name == 'push'}}
-      uses: paambaati/codeclimate-action@v9.0.0
-      env:
-        CC_TEST_REPORTER_ID: ${{ env.CC_TEST_REPORTER_ID }}
-      with:
-        debug: false
-        coverageLocations: coverage.xml:coverage.py
-
     - name: Send Coverage Report to qlty.cloud
       uses: qltysh/qlty-action/coverage@v1
       with:
