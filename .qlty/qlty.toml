@@ -18,14 +18,13 @@ exclude_patterns = [
   "**/cache/**",
   "**/config/**",
   "**/dist/**",
+  "**/notebook/**",
+  "**/scripts/**",
   "**/__init__.py",
   "**/.*",
   "**/*.txt",
   "**/*.md",
   "**/*.egg-info",
-  "/notebook/",
-  "/tests/",
-  "/scripts/",
 ]
 
 test_patterns = [
