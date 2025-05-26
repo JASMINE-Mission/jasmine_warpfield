@@ -14,17 +14,10 @@
 config_version = "0"
 
 exclude_patterns = [
-  "**/build/**",
-  "**/cache/**",
-  "**/config/**",
   "**/dist/**",
+  "**/*.egg-info/**",
   "**/notebook/**",
   "**/scripts/**",
-  "**/__init__.py",
-  "**/.*",
-  "**/*.txt",
-  "**/*.md",
-  "**/*.egg-info",
 ]
 
 test_patterns = [
