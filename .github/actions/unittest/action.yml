@@ -25,6 +25,7 @@ runs:
       with:
         token: ${{ env.QLTY_COVERAGE_TOKEN }}
         files: coverage.xml
+        add-prefix: warpfield/
 
     - name: Notice Error
       if: ${{ steps.pytest.outcome == 'failure' }}
