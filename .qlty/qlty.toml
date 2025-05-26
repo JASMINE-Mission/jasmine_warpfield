@@ -14,10 +14,8 @@
 config_version = "0"
 
 exclude_patterns = [
-  "**/dist/**",
-  "**/*.egg-info/**",
-  "**/notebook/**",
-  "**/scripts/**",
+  "notebook/**",
+  "scripts/**",
 ]
 
 test_patterns = [
