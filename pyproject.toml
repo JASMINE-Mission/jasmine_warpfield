@@ -54,3 +54,28 @@ include = ['warpfield*']
 [tool.setuptools.dynamic]
 version = { attr = 'warpfield.version.version' }
 readme = { file = 'README.md', content-type = 'text/markdown' }
+
+
+[tool.ruff]
+exclude = ['**/test', 'notebook']
+line-length = 79
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+  'E', 'F', 'W']
+ignore = [
+  'E221', # multiple spaces before operator
+  'E401', # multiple imports on one line
+  'E701', # multiple statements on one line
+  'E731', # Do not assign a `lambda` expression
+  'E741', # Ambiguous variable name
+  'F403', # star imports
+  'F405', # defined from star imports
+]
+unfixable = ['ALL']
+
+[tool.ruff.format]
+quote-style = 'preserve'
+line-ending = 'lf'
+preview = true

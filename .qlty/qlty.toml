@@ -64,9 +64,6 @@ name = "bandit"
 name = "checkov"
 
 [[plugin]]
-name = "flake8"
-
-[[plugin]]
 name = "markdownlint"
 mode = "comment"
 
@@ -105,7 +102,7 @@ name = "yamllint"
 
 [[triage]]
 match.rules = ["bandit:B101"]
-match.file_patterns = ["**/test/*", "validation/*"]
+match.file_patterns = ["tests/*"]
 set.ignored = true
 
 
