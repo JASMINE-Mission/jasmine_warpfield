@@ -11,24 +11,23 @@ An experimental code to demonstrate Plate Analysis, an algorithm for precise rel
 - `telescope`: A code to generate mock measurements.
 - `analysis`: A code to estimate an astrometric solution.
 
-
 ## Installation
 
 The package is available using the command below:
 
-``` console
-$ pip install git+https://github.com/JASMINE_Mission/jasmine_warpfield.git
+```console
+pip install git+https://github.com/JASMINE_Mission/jasmine_warpfield.git
 ```
 
 Otherwise clone this repository and try the command below:
 
-``` console
-$ python setup.py install
+```console
+python setup.py install
 ```
 
 The module `jasmine_warpfield` will be installed in your system. A simple example is described below.
 
-``` python
+```python
 from astropy.coordinates import SkyCoord, Angle
 import astropy.units as u
 import warpfield as w
