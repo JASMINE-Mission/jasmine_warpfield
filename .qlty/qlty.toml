@@ -101,3 +101,14 @@ name = "trufflehog"
 
 [[plugin]]
 name = "yamllint"
+
+
+[[triage]]
+match.rules = ["bandit:B101"]
+match.file_patterns = ["**/test/*", "validation/*"]
+set.ignored = true
+
+
+[[triage]]
+match.rules = ["ruff:fmt"]
+set.ignored = true
