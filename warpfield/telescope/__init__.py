@@ -10,3 +10,17 @@ from .optics import Optics
 from .detector import Detector
 from .telescope import Telescope
 from .jasmine import get_jasmine
+
+
+__all__ = [
+    'get_projection',
+    'GCGRS',
+    'SourceTable',
+    'retrieve_gaia_sources',
+    'get_subplot',
+    'display_sources',
+    'Optics',
+    'Detector',
+    'Telescope',
+    'get_jasmine',
+]

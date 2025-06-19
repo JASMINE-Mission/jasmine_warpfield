@@ -94,9 +94,10 @@ class Detector:
         Returns:
           True if positions are within `self.xrange` or `self.yrange`.
         '''
-        assert axis in ('x', 'y'), '`axis` should be "x" or "y".'
-        range = self.xrange if axis == 'x' else self.yrange
-        return (range[0] <= position) & (position <= range[1])
+        if axis not in ('x', 'y'):
+            raise ValueError('`axis` should be "x" or "y".')
+        zrange = self.xrange if axis == 'x' else self.yrange
+        return (zrange[0] <= position) & (position <= zrange[1])
 
     def get_footprint_as_patch(self, **options):
         ''' Returns a focal-plane footprint as a patch
