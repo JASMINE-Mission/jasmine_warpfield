@@ -2,7 +2,7 @@ name: validation
 description: Check the package integrity via validation tests
 
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Install the package
       env:

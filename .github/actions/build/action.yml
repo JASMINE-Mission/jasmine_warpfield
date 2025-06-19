@@ -2,7 +2,7 @@ name: build
 description: Check if the package is successfully built.
 
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Build Package
       run: |

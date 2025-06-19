@@ -2,7 +2,7 @@ name: notebook
 description: Check if the notebooks are successfully executed.
 
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Install Jupyter Lab
       run: |
