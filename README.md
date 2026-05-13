@@ -16,7 +16,7 @@ An experimental code to demonstrate Plate Analysis, an algorithm for precise rel
 The package is available using the command below:
 
 ```console
-pip install git+https://github.com/JASMINE_Mission/jasmine_warpfield.git
+pip install git+https://github.com/JASMINE-Mission/jasmine_warpfield.git
 ```
 
 Otherwise clone this repository and try the command below:
