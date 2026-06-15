@@ -1,7 +1,5 @@
 [![unittest](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/unittest.yml/badge.svg)](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/unittest.yml)
 [![validation](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/validation.yml/badge.svg?branch=develop)](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/validation.yml)
-[![Maintainability](https://qlty.sh/badges/b197d600-fe17-4e94-a00a-caced39bdada/maintainability.svg)](https://qlty.sh/gh/JASMINE-Mission/projects/jasmine_warpfield)
-[![Code Coverage](https://qlty.sh/badges/b197d600-fe17-4e94-a00a-caced39bdada/test_coverage.svg)](https://qlty.sh/gh/JASMINE-Mission/projects/jasmine_warpfield)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/JASMINE-Mission/jasmine_warpfield)
 
 # warpfield: Plate Analysis demonstration code
