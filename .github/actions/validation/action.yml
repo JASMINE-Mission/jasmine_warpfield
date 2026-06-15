@@ -5,15 +5,11 @@ runs:
   using: composite
   steps:
     - name: Install the package
-      env:
-        BRANCH: ${{ github.ref_name }}
       run: |
         python -m pip install .[test]
       shell: bash
 
     - name: Test with pytest
-      env:
-        BRANCH: ${{ github.ref_name }}
       id: pytest
       continue-on-error: true
       run: |

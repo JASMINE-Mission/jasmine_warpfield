@@ -22,7 +22,7 @@ pip install git+https://github.com/JASMINE-Mission/jasmine_warpfield.git
 Otherwise clone this repository and try the command below:
 
 ```console
-python setup.py install
+pip install .
 ```
 
 The module `jasmine_warpfield` will be installed in your system. A simple example is described below.
