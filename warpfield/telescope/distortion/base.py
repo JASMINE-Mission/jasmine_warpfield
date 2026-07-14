@@ -6,16 +6,16 @@ import numpy as np
 
 
 class BiPolynomialFunction:
-    ''' Requiremnts to define a bi-polynomial function
+    ''' Requirements to define a bi-polynomial function
 
     This class does not work properly by itself.
     The following attributes should be defined in child classes.
 
     Attributes:
-      order: the maximum order of the polynomials.
-      center: the distortion center (optional).
-      A: coefficients for the x-coordinate.
-      B: coefficients for the y-coordinate.
+        order: the maximum order of the polynomials.
+        center: the distortion center (optional).
+        A: coefficients for the x-coordinate.
+        B: coefficients for the y-coordinate.
     '''
 
     def __post_init__(self):
@@ -33,36 +33,36 @@ class BiPolynomialFunction:
         ''' Check if the attributes are properly defined '''
         dim = self.order + 1
         assert self.order >= 0, \
-            'The polynomical order should be non-negative.'
+            'The polynomial order should be non-negative.'
         assert self.get_center().size == 2, \
             'The center position should have two elements.'
         assert self.A.shape == (dim, dim), \
-            f'The shape of A matris should be ({dim}, {dim}).'
+            f'The shape of A matrix should be ({dim}, {dim}).'
         assert self.B.shape == (dim, dim), \
-            f'The shape of B matris should be ({dim}, {dim}).'
+            f'The shape of B matrix should be ({dim}, {dim}).'
 
 
 class InvertibleFunction:
 
-    def apply():
-        raise NotImplementedError('should be overriden')
+    def apply(self, position: np.ndarray):
+        raise NotImplementedError('should be overridden')
 
     def __call__(self, position: np.ndarray):
         ''' Inverse function of `self.apply()`
 
         Provides the inverse function of `self.apply()`.
         This function is used to convert _correct_ coordinate into
-        _distorted_ coordinates. The distorted coordiantes are obtained
-        by an interative method.
+        _distorted_ coordinates. The distorted coordinates are obtained
+        by an iterative method.
 
         Arguments:
-          position (ndarray):
-              A numpy.array with the shape of (2, Nsrc). The first element
-              contains the x-positions, while the second element contains
-              the y-positions.
+            position (ndarray):
+                A numpy.array with the shape of (2, Nsrc). The first element
+                contains the x-positions, while the second element contains
+                the y-positions.
 
         Returns:
-          A numpy.ndarray of the input coordinates.
+            A numpy.ndarray of the input coordinates.
         '''
         position = np.array(position).reshape((2, -1))
         p0, x0, d = position, position.copy(), np.inf

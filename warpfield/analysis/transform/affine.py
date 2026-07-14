@@ -11,14 +11,13 @@ def __inner_func(xy, rot, offset, scale):
     ''' Convert the focal-plane coordinates into the detector coordinates
 
     Arguments:
-      xy: Focal-plane coordinates (mm).
-      rot: A rotation angle in degree.
-      offset: Focal-plane offsets (mm).
-      scale: Physical pixel sizes (mm).
-
+        xy: Focal-plane coordinates (mm).
+        rot: A rotation angle in degree.
+        offset: Focal-plane offsets (mm).
+        scale: Physical pixel sizes (mm).
 
     Returns:
-      Converted coordinates on the detector.
+        Converted coordinates on the detector.
     '''
     rot = degree_to_radian(rot)
     return rotation_matrix(rot) @ ((xy - offset).T) / scale

@@ -45,18 +45,18 @@ def get_jasmine(
     ''' Generate JASMINE telescope
 
     Arguments:
-      pointing (SkyCoord):
-          A direction of the telescope pointing.
-      position_angle (Angle):
-          A position angle of the telescope.
-      distortion (function):
-          A distortion function.
-          `identity_transformation` is set if not specified.
-      octagonal (bool):
-          Set to True if the field of view is octagonal.
+        pointing (SkyCoord):
+            A direction of the telescope pointing.
+        position_angle (Angle):
+            A position angle of the telescope.
+        distortion (function):
+            A distortion function.
+            `identity_transformation` is set if not specified.
+        octagonal (bool):
+            Set to True if the field of view is octagonal.
 
     Returns:
-      A telescope instance defined by the nominal JASMINE design.
+        A telescope instance defined by the nominal JASMINE design.
     '''
     optics = Optics(
       pointing,

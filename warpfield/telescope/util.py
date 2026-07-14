@@ -18,11 +18,11 @@ def estimate_frame_from_ctype(ctype):
     ''' Estimate a coordinate frame from CTYPE.
 
     Arguments:
-      ctype (tuple):
-          A tuple of CTYPE strings.
+        ctype (tuple):
+            A tuple of CTYPE strings.
 
     Returns:
-      A string to specify the coordinate frame.
+        A string to specify the coordinate frame.
     '''
     ctype1, ctype2 = ctype
 
@@ -38,12 +38,12 @@ def get_axis_name(frame):
     ''' Estimate the axes names from the coordinate frame name
 
     Arguments:
-      frame (str):
-          The name of the cooridante frame.
+        frame (str):
+            The name of the cooridante frame.
 
     Returns:
-      xlabel: the name of the Longitude
-      ylabel: the name of the Latitude
+        xlabel: the name of the Longitude
+        ylabel: the name of the Latitude
     '''
     if frame in ('galactic'):
         xlabel = 'Galactic Longitude'
@@ -59,11 +59,11 @@ def frame_conversion(skycoord, frame):
     ''' Return functions to retrieve spherical coordinates
 
     Arguments:
-      frame (str):
-          The name of the cooridante frame.
+        frame (str):
+            The name of the cooridante frame.
 
     Returns:
-      A converted skycoord object.
+        A converted skycoord object.
     '''
     if frame == ('gcrs'):
         func = lambda x: getattr(x, 'gcrs')
@@ -86,16 +86,16 @@ def get_projection(
     ''' Obtain the gnomonic projection instance.
 
     Arguments:
-      pointing (SkyCoord):
-          The coordinates of the projection center.
-      scale (float):
-          The conversion factor to calculate the position on the focal plane
-          from the angular distance on the sky in units of degree/um.
-      lhcs (bool, optional):
-          Set True if the coordinate is left-handded.
+        pointing (SkyCoord):
+            The coordinates of the projection center.
+        scale (float):
+            The conversion factor to calculate the position on the focal plane
+            from the angular distance on the sky in units of degree/um.
+        lhcs (bool, optional):
+            Set True if the coordinate is left-handded.
 
     Returns:
-      An object (astropy.wcs.WCS) for coordinate conversion.
+        An object (astropy.wcs.WCS) for coordinate conversion.
     '''
 
     # This projection instance is used to map celestrical coordinates onto

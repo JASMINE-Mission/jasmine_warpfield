@@ -14,11 +14,12 @@ def identity_transformation(position):
     respectively. This function returns the positions as they are.
 
     Arguments:
-      position:
-          A numpy.array with the shape of (2, Nsrc). The first element contains
-          the x-positions, while the second element contains the y-positions.
+        position:
+            A numpy.array with the shape of (2, Nsrc). The first element
+            contains the x-positions, while the second element contains the
+            y-positions.
 
     Returns:
-      A numpy.ndarray of the input coordinates.
+        A numpy.ndarray of the input coordinates.
     '''
     return np.array(position)

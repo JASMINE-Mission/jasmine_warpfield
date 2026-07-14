@@ -20,30 +20,30 @@ def generate(source, reference, params={}):
     using jax from source and reference data tables. The source table
     should contains the following columns:
 
-      source:
+    source:
         x: X-coordinates on the focal plane in mm.
         y: Y-coordinates on the focal plane in mm.
         object_id: Unique ID numbers of objects.
         plate_id: ID numbers of observation plates (pointings).
 
-    The reference table should contains the folloinwg columns:
+    The reference table should contains the following columns:
 
-      reference:
+    reference:
         object_id: Unique ID numbers of objects.
-        ra: Right acensions of objects in degree.
+        ra: Right ascensions of objects in degree.
         dec: Declinations of objects in degree.
         sig: Positional uncertainty in degree.
 
 
     Arguments:
-      source: A pandas DataFrame of measurements.
-      reference: A pandas DataFrame of reference stars.
-      params: A dictionary of the initial condition.
+        source: A pandas DataFrame of measurements.
+        reference: A pandas DataFrame of reference stars.
+        params: A dictionary of the initial condition.
 
     Returns:
-      A function pair (model, guide) is generated.
+        A function pair (model, guide) is generated.
 
-        model: The obervation model function.
+        model: The observation model function.
         guide: A guide function for SVI.
 
     '''

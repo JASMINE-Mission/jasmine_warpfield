@@ -13,10 +13,10 @@ def get_subplot(pointing, key=111, figsize=(8, 8)):
     ''' Generate an axis instance for a poiting
 
     Arguments:
-      pointing (SkyCoord):
-          The directin of the telescope pointing.
-      frame (string):
-          Set to override the projection of `pointing`.
+        pointing (SkyCoord):
+            The direction of the telescope pointing.
+        frame (string):
+            Set to override the projection of `pointing`.
     '''
     proj = get_projection(pointing)
 
@@ -30,10 +30,10 @@ def display_sources(axis, sources, **options):
     ''' Display sources around the specified coordinates
 
     Arguments:
-      axis (Axes):
-          Matplotlib Axes instance.
-      sources (SkyCoord or SourceTable):
-          The list of sources.
+        axis (Axes):
+            Matplotlib Axes instance.
+        sources (SkyCoord or SourceTable):
+            The list of sources.
     '''
     if isinstance(sources, SourceTable):
         sources = sources.skycoord

@@ -50,10 +50,10 @@ class SourceTable(QTableContainer):
     ''' Source Table
 
     Attributes:
-      table (QTable):
-          Table of celestial objects.
-      skycoord (SkyCoord):
-          Auto-generated SkyCoord object.
+        table (QTable):
+            Table of celestial objects.
+        skycoord (SkyCoord):
+            Auto-generated SkyCoord object.
 
      The table should contain the following columns.
 
@@ -88,7 +88,7 @@ class SourceTable(QTableContainer):
         ''' net proper motion in right ascension
 
         Note:
-          Returns zero mas/year if `pmra` is not defined.
+            Returns zero mas/year if `pmra` is not defined.
         '''
         try:
             pmra = self.table['pmra']
@@ -101,7 +101,7 @@ class SourceTable(QTableContainer):
         ''' net proper motion in declination
 
         Note:
-          Returns zero mas/year if `pmdec` is not defined.
+            Returns zero mas/year if `pmdec` is not defined.
         '''
         try:
             pmdec = self.table['pmdec']
@@ -114,8 +114,8 @@ class SourceTable(QTableContainer):
         ''' generate distance from parallax
 
         Note:
-          Returns `None` if `parallax` nor `distance` is not defined.
-          The `distance` column should be given as length.
+            Returns `None` if `parallax` nor `distance` is not defined.
+            The `distance` column should be given as length.
         '''
         if self.has('parallax'):
             parallax = np.clip(self.table['parallax'], 1e-6 * u.mas, np.inf)
@@ -130,7 +130,7 @@ class SourceTable(QTableContainer):
         ''' epoch of catalog
 
         Note:
-          Returns J2000.0 (TCB) if `ref_epoch` nor `epoch` is not defined.
+            Returns J2000.0 (TCB) if `ref_epoch` nor `epoch` is not defined.
         '''
         if self.has('ref_epoch'):
             return self.__convert_epoch(self.table['ref_epoch'].data)
@@ -160,8 +160,8 @@ class FocalPlanePositionTable(QTableContainer):
     ''' FocalPlanePositionTable
 
     Attributes:
-      table (QTable):
-          Table of celestial objects.
+        table (QTable):
+            Table of celestial objects.
 
      The table should contain the following columns.
 
@@ -181,8 +181,8 @@ class DetectorPositionTable(QTableContainer):
     ''' DetectorPositionTable
 
     Attributes:
-      table (QTable):
-          Table of celestial objects.
+        table (QTable):
+            Table of celestial objects.
 
      The table should contain the following columns.
 
@@ -205,13 +205,13 @@ def gaia_query_builder(
     ''' Construct a query string
 
     Arguments:
-      pointing: A center of the search circle.
-      radius: A serach radius.
-      snr_limit: A lower limit of `parallax_over_error`.
-      catalog: The name of catalog (default: `gaiadr3.gaia_source`)
+        pointing: A center of the search circle.
+        radius: A serach radius.
+        snr_limit: A lower limit of `parallax_over_error`.
+        catalog: The name of catalog (default: `gaiadr3.gaia_source`)
 
     Returns:
-      A SQL query string.
+        A SQL query string.
     '''
     return f'''
     SELECT
@@ -228,21 +228,21 @@ def gaia_query_builder(
 
 
 def retrieve_gaia_sources(pointing, radius, snr_limit=10.0, row_limit=-1):
-    ''' Retrive sources around (lon, lat) from Gaia EDR3 catalog
+    ''' Retrieve sources from Gaia EDR3 catalog
 
     Arguments:
-      pointing (SkyCoord):
-          Celestial coordinates of the search center.
-      radius (float or Angle):
-          A search radius in degree.
-      snr_limit (float, optional):
-          A lower limit of `parallax_over_error`.
-      row_limit (int, optional):
-          The maximum number of records.
-          `-1` means no limit in the number of records.
+        pointing (SkyCoord):
+            Celestial coordinates of the search center.
+        radius (float or Angle):
+            A search radius in degree.
+        snr_limit (float, optional):
+            A lower limit of `parallax_over_error`.
+        row_limit (int, optional):
+            The maximum number of records.
+            `-1` means no limit in the number of records.
 
     Return:
-      A table containig souces wihtin the search circle.
+        A table containing sources within the search circle.
     '''
 
     # Get an acceess to the Gaia TAP+.

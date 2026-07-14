@@ -15,10 +15,10 @@ class Legendre(BiPolynomialFunction, InvertibleFunction):
     The following attributes should be defined in child classes.
 
     Attributes:
-      order: the maximum order of the polynomials.
-      center: the distortion center (optional).
-      A: coefficients for the x-coordinate.
-      B: coefficients for the y-coordinate.
+        order: the maximum order of the polynomials.
+        center: the distortion center (optional).
+        A: coefficients for the x-coordinate.
+        B: coefficients for the y-coordinate.
     '''
 
     def normalize(self, position: np.ndarray):
@@ -29,13 +29,13 @@ class Legendre(BiPolynomialFunction, InvertibleFunction):
         ''' Modify xy-coordinates with the Legendre polynomial function
 
         Arguments:
-          position (ndarray):
-              An array contains the list of coordinates.
-              The shape of the array should be (2, Nsrc), where Nsrc is
-              the number of sources.
+            position (ndarray):
+                An array contains the list of coordinates.
+                The shape of the array should be (2, Nsrc), where Nsrc is
+                the number of sources.
 
         Returns:
-          An ndarray instance contains modified coordinates.
+            An ndarray instance contains modified coordinates.
         '''
         x, y = self.normalize(position)
 
@@ -50,14 +50,14 @@ class LegendreDistortion(Legendre):
     ''' Distortion function with the Legendre polynomials
 
     Attributes:
-      order (int):
-          The maximum order of the Legendre polynomials.
-      A (ndarray):
-          The coefficient matrix for the x-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-      B (ndarray):
-          The coefficient matrix for the y-coordinate.
-          The shape of the matrix should be (order+1, order+1).
+        order (int):
+            The maximum order of the Legendre polynomials.
+        A (ndarray):
+            The coefficient matrix for the x-coordinate.
+            The shape of the matrix should be (order+1, order+1).
+        B (ndarray):
+            The coefficient matrix for the y-coordinate.
+            The shape of the matrix should be (order+1, order+1).
     '''
     order: int
     A: np.ndarray
@@ -70,16 +70,16 @@ class DisplacedLegendreDistortion(Legendre):
     ''' Displacement function by the Legendre polynomials
 
     Attributes:
-      order (int):
-          The maximum order of the Legendre polynomials.
-      center (ndarray):
-          The distortion center.
-      A (ndarray):
-          The coefficient matrix for the x-coordinate.
-          The shape of the matrix should be (order+1, order+1).
-      B (ndarray):
-          The coefficient matrix for the y-coordinate.
-          The shape of the matrix should be (order+1, order+1).
+        order (int):
+            The maximum order of the Legendre polynomials.
+        center (ndarray):
+            The distortion center.
+        A (ndarray):
+            The coefficient matrix for the x-coordinate.
+            The shape of the matrix should be (order+1, order+1).
+        B (ndarray):
+            The coefficient matrix for the y-coordinate.
+            The shape of the matrix should be (order+1, order+1).
     '''
     order: int
     center: np.ndarray

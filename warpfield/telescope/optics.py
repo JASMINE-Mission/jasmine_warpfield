@@ -1,4 +1,4 @@
-#!/usri/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ''' Definition of Optics class '''
 
@@ -24,13 +24,13 @@ class Optics:
     ''' Definition of optical components
 
     Attributes:
-      pointing (SkyCoord)    : The latitude of the telescope pointing.
-      position_angle (Angle) : The position angle of the telescope.
-      focal_length (Quantity): The focal length of the telescope in meter.
-      diameter (Quantity)    : The diameter of the telescope in meter.
-      field_of_view (Polygon) : The valid region of the focal plane.
-      margin (Quantity)      : The margin of the valid region (buffle).
-      distortion (function)  : A function to distort the focal plane image.
+        pointing (SkyCoord)    : The latitude of the telescope pointing.
+        position_angle (Angle) : The position angle of the telescope.
+        focal_length (Quantity): The focal length of the telescope in meter.
+        diameter (Quantity)    : The diameter of the telescope in meter.
+        field_of_view (Polygon) : The valid region of the focal plane.
+        margin (Quantity)      : The margin of the valid region (buffle).
+        distortion (function)  : A function to distort the focal plane image.
     '''
     pointing: SkyCoord
     position_angle: Angle = Angle(0.0, unit='degree')
@@ -87,7 +87,7 @@ class Optics:
         while the second element contains the y-positions.
 
         Arguments:
-          distortion (function): A function to distort focal plane image.
+            distortion (function): A function to distort focal plane image.
         '''
         self.distortion = distortion
 
@@ -95,12 +95,12 @@ class Optics:
         ''' Check if sources are inside the field of view
 
         Arguments:
-          position (ndarray):
-              Source positions on the focal plane w/o distortion.
+            position (ndarray):
+                Source positions on the focal plane w/o distortion.
 
         Returns:
-          A boolean array, where True if a source is located inside
-          the field-of-view.
+            A boolean array, where True if a source is located inside
+            the field-of-view.
         '''
         mp = MultiPoint(position.reshape((2, -1)).T)
         polygon = prep(self.field_of_view.buffer(self.margin.to_value(u.um)))
@@ -110,13 +110,13 @@ class Optics:
         ''' Map celestial positions onto the focal plane
 
         Arguments:
-          sources (SourceTable):
-              A `SourceTable` instance
-          epoch (Time):
-              The epoch of the observation (optional).
+            sources (SourceTable):
+                A `SourceTable` instance
+            epoch (Time):
+                The epoch of the observation (optional).
 
         Returns:
-          A `SourceTable` instance with positions on the focal plane.
+            A `SourceTable` instance with positions on the focal plane.
         '''
         skycoord = sources.skycoord.copy()
         if epoch is not None:

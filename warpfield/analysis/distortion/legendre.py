@@ -12,13 +12,13 @@ def _val2d(func, x, y, c):
     ''' A helper function to evaluate a 2d-polynomial function
 
     Arguments:
-      func (function): A function to evaluate a polynomial expression.
-      x (array): A list of first coordiantes.
-      y (array): A list of second coordinates.
-      c (array): A list of coefficients.
+        func (function): A function to evaluate a polynomial expression.
+        x (array): A list of first coordiantes.
+        y (array): A list of second coordinates.
+        c (array): A list of coefficients.
 
     Returns:
-      An array of elements evalulated at (x, y).
+        An array of elements evalulated at (x, y).
     '''
     assert x.shape == y.shape, \
         'arrays `x` and `y` should have the same shapes.'
@@ -29,11 +29,11 @@ def _legval(x, c, tensor=True):
     ''' Evaluate a one-dimensional Legendre polynomial expansion
 
     Arguments:
-      x (array): A list of evaluation coordinates.
-      c (array): A list of coefficients.
+        x (array): A list of evaluation coordinates.
+        c (array): A list of coefficients.
 
     Returns:
-      An evaluation of Legendre polynomial expansion.
+        An evaluation of Legendre polynomial expansion.
     '''
     if isinstance(x, jnp.ndarray) and tensor:
         c = c.reshape(c.shape + (1, ) * x.ndim)
@@ -74,12 +74,12 @@ def _legval2d(x, y, c):
     ''' Evaluate a two-dimensional Legendre polynomial expansion
 
     Arguments:
-      x (array): A list of evaluation coordinates.
-      y (array): A list of evaluation coordinates.
-      c (array): A list of coefficients.
+        x (array): A list of evaluation coordinates.
+        y (array): A list of evaluation coordinates.
+        c (array): A list of coefficients.
 
     Returns:
-      An evaluation of Legendre polynomial expansion.
+        An evaluation of Legendre polynomial expansion.
     '''
     c = jnp.atleast_2d(c)
     return _val2d(_legval, x, y, c)
@@ -127,12 +127,12 @@ def _distortion(coeff_a, coeff_b, xy):
     - elements 12-17: fifth order coefficients
 
     Arguments:
-      coeff_a: A list of 5th-order SIP coefficients for x-axis.
-      coeff_b: A list of 5th-order SIP coefficients for y-axis.
-      xy: Original coordinates on the focal plane.
+        coeff_a: A list of 5th-order SIP coefficients for x-axis.
+        coeff_b: A list of 5th-order SIP coefficients for y-axis.
+        xy: Original coordinates on the focal plane.
 
     Returns:
-      Distorted coordinates on the focal plane.
+        Distorted coordinates on the focal plane.
     '''
     dx = _legval2d(xy[:, 0], xy[:, 1], _map_coeff_5th(coeff_a))
     dy = _legval2d(xy[:, 0], xy[:, 1], _map_coeff_5th(coeff_b))

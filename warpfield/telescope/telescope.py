@@ -1,4 +1,4 @@
-#!/usri/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ''' Definition of Telescope class '''
 
@@ -25,14 +25,14 @@ class Telescope:
     on the detectors.
 
     Attributes:
-      pointing (SkyCoord):
-          A pointing direction of the telescope.
-      position_angle (Angle):
-          A position angle of the telescope.
-      optics (Optics):
-          An `Optics` instance.
-      detectors (List of Detector):
-          A list of `Detector` instances.
+        pointing (SkyCoord):
+            A pointing direction of the telescope.
+        position_angle (Angle):
+            A position angle of the telescope.
+        optics (Optics):
+            An `Optics` instance.
+        detectors (List of Detector):
+            A list of `Detector` instances.
     '''
     pointing: SkyCoord = None
     position_angle: Angle = None
@@ -56,12 +56,12 @@ class Telescope:
         ''' Obtain detector footprints on the sky
 
         Options:
-          limit (bool):
-              Limit the footprints within the valid region if True.
+            limit (bool):
+                Limit the footprints within the valid region if True.
 
         Returns:
-          A list of detector footprints on the sky.
-          Each footprint is given as a 2-dimensional numpy array [[x,y], ...].
+            A list of detector footprints on the sky.
+            Each footprint is given as a 2-dimensional numpy array [[x,y], ...].
         '''
         limit = options.pop('limit', True)
 
@@ -86,12 +86,12 @@ class Telescope:
         Note that this function does not take into account the distortion.
 
         Arguments:
-          axis (WCSAxesSubplot):
-            An axis instance with a WCS projection.
+            axis (WCSAxesSubplot):
+                An axis instance with a WCS projection.
 
         Options:
-          label (string): The label of the footprints.
-          color (Color): Color of the footprint edges.
+            label (string): The label of the footprints.
+            color (Color): Color of the footprint edges.
         '''
         assert hasattr(axis, 'wcs'), \
             'axis should be an instance of WCSAxesSubplot'
@@ -115,17 +115,17 @@ class Telescope:
         detectors are overlaid on the sources on the focal plane.
 
         Arguments:
-          axis (Axes):
-              a Matplotlib Axes instance.
-          source (SkyCoord or SourceTable):
-              A list of astronomical sources.
-          epoch (Time):
-              The observation epoch.
+            axis (Axes):
+                a Matplotlib Axes instance.
+            source (SkyCoord or SourceTable):
+                A list of astronomical sources.
+            epoch (Time):
+                The observation epoch.
 
         Options:
-          figsize (tuple(int,int)): The figure size.
-          marker (string): A marker style to show sources.
-          markersize (float): The size of markers.
+            figsize (tuple(int,int)): The figure size.
+            marker (string): A marker style to show sources.
+            markersize (float): The size of markers.
         '''
         markersize = options.pop('markersize', 1)
         marker = options.pop('marker', 'x')
@@ -155,19 +155,19 @@ class Telescope:
         positions on the detectors of the telescope.
 
         Arguments:
-          sources (SourceTable):
-              A list of astronomical sources.
+            source (SourceTable):
+                A list of astronomical sources.
 
         Options:
-          epoch (Time):
-              The datetime of the observation.
-          stack (bool):
-              A stacked table is returned if true.
+            epoch (Time):
+                The datetime of the observation.
+            stack (bool):
+                A stacked table is returned if true.
 
         Returns:
-          A list of DetectorPlaneTable, with the shape of N(detector).
-          The first index specifies the detector of the telescope.
-          All tables are stacked into a single table if `stack` is True.
+            A list of DetectorPlaneTable, with the shape of N(detector).
+            The first index specifies the detector of the telescope.
+            All tables are stacked into a single table if `stack` is True.
         '''
         fp_position = self.optics.imaging(source, epoch)
         dets = []

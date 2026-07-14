@@ -13,8 +13,8 @@ class QTableContainer:
     ''' QTable with I/O functions
 
     Attributes:
-      table (QTable):
-          Table of celestial objects.
+        table (QTable):
+            Table of celestial objects.
     '''
     table: QTable
 
@@ -36,13 +36,13 @@ class QTableContainer:
         ''' Generate a SourceTable from a FITS file
 
         Arguments:
-          filename (str):
-              The path to the source FITS file.
-          key (str):
-              The name of the FITS extension containing the table data.
+            filename (str):
+                The path to the source FITS file.
+            key (str):
+                The name of the FITS extension containing the table data.
 
         Returns:
-          A table instance.
+            A table instance.
         '''
         hdul = fits.open(filename)
         table = QTable.read(hdul[key])
@@ -52,12 +52,12 @@ class QTableContainer:
         ''' Dump a SourceTable into a FITS file
 
         Arguments:
-          filename (str):
-              The path to the output filename.
+            filename (str):
+                The path to the output filename.
 
         Options:
-          overwrite (bool):
-              An existing file will be overwritten if true.
+            overwrite (bool):
+                An existing file will be overwritten if true.
         '''
         hdul = fits.HDUList([
             fits.PrimaryHDU(),

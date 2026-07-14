@@ -1,4 +1,4 @@
-#!/usri/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ''' Definition of Detector class '''
 
@@ -22,13 +22,13 @@ class Detector:
     ''' Definition of a detector
 
     Attributes:
-      naxis1 (int)           : The number of pixels along with NAXIS1.
-      naxis2 (int)           : The number of pixels along with NAXIS2.
-      pixel_scale (Quantity) : A nominal detector pixel scale.
-      offset_dx (Quantity)   : An offset along with the x-axis.
-      offset_dy (Quantity)   : An offste along with the y-axis.
-      position_angle (Angle) : A position angle of the detector.
-      displacement (function): A function to distort image.
+        naxis1 (int)           : The number of pixels along with NAXIS1.
+        naxis2 (int)           : The number of pixels along with NAXIS2.
+        pixel_scale (Quantity) : A nominal detector pixel scale.
+        offset_dx (Quantity)   : An offset along with the x-axis.
+        offset_dy (Quantity)   : An offset along with the y-axis.
+        position_angle (Angle) : A position angle of the detector.
+        displacement (function): A function to distort image.
     '''
     naxis1: int = 4096
     naxis2: int = 4096
@@ -86,13 +86,13 @@ class Detector:
         ''' Check if positions are within the detector range
 
         Arguments:
-          axis (str):
-              The name of the axis ('x' or 'y').
-          position (QTable):
-              Table with 'nx' and 'ny' columns.
+            axis (str):
+                The name of the axis ('x' or 'y').
+            position (QTable):
+                Table with 'nx' and 'ny' columns.
 
         Returns:
-          True if positions are within `self.xrange` or `self.yrange`.
+            True if positions are within `self.xrange` or `self.yrange`.
         '''
         if axis not in ('x', 'y'):
             raise ValueError('`axis` should be "x" or "y".')
@@ -103,14 +103,14 @@ class Detector:
         ''' Returns a focal-plane footprint as a patch
 
         Options:
-          edgecolor: default='r'
-          linewidth: default=2
-          fill: default=False
+            edgecolor: default='r'
+            linewidth: default=2
+            fill: default=False
 
         Returns:
-          A `Rectangle` instance for Matplotlib.
-          The origin of the axes should be the telescope's optical center.
-          The units of the axes should be micron.
+            A `Rectangle` instance for Matplotlib.
+            The origin of the axes should be the telescope's optical center.
+            The units of the axes should be micron.
         '''
         options['edgecolor'] = options.get('edgecolor', 'r')
         options['linewidth'] = options.get('linewidth', 2)
@@ -126,14 +126,14 @@ class Detector:
         ''' Returns the detector's first line as a patch
 
         Options:
-          linewidth: default=4.0
-          color: default='b'
-          alpha: default=0.5
+            linewidth: default=4.0
+            color: default='b'
+            alpha: default=0.5
 
         Returns:
-          A `Line2D` instance for MatplotLib.
-          The origin of the axes should be the telescope's optical center.
-          The units of the axes should be micron.
+            A `Line2D` instance for MatplotLib.
+            The origin of the axes should be the telescope's optical center.
+            The units of the axes should be micron.
         '''
         options['linewidth'] = options.get('linewidth', 4.0)
         options['color'] = options.get('color', 'b')
@@ -146,9 +146,9 @@ class Detector:
         ''' The focal-plane footprint as a polygon
 
         Returns:
-          A `Polygon` object for Shapely.
-          The origin of the canvas should be the tehescope's optical center.
-          The units of the canvas should be micron.
+            A `Polygon` object for Shapely.
+            The origin of the canvas should be the telescope's optical center.
+            The units of the canvas should be micron.
         '''
         return Polygon(self.corners.to_value(u.um), **options)
 
@@ -156,12 +156,12 @@ class Detector:
         ''' Align the source position to the detector
 
         Arguments:
-          position (QTable):
-              The (x,y)-coordinates on the focal plane.
+            position (QTable):
+                The (x,y)-coordinates on the focal plane.
 
         Returns:
-          A QTable instance of the positions of the sources,
-          which are remapped onto the detector coordinates.
+            A QTable instance of the positions of the sources,
+            which are remapped onto the detector coordinates.
         '''
         x, y = position['x'], position['y']
         c = np.cos(-self.position_angle.rad)
@@ -176,13 +176,13 @@ class Detector:
     def contains(self, position):
         ''' Return True if objects are on the detector
 
-        Argument:
-          position (QTable):
-              The (nx,ny)-coordinates on the detector.
+        Arguments:
+            position (QTable):
+                The (nx,ny)-coordinates on the detector.
 
         Returns:
-          A boolean array.
-          True if positions are on the detector.
+            A boolean array.
+            True if positions are on the detector.
         '''
         xf = self.within('x', position['nx'])
         yf = self.within('y', position['ny'])
@@ -192,14 +192,14 @@ class Detector:
         ''' Calculate the positions of the sources on the detector
 
         Arguments:
-          position (FocalPlaneTable):
-              The positions of the sources on the focal plane. the "x" and "y"
-              columns are respectively the x- and y-positions of the sources
-              in units of micron.
+            position (FocalPlaneTable):
+                The positions of the sources on the focal plane. the "x" and
+                "y" columns are respectively the x- and y-positions of the
+                sources in units of micron.
 
         Returns:
-          A `DetectorPositionTable`.
-          The "nx" and "ny" columns are the positions on each detector.
+            A `DetectorPositionTable`.
+            The "nx" and "ny" columns are the positions on each detector.
         '''
         table = position.table.copy()
         xy = self.displacement(self.align(table))
