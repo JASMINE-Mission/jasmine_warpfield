@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from pytest import approx
+import equinox as eqx
+import jax
+from pytest import approx, raises
 import numpy.polynomial.legendre as legendre
+import zodiax as zdx
 
 
 from .util import *
@@ -29,3 +32,48 @@ def test_distortion(xy, random):
 
     d = distortion(coeff_a, 0 * coeff_b, xy)
     assert d[:, 1] == approx(0.0)
+
+
+def test_legendre_distortion(xy, random):
+    coeff_x = random.normal(size=(18))
+    coeff_y = random.normal(size=(18))
+    model = LegendreDistortion(coeff_x, coeff_y, plane_scale=2.0)
+
+    assert isinstance(model, zdx.Base)
+    assert model(xy) == approx(distortion(coeff_x, coeff_y, xy / 2.0))
+    assert eqx.filter_jit(model)(xy) == approx(model(xy))
+    assert len(jax.tree_util.tree_leaves(model)) == 2
+
+
+def test_legendre_distortion_zodiax_update(xy):
+    model = LegendreDistortion(jnp.ones(18), jnp.ones(18), 2.0)
+    updated = model.set('coeff_x', jnp.zeros(18))
+
+    assert model.get('coeff_x') == approx(jnp.ones(18))
+    assert updated.get('coeff_x') == approx(jnp.zeros(18))
+    assert updated(xy)[:, 0] == approx(0.0)
+    assert updated.plane_scale == approx(2.0)
+
+
+def test_legendre_distortion_gradient(xy):
+    model = LegendreDistortion(jnp.ones(18), jnp.ones(18), 2.0)
+
+    def loss(candidate):
+        return jnp.sum(candidate(xy)**2)
+
+    gradient = eqx.filter_grad(loss)(model)
+
+    assert jnp.isfinite(gradient.coeff_x).all()
+    assert jnp.isfinite(gradient.coeff_y).all()
+    assert len(jax.tree_util.tree_leaves(gradient)) == 2
+
+
+def test_legendre_distortion_validation(xy):
+    with raises(ValueError, match='coeff_x'):
+        LegendreDistortion(jnp.zeros(17), jnp.zeros(18), 1.0)
+    with raises(ValueError, match='coeff_y'):
+        LegendreDistortion(jnp.zeros(18), jnp.zeros(17), 1.0)
+    with raises(ValueError, match='finite and positive'):
+        LegendreDistortion(jnp.zeros(18), jnp.zeros(18), 0.0)
+    with raises(ValueError, match='N_coordinate'):
+        LegendreDistortion(jnp.zeros(18), jnp.zeros(18), 1.0)(xy[:, 0])

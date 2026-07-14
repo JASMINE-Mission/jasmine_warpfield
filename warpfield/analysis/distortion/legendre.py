@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 ''' Distortion function using the Legendre polynomials '''
 
+import equinox as eqx
+from jax import Array, jit
 from jax.lax import scan
-from jax import jit
 import jax.numpy as jnp
 import numpy as np
+import zodiax as zdx
 
 
 def _val2d(func, x, y, c):
@@ -116,9 +118,9 @@ def _map_coeff_5th(c):
 
 
 def _distortion(coeff_a, coeff_b, xy):
-    ''' Distort the coordinates using the SIP coefficients
+    ''' Calculate displacements using the Legendre coefficients
 
-    The SIP coefficients sip_a and sip_b should contains 18 coefficients.
+    The coefficients coeff_a and coeff_b should contain 18 coefficients.
     The coefficients do not contain the Affine-transformation term.
 
     - elements 0-2:   second order coefficients
@@ -127,12 +129,12 @@ def _distortion(coeff_a, coeff_b, xy):
     - elements 12-17: fifth order coefficients
 
     Arguments:
-        coeff_a: A list of 5th-order SIP coefficients for x-axis.
-        coeff_b: A list of 5th-order SIP coefficients for y-axis.
+        coeff_a: A list of 5th-order coefficients for x-axis.
+        coeff_b: A list of 5th-order coefficients for y-axis.
         xy: Original coordinates on the focal plane.
 
     Returns:
-        Distorted coordinates on the focal plane.
+        Coordinate displacements on the focal plane.
     '''
     dx = _legval2d(xy[:, 0], xy[:, 1], _map_coeff_5th(coeff_a))
     dy = _legval2d(xy[:, 0], xy[:, 1], _map_coeff_5th(coeff_b))
@@ -140,6 +142,47 @@ def _distortion(coeff_a, coeff_b, xy):
 
 
 distortion = jit(_distortion)
+
+
+class LegendreDistortion(zdx.Base):
+    ''' Fifth-order Legendre distortion represented as a PyTree
+
+    Attributes:
+        coeff_x: Coefficients for x-axis displacements with shape ``(18,)``.
+        coeff_y: Coefficients for y-axis displacements with shape ``(18,)``.
+        plane_scale: Scale used to normalize focal-plane coordinates.
+    '''
+
+    coeff_x: Array
+    coeff_y: Array
+    plane_scale: float = eqx.field(static=True)
+
+    def __init__(self, coeff_x, coeff_y, plane_scale):
+        coeff_x = jnp.asarray(coeff_x, dtype=float)
+        coeff_y = jnp.asarray(coeff_y, dtype=float)
+        plane_scale = float(plane_scale)
+
+        if coeff_x.shape != (18,):
+            raise ValueError('`coeff_x` should have shape (18,).')
+        if coeff_y.shape != (18,):
+            raise ValueError('`coeff_y` should have shape (18,).')
+        if not np.isfinite(plane_scale) or plane_scale <= 0:
+            raise ValueError('`plane_scale` should be finite and positive.')
+
+        self.coeff_x = coeff_x
+        self.coeff_y = coeff_y
+        self.plane_scale = plane_scale
+
+    def __call__(self, xy):
+        ''' Calculate coordinate displacements on the focal plane '''
+        xy = jnp.asarray(xy)
+        if xy.ndim != 2 or xy.shape[1] != 2:
+            raise ValueError('`xy` should have shape (N_coordinate, 2).')
+        return distortion(
+            self.coeff_x,
+            self.coeff_y,
+            xy / self.plane_scale,
+        )
 
 
 if __name__ == '__main__':

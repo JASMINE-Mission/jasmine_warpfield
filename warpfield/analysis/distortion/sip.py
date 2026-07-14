@@ -3,9 +3,10 @@
 ''' Distortion function defined by the SIP convention '''
 
 from jax.lax import scan
-from jax import jit
+from jax import Array, jit
 import jax.numpy as jnp
 import numpy as np
+import zodiax as zdx
 
 
 def _polymap(coeff, xy):
@@ -56,7 +57,7 @@ def _distortion(sip_a, sip_b, xy):
         xy: Original coordinates on the focal plane.
 
     Returns:
-          Coordinate displacements on the focal plane.
+        Coordinate displacements on the focal plane.
     '''
     scale = np.exp(
         -np.log(10) * 4 *
@@ -71,6 +72,37 @@ def _distortion(sip_a, sip_b, xy):
 
 
 distortion = jit(_distortion)
+
+
+class SIPDistortion(zdx.Base):
+    ''' Fifth-order SIP distortion represented as a PyTree
+
+    Attributes:
+        coeff_x: Coefficients for x-axis displacements with shape ``(18,)``.
+        coeff_y: Coefficients for y-axis displacements with shape ``(18,)``.
+    '''
+
+    coeff_x: Array
+    coeff_y: Array
+
+    def __init__(self, coeff_x, coeff_y):
+        coeff_x = jnp.asarray(coeff_x, dtype=float)
+        coeff_y = jnp.asarray(coeff_y, dtype=float)
+
+        if coeff_x.shape != (18,):
+            raise ValueError('`coeff_x` should have shape (18,).')
+        if coeff_y.shape != (18,):
+            raise ValueError('`coeff_y` should have shape (18,).')
+
+        self.coeff_x = coeff_x
+        self.coeff_y = coeff_y
+
+    def __call__(self, xy):
+        ''' Calculate coordinate displacements on the focal plane '''
+        xy = jnp.asarray(xy)
+        if xy.ndim != 2 or xy.shape[1] != 2:
+            raise ValueError('`xy` should have shape (N_coordinate, 2).')
+        return distortion(self.coeff_x, self.coeff_y, xy)
 
 
 if __name__ == '__main__':
