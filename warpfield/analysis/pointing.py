@@ -7,6 +7,9 @@ import jax.numpy as jnp
 import zodiax as zdx
 
 
+__all__ = ['Pointing']
+
+
 class Pointing(zdx.Base):
     ''' Telescope pointings represented as a PyTree
 
@@ -56,6 +59,3 @@ class Pointing(zdx.Base):
             self.position_angle[index],
             self.scale[index],
         )
-
-
-__all__ = ['Pointing']

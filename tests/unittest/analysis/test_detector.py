@@ -8,7 +8,7 @@ from pytest import approx, raises
 import zodiax as zdx
 
 from warpfield.analysis import Detector
-from warpfield.analysis.transform.affine import transform
+from warpfield.analysis.utils import _affine_transform
 
 
 def generate_detector():
@@ -37,7 +37,7 @@ def test_detector_transform():
     index = jnp.array([0, 1, 0])
 
     rotation, offset, pixel_scale = detector.take(index)
-    expected = transform(xy, rotation, offset, pixel_scale)
+    expected = _affine_transform(xy, rotation, offset, pixel_scale)
 
     assert detector(xy, index) == approx(expected)
     assert eqx.filter_jit(detector)(xy, index) == approx(expected)

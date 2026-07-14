@@ -5,7 +5,7 @@ from hypothesis import given, assume, settings
 
 from .util import WCSProjection, longitude, latitude
 from .util import suppress_too_much_filter
-from warpfield.analysis.projection.equidistant import *
+from warpfield.analysis.projection.equidistant import _equidistant_conversion
 
 
 class Equidistant(WCSProjection):
@@ -22,7 +22,7 @@ def test_equidistant_conversion(tel_ra, tel_dec, ra, dec):
     assume(0.0001 < telescope.separation(ra, dec) < 60.0)
 
     X, Y = telescope.convert(ra, dec)
-    x, y = equidistant_conversion(tel_ra, tel_dec, ra, dec)
+    x, y = _equidistant_conversion(tel_ra, tel_dec, ra, dec)
 
     assert x == approx(X)
     assert y == approx(Y)

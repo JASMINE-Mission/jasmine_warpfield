@@ -5,10 +5,14 @@
 import jax.numpy as jnp
 from jax import vmap
 
-from .util import sptrig_cosr, generate_conversion, generate_projection
+from .base import Projection
+from .util import _sptrig_cosr, _generate_conversion, _generate_projection
 
 
-def equidistant_rsinr(rho):
+__all__ = ['EquidistantProjection']
+
+
+def _equidistant_rsinr(rho):
     ''' Expansion of r/sin(r) in terms of rho = cos(r)
 
     Calculate an approximation of f(r) = r/sin(r) as a 6th order polynomial
@@ -32,27 +36,34 @@ def equidistant_rsinr(rho):
     return jnp.polyval(p, 1 - rho)
 
 
-def equidistant_rsint(tel_ra, tel_dec, ra, dec):
+def _equidistant_rsint(tel_ra, tel_dec, ra, dec):
     ''' Calculate the projected coordinate x '''
-    rho = sptrig_cosr(tel_ra, tel_dec, ra, dec)
-    return equidistant_rsinr(rho) \
+    rho = _sptrig_cosr(tel_ra, tel_dec, ra, dec)
+    return _equidistant_rsinr(rho) \
         * jnp.sin(ra - tel_ra) * jnp.cos(dec)
 
 
-def equidistant_rcost(tel_ra, tel_dec, ra, dec):
+def _equidistant_rcost(tel_ra, tel_dec, ra, dec):
     ''' Calculate the projected coordinate y
 
     Note that this function does not work when the telescope is pointed
     around the celestial poles where cos(tel_dec) is extremely small.
     '''
-    rho = sptrig_cosr(tel_ra, tel_dec, ra, dec)
-    return equidistant_rsinr(rho) \
+    rho = _sptrig_cosr(tel_ra, tel_dec, ra, dec)
+    return _equidistant_rsinr(rho) \
         * (jnp.sin(dec) - rho * jnp.sin(tel_dec)) / jnp.cos(tel_dec)
 
 
-equidistant_conversion = \
-    generate_conversion(equidistant_rsint, equidistant_rcost)
+_equidistant_conversion = \
+    _generate_conversion(_equidistant_rsint, _equidistant_rcost)
 
-equidistant = generate_projection(equidistant_conversion)
+_equidistant = _generate_projection(_equidistant_conversion)
 
-projection = vmap(equidistant, (0, 0, 0, 0, 0, 0), 0)
+_projection = vmap(_equidistant, (0, 0, 0, 0, 0, 0), 0)
+
+
+class EquidistantProjection(Projection):
+    ''' Equidistant projection represented as a callable PyTree '''
+
+    def __call__(self, tel_ra, tel_dec, tel_pa, ra, dec, scale):
+        return _projection(tel_ra, tel_dec, tel_pa, ra, dec, scale)

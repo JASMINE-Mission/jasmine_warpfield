@@ -7,6 +7,9 @@ import jax.numpy as jnp
 import zodiax as zdx
 
 
+__all__ = ['SourceCatalog']
+
+
 class SourceCatalog(zdx.Base):
     ''' Celestial source positions represented as a PyTree
 
@@ -38,6 +41,3 @@ class SourceCatalog(zdx.Base):
     def take(self, index):
         ''' Select source positions using an integer index array '''
         return self.ra[index], self.dec[index]
-
-
-__all__ = ['SourceCatalog']

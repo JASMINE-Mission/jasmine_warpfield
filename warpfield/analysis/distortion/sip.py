@@ -3,10 +3,14 @@
 ''' Distortion function defined by the SIP convention '''
 
 from jax.lax import scan
-from jax import Array, jit
+from jax import Array
 import jax.numpy as jnp
 import numpy as np
-import zodiax as zdx
+
+from .base import Distortion
+
+
+__all__ = ['SIPDistortion']
 
 
 def _polymap(coeff, xy):
@@ -37,9 +41,6 @@ def _polymap(coeff, xy):
     return pq.sum(axis=0)
 
 
-polymap = jit(_polymap)
-
-
 def _distortion(sip_a, sip_b, xy):
     ''' Calculate displacements using the SIP coefficients
 
@@ -64,17 +65,14 @@ def _distortion(sip_a, sip_b, xy):
         np.array([2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]))
     sip_a *= scale
     sip_b *= scale
-    dx = polymap(sip_a[0:3], xy) + polymap(sip_a[3:7], xy) \
-        + polymap(sip_a[7:12], xy) + polymap(sip_a[12:18], xy)
-    dy = polymap(sip_b[0:3], xy) + polymap(sip_b[3:7], xy) \
-        + polymap(sip_b[7:12], xy) + polymap(sip_b[12:18], xy)
+    dx = _polymap(sip_a[0:3], xy) + _polymap(sip_a[3:7], xy) \
+        + _polymap(sip_a[7:12], xy) + _polymap(sip_a[12:18], xy)
+    dy = _polymap(sip_b[0:3], xy) + _polymap(sip_b[3:7], xy) \
+        + _polymap(sip_b[7:12], xy) + _polymap(sip_b[12:18], xy)
     return jnp.stack([dx, dy]).T
 
 
-distortion = jit(_distortion)
-
-
-class SIPDistortion(zdx.Base):
+class SIPDistortion(Distortion):
     ''' Fifth-order SIP distortion represented as a PyTree
 
     Attributes:
@@ -102,7 +100,7 @@ class SIPDistortion(zdx.Base):
         xy = jnp.asarray(xy)
         if xy.ndim != 2 or xy.shape[1] != 2:
             raise ValueError('`xy` should have shape (N_coordinate, 2).')
-        return distortion(self.coeff_x, self.coeff_y, xy)
+        return _distortion(self.coeff_x, self.coeff_y, xy)
 
 
 if __name__ == '__main__':
@@ -112,14 +110,12 @@ if __name__ == '__main__':
     xy = jnp.stack([x, x]).T
     coeff = jnp.array([0.0, 0.0, 0.4])
 
-    print('\nBenchmark of 1D-Legendre polynomial:\n')
-    print('  w/o JIT compile:  {:.6f}'.format(
+    print('\nBenchmark of the polynomial map:\n')
+    print('  execution time: {:.6f}'.format(
         timeit(lambda: _polymap(coeff, xy), number=25) / 25))
-    print('  with JIT compile: {:.6f}'.format(
-        timeit(lambda: polymap(coeff, xy), number=100) / 100))
 
     print('\nBenchmark of the distortion function:\n')
     coeff_a = jnp.zeros(18)
     coeff_b = jnp.zeros(18)
-    print('  with JIT compile: {:.6f}'.format(
-        timeit(lambda: distortion(coeff_a, coeff_b, xy), number=100)))
+    print('  execution time: {:.6f}'.format(
+        timeit(lambda: _distortion(coeff_a, coeff_b, xy), number=100)))

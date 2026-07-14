@@ -8,29 +8,34 @@ import zodiax as zdx
 
 
 from .util import *
-from warpfield.analysis.distortion.legendre import *
+from warpfield.analysis.distortion.legendre import (
+    LegendreDistortion,
+    _distortion,
+    _legval,
+    _legval2d,
+)
 
 
 def test_1d_legendre(y, random):
     c = random.normal(size=(10))
-    assert legval(y, c) == approx(legendre.legval(y, c))
+    assert _legval(y, c) == approx(legendre.legval(y, c))
 
 
 def test_2d_legendre(x, y, random):
     c = random.normal(size=(10, 10))
-    assert legval2d(x, y, c) == approx(legendre.legval2d(x, y, c))
+    assert _legval2d(x, y, c) == approx(legendre.legval2d(x, y, c))
 
 
 def test_distortion(xy, random):
     coeff_a = random.normal(size=(18))
     coeff_b = random.normal(size=(18))
-    d = distortion(coeff_a, coeff_b, xy)
+    d = _distortion(coeff_a, coeff_b, xy)
     assert at_origin(d) == approx(0.0)
 
-    d = distortion(0 * coeff_a, coeff_b, xy)
+    d = _distortion(0 * coeff_a, coeff_b, xy)
     assert d[:, 0] == approx(0.0)
 
-    d = distortion(coeff_a, 0 * coeff_b, xy)
+    d = _distortion(coeff_a, 0 * coeff_b, xy)
     assert d[:, 1] == approx(0.0)
 
 
@@ -40,7 +45,7 @@ def test_legendre_distortion(xy, random):
     model = LegendreDistortion(coeff_x, coeff_y, plane_scale=2.0)
 
     assert isinstance(model, zdx.Base)
-    assert model(xy) == approx(distortion(coeff_x, coeff_y, xy / 2.0))
+    assert model(xy) == approx(_distortion(coeff_x, coeff_y, xy / 2.0))
     assert eqx.filter_jit(model)(xy) == approx(model(xy))
     assert len(jax.tree_util.tree_leaves(model)) == 2
 

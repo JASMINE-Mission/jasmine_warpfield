@@ -9,8 +9,8 @@ from numpyro.distributions import constraints as c
 import numpyro.distributions as dist
 import numpyro
 
-from ..distortion.sip import distortion
-from ..projection.gnomonic import projection
+from ..distortion import SIPDistortion
+from ..projection import GnomonicProjection
 
 
 def generate(source, reference, params={}):
@@ -113,9 +113,10 @@ def generate(source, reference, params={}):
         rax = jnp.take(ra, jnp.array(oidx))
         dex = jnp.take(dec, jnp.array(oidx))
 
-        pq = numpyro.deterministic('pq', projection(ax, dx, tx, rax, dex, fx))
+        pq = numpyro.deterministic(
+            'pq', GnomonicProjection()(ax, dx, tx, rax, dex, fx))
         xy = numpyro.deterministic(
-            'xy', pq + distortion(A, B, pq - px))
+            'xy', pq + SIPDistortion(A, B)(pq - px))
 
         with numpyro.plate('obs', T):
             numpyro.sample('x', dist.Normal(xy[:, 0], sigma), obs=x0)

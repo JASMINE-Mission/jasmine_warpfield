@@ -3,11 +3,15 @@
 ''' Distortion function using the Legendre polynomials '''
 
 import equinox as eqx
-from jax import Array, jit
+from jax import Array
 from jax.lax import scan
 import jax.numpy as jnp
 import numpy as np
-import zodiax as zdx
+
+from .base import Distortion
+
+
+__all__ = ['LegendreDistortion']
 
 
 def _val2d(func, x, y, c):
@@ -87,11 +91,6 @@ def _legval2d(x, y, c):
     return _val2d(_legval, x, y, c)
 
 
-legval = jit(_legval)
-
-legval2d = jit(_legval2d)
-
-
 def _map_coeff_5th(c):
     ''' Convert 18-element coefficient array into a 6x6 matrix '''
 
@@ -141,10 +140,7 @@ def _distortion(coeff_a, coeff_b, xy):
     return jnp.stack([dx, dy]).T
 
 
-distortion = jit(_distortion)
-
-
-class LegendreDistortion(zdx.Base):
+class LegendreDistortion(Distortion):
     ''' Fifth-order Legendre distortion represented as a PyTree
 
     Attributes:
@@ -178,7 +174,7 @@ class LegendreDistortion(zdx.Base):
         xy = jnp.asarray(xy)
         if xy.ndim != 2 or xy.shape[1] != 2:
             raise ValueError('`xy` should have shape (N_coordinate, 2).')
-        return distortion(
+        return _distortion(
             self.coeff_x,
             self.coeff_y,
             xy / self.plane_scale,
@@ -192,26 +188,22 @@ if __name__ == '__main__':
     coeff = np.random.normal(size=(16))
 
     print('\nBenchmark of 1D-Legendre polynomial:\n')
-    print('  w/o JIT compile:  {:.6f}'.format(
+    print('  execution time: {:.6f}'.format(
         timeit(lambda: _legval(x, coeff), number=25) / 25))
-    print('  with JIT compile: {:.6f}'.format(
-        timeit(lambda: legval(x, coeff), number=100) / 100))
 
     coeff = np.random.normal(size=(8, 8))
 
     print('\nBenchmark of 2D-Legendre polynomial:\n')
-    print('  w/o JIT compile:  {:.6f}'.format(
+    print('  execution time: {:.6f}'.format(
         timeit(lambda: _legval2d(x, x, coeff), number=25) / 25))
-    print('  with JIT compile: {:.6f}'.format(
-        timeit(lambda: legval2d(x, x, coeff), number=100) / 100))
 
     xy = jnp.stack([x, x]).T
 
     print('\nBenchmark of the distortion function:\n')
     coeff_a = jnp.array([0.1] + [0.0] * 17)
     coeff_b = jnp.array([0.0, 0.1] + [0.0] * 16)
-    print('  with JIT compile: {:.6f}'.format(
-        timeit(lambda: distortion(coeff_a, coeff_b, xy), number=100)))
+    print('  execution time: {:.6f}'.format(
+        timeit(lambda: _distortion(coeff_a, coeff_b, xy), number=100)))
 
     print('\nDistortion value shold be zero at the origin:\n')
     xy = jnp.array([[0.0, 0.0]])
@@ -219,4 +211,4 @@ if __name__ == '__main__':
         coeff_a = jnp.array(np.random.normal(size=(18)))
         coeff_b = jnp.array(np.random.normal(size=(18)))
         print('  (case {0}): [{1:+.2e} {2:+.2e}]'.format(
-            n, *distortion(coeff_a, coeff_b, xy)[0]))
+            n, *_distortion(coeff_a, coeff_b, xy)[0]))

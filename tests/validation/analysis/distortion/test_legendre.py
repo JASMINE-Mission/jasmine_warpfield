@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import numpy as np
 import numpy.polynomial.legendre as legendre
 
-from warpfield.analysis.distortion.legendre import *
+from warpfield.analysis.distortion.legendre import _legval, _legval2d
 
 
 def seeds():
@@ -35,12 +35,12 @@ def generators(draw):
 @given(array_1d(), generators())
 def test_legval(x, gen):
     coeff = gen.normal(size=(16))
-    assert legval(x, coeff) == approx(legendre.legval(x, coeff))
+    assert _legval(x, coeff) == approx(legendre.legval(x, coeff))
 
 
 @settings(deadline=None)
 @given(array_2d(), generators())
 def test_legval2d(xy, gen):
     coeff = gen.normal(size=(10, 10))
-    assert legval2d(xy[:, 0], xy[:, 1], coeff) \
+    assert _legval2d(xy[:, 0], xy[:, 1], coeff) \
         == approx(legendre.legval2d(xy[:, 0], xy[:, 1], coeff))

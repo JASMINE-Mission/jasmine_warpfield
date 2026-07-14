@@ -9,9 +9,9 @@ import jax.numpy as jnp
 
 from astropy.table import unique
 
-from warpfield.analysis.distortion.legendre import distortion
-from warpfield.analysis.projection.gnomonic import projection
-from warpfield.analysis.transform.affine import transform
+from warpfield.analysis import Detector
+from warpfield.analysis.distortion import LegendreDistortion
+from warpfield.analysis.projection import GnomonicProjection
 
 from ..propagate import propagate
 from ..compile import compile_prior, compile_initial_value
@@ -78,16 +78,13 @@ def generate(src, env, ref, params={}):
         det_o = numpyro.sample('det_o', prior.det_o_dist)
         det_p = numpyro.sample('det_p', prior.det_p_dist)
 
-        rx = jnp.take(det_r, didx, axis=0)
-        ox = jnp.take(det_o, didx, axis=0)
-        px = jnp.take(det_p, didx, axis=0)
-
         pq = numpyro.deterministic(
-            'pq', projection(ax, dx, tx, rax, dex, sx))
+            'pq', GnomonicProjection()(ax, dx, tx, rax, dex, sx))
         xy = numpyro.deterministic(
-            'xy', pq + distortion(opt_A, opt_B, pq / plane_scale))
+            'xy', pq + LegendreDistortion(
+                opt_A, opt_B, plane_scale)(pq))
         ij = numpyro.deterministic(
-            'ij', transform(xy, rx, ox, px))
+            'ij', Detector(det_r, det_o, det_p)(xy, didx))
 
         sig_x = init.value('sig_x_loc')
         sig_y = init.value('sig_y_loc')

@@ -6,7 +6,10 @@ from jax import Array
 import jax.numpy as jnp
 import zodiax as zdx
 
-from .transform.affine import transform
+from .utils import _affine_transform
+
+
+__all__ = ['Detector']
 
 
 class Detector(zdx.Base):
@@ -68,7 +71,4 @@ class Detector(zdx.Base):
             raise ValueError('`detector_index` should contain integers.')
 
         rotation, offset, pixel_scale = self.take(detector_index)
-        return transform(xy, rotation, offset, pixel_scale)
-
-
-__all__ = ['Detector']
+        return _affine_transform(xy, rotation, offset, pixel_scale)

@@ -3,10 +3,13 @@
 
 import jax.numpy as jnp
 
-from ..conversion import degree_to_radian, rotation_matrix
+from ..utils import _degree_to_radian, _rotation_matrix
 
 
-def sptrig_cosr(tel_ra, tel_dec, ra, dec):
+__all__ = []
+
+
+def _sptrig_cosr(tel_ra, tel_dec, ra, dec):
     ''' Calculate cos(r), the cosine of the distance r
 
     Arguments:
@@ -22,7 +25,7 @@ def sptrig_cosr(tel_ra, tel_dec, ra, dec):
         + jnp.cos(tel_dec) * jnp.cos(dec) * jnp.cos(ra - tel_ra)
 
 
-def generate_conversion(xfunc, yfunc):
+def _generate_conversion(xfunc, yfunc):
     def conversion(tel_ra, tel_dec, ra, dec):
         X = -xfunc(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
         Y = +yfunc(tel_ra, tel_dec, ra, dec) * 180.0 / jnp.pi
@@ -30,7 +33,7 @@ def generate_conversion(xfunc, yfunc):
     return conversion
 
 
-def generate_projection(func):
+def _generate_projection(func):
     def inner_func(tel_ra, tel_dec, tel_pa, ra, dec, scale):
         ''' Gnomonic projection of the spherical coordinates
 
@@ -45,12 +48,12 @@ def generate_projection(func):
         Returns:
             Converted coordinates on the focal plane
         '''
-        tel_ra = degree_to_radian(tel_ra)
-        tel_dec = degree_to_radian(tel_dec)
-        tel_pa = degree_to_radian(tel_pa)
-        ra = degree_to_radian(ra)
-        dec = degree_to_radian(dec)
+        tel_ra = _degree_to_radian(tel_ra)
+        tel_dec = _degree_to_radian(tel_dec)
+        tel_pa = _degree_to_radian(tel_pa)
+        ra = _degree_to_radian(ra)
+        dec = _degree_to_radian(dec)
         X, Y = func(tel_ra, tel_dec, ra, dec)
-        xy = (rotation_matrix(-tel_pa) @ jnp.stack([X, Y])).T
+        xy = (_rotation_matrix(-tel_pa) @ jnp.stack([X, Y])).T
         return (xy * scale).ravel()
     return inner_func
