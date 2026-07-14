@@ -51,5 +51,6 @@ def generate_projection(func):
         ra = degree_to_radian(ra)
         dec = degree_to_radian(dec)
         X, Y = func(tel_ra, tel_dec, ra, dec)
-        return (rotation_matrix(-tel_pa) @ jnp.stack([X, Y])).T * scale
+        xy = (rotation_matrix(-tel_pa) @ jnp.stack([X, Y])).T
+        return (xy * scale).ravel()
     return inner_func
