@@ -21,7 +21,7 @@ def generate(source, reference, params={}):
     using jax from source and reference data tables. The source table
     should contains the following columns:
 
-      source:
+    source:
         x: X-coordinates on the focal plane in mm.
         y: Y-coordinates on the focal plane in mm.
         object_id: Unique ID numbers of objects.
@@ -29,7 +29,7 @@ def generate(source, reference, params={}):
 
     The reference table should contains the folloinwg columns:
 
-      reference:
+    reference:
         object_id: Unique ID numbers of objects.
         ra: Right acensions of objects in degree.
         dec: Declinations of objects in degree.
@@ -37,12 +37,12 @@ def generate(source, reference, params={}):
 
 
     Arguments:
-      source: A pandas DataFrame of measurements.
-      reference: A pandas DataFrame of reference stars.
-      params: A dictionary of the initial condition.
+        source: A pandas DataFrame of measurements.
+        reference: A pandas DataFrame of reference stars.
+        params: A dictionary of the initial condition.
 
     Returns:
-      A function pair (model, guide) is generated.
+        A function pair (model, guide) is generated.
 
         model: The obervation model function.
         guide: A guide function for SVI.
@@ -114,7 +114,8 @@ def generate(source, reference, params={}):
         dex = jnp.take(dec, jnp.array(oidx))
 
         pq = numpyro.deterministic('pq', projection(ax, dx, tx, rax, dex, fx))
-        xy = numpyro.deterministic('xy', distortion(A, B, pq - px) + px)
+        xy = numpyro.deterministic(
+            'xy', pq + distortion(A, B, pq - px))
 
         with numpyro.plate('obs', T):
             numpyro.sample('x', dist.Normal(xy[:, 0], sigma), obs=x0)

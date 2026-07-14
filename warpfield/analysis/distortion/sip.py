@@ -12,22 +12,22 @@ def _polymap(coeff, xy):
     ''' Calculate a two-dimensional polynomical expansion
 
     Arguments:
-      coeff: Coefficients of a polynomial expansion.
-      xy: Original coordinates on the focal plane.
+        coeff: Coefficients of a polynomial expansion.
+        xy: Original coordinates on the focal plane.
 
     Returns:
-      A (N,2) list of converted coordinates.
+        A (N,2) list of converted coordinates.
     '''
 
     def inner(order, coeff):
         ''' Inner function to calculate a polynomical expansion
 
         Arguments:
-          order: A (m,n) integer power index pair.
-          coeff: A scale coefficient.
+            order: A (m,n) integer power index pair.
+            coeff: A scale coefficient.
 
         Returns:
-          A list of calclated cordinates (p * x**m * y**n).
+            A list of calclated cordinates (p * x**m * y**n).
         '''
         m, n = order
         return [m - 1, n + 1], coeff * xy[:, 0]**m * xy[:, 1]**n
@@ -40,7 +40,7 @@ polymap = jit(_polymap)
 
 
 def _distortion(sip_a, sip_b, xy):
-    ''' Distort the coordinates using the SIP coefficients
+    ''' Calculate displacements using the SIP coefficients
 
     The SIP coefficients sip_a and sip_b should contains 18 coefficients.
     The coefficients do not contain the Affine-transformation term.
@@ -51,12 +51,12 @@ def _distortion(sip_a, sip_b, xy):
     - elements 12-17: fifth order coefficients
 
     Arguments:
-      sip_a: A list of 5th-order SIP coefficients for x-axis.
-      sip_b: A list of 5th-order SIP coefficients for y-axis.
-      xy: Original coordinates on the focal plane.
+        sip_a: A list of 5th-order SIP coefficients for x-axis.
+        sip_b: A list of 5th-order SIP coefficients for y-axis.
+        xy: Original coordinates on the focal plane.
 
     Returns:
-      Distorted coordinates on the focal plane.
+          Coordinate displacements on the focal plane.
     '''
     scale = np.exp(
         -np.log(10) * 4 *
@@ -67,7 +67,7 @@ def _distortion(sip_a, sip_b, xy):
         + polymap(sip_a[7:12], xy) + polymap(sip_a[12:18], xy)
     dy = polymap(sip_b[0:3], xy) + polymap(sip_b[3:7], xy) \
         + polymap(sip_b[7:12], xy) + polymap(sip_b[12:18], xy)
-    return xy + jnp.stack([dx, dy]).T
+    return jnp.stack([dx, dy]).T
 
 
 distortion = jit(_distortion)
