@@ -2,12 +2,126 @@
 # -*- coding: utf-8 -*-
 ''' Source catalog parameters for astrometric analysis '''
 
+from dataclasses import dataclass
+
+from astropy.coordinates import Angle, Distance, SkyCoord
+from astropy.time import Time
+from astropy.units import Quantity
+import astropy.units as u
 from jax import Array
 import jax.numpy as jnp
+import numpy as np
 import zodiax as zdx
 
+from .observer import Observer
 
-__all__ = ['SourceCatalog']
+
+__all__ = ['AstrometricCatalog', 'SourceCatalog']
+
+
+@dataclass(frozen=True, init=False)
+class AstrometricCatalog:
+    ''' Astrometric source parameters at a reference epoch
+
+    Attributes:
+        ra: Right ascensions with shape ``(N_source,)``.
+        dec: Declinations with shape ``(N_source,)``.
+        pm_ra_cosdec: Proper motions in right ascension including the cosine
+            declination factor, with shape ``(N_source,)``.
+        pm_dec: Proper motions in declination with shape ``(N_source,)``.
+        parallax: Annual parallaxes with shape ``(N_source,)``.
+        epoch: Reference epoch of the catalog.
+    '''
+
+    ra: Angle
+    dec: Angle
+    pm_ra_cosdec: Quantity
+    pm_dec: Quantity
+    parallax: Quantity
+    epoch: Time
+
+    def __init__(
+            self, ra, dec, pm_ra_cosdec, pm_dec, parallax, epoch):
+        ra = Angle(ra, unit=u.deg)
+        dec = Angle(dec, unit=u.deg)
+        pm_ra_cosdec = Quantity(pm_ra_cosdec, unit=u.mas / u.yr)
+        pm_dec = Quantity(pm_dec, unit=u.mas / u.yr)
+        parallax = Quantity(parallax, unit=u.mas)
+        epoch = Time(epoch)
+
+        shape = ra.shape
+        if ra.ndim != 1:
+            raise ValueError('`ra` should be a one-dimensional array.')
+        for name, value in (
+                ('dec', dec),
+                ('pm_ra_cosdec', pm_ra_cosdec),
+                ('pm_dec', pm_dec),
+                ('parallax', parallax)):
+            if value.shape != shape:
+                raise ValueError(
+                    f'`{name}` should have the same shape as `ra`.')
+        if not epoch.isscalar and epoch.shape != shape:
+            raise ValueError(
+                '`epoch` should be scalar or have the same shape as `ra`.')
+        if np.any(~np.isfinite(parallax.to_value(u.mas))):
+            raise ValueError('`parallax` should contain finite values.')
+        if np.any(parallax < 0 * u.mas):
+            raise ValueError('`parallax` should be non-negative.')
+
+        # Constructing SkyCoord here also validates the declination range and
+        # the compatibility of the supplied Astropy quantities.
+        self._to_skycoord(ra, dec, pm_ra_cosdec, pm_dec, parallax, epoch)
+
+        object.__setattr__(self, 'ra', ra)
+        object.__setattr__(self, 'dec', dec)
+        object.__setattr__(self, 'pm_ra_cosdec', pm_ra_cosdec)
+        object.__setattr__(self, 'pm_dec', pm_dec)
+        object.__setattr__(self, 'parallax', parallax)
+        object.__setattr__(self, 'epoch', epoch)
+
+    @staticmethod
+    def _to_skycoord(
+            ra, dec, pm_ra_cosdec, pm_dec, parallax, epoch):
+        return SkyCoord(
+            ra=ra,
+            dec=dec,
+            pm_ra_cosdec=pm_ra_cosdec,
+            pm_dec=pm_dec,
+            distance=Distance(parallax=parallax),
+            obstime=epoch,
+            frame='icrs',
+        )
+
+    @property
+    def skycoord(self):
+        ''' Return the catalog as an ICRS SkyCoord '''
+        return self._to_skycoord(
+            self.ra,
+            self.dec,
+            self.pm_ra_cosdec,
+            self.pm_dec,
+            self.parallax,
+            self.epoch,
+        )
+
+    def __len__(self):
+        return self.ra.shape[0]
+
+    def propagate(self, observer):
+        ''' Generate apparent source positions in an observer frame '''
+        if not isinstance(observer, Observer):
+            raise TypeError('`observer` should be an Observer instance.')
+        if not hasattr(observer, 'obstime'):
+            raise TypeError('`observer` should define `obstime`.')
+
+        coordinate = self.skycoord.apply_space_motion(
+            new_obstime=observer.obstime,
+        )
+        apparent = coordinate.transform_to(observer)
+        return SourceCatalog(
+            apparent.spherical.lon.to_value(u.deg),
+            apparent.spherical.lat.to_value(u.deg),
+        )
 
 
 class SourceCatalog(zdx.Base):

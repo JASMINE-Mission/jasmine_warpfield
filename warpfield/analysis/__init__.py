@@ -4,7 +4,7 @@
 
 import jax
 
-from .source import SourceCatalog
+from .source import AstrometricCatalog, SourceCatalog
 from .pointing import Pointing
 from .detector import Detector
 from .exposure import Exposure
@@ -18,6 +18,7 @@ jax.config.update('jax_enable_x64', True)
 
 
 __all__ = [
+    'AstrometricCatalog',
     'SourceCatalog',
     'Pointing',
     'Detector',
