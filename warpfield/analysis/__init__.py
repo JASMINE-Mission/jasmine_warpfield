@@ -7,6 +7,7 @@ import jax
 from .source import SourceCatalog
 from .pointing import Pointing
 from .detector import Detector
+from .observation import Observation
 from .optics import Optics
 from .telescope import Telescope
 
@@ -18,6 +19,7 @@ __all__ = [
     'SourceCatalog',
     'Pointing',
     'Detector',
+    'Observation',
     'Optics',
     'Telescope',
 ]
