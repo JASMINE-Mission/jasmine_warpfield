@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Distortion solver module '''
+''' Differentiable astrometric analysis '''
 
 import jax
 
 from .source import SourceCatalog
 from .pointing import Pointing
 from .detector import Detector
-from .observation import Observation
+from .exposure import Exposure
+from .measurement import Measurement
 from .optics import Optics
 from .telescope import Telescope
 from .astrometry import Astrometry
@@ -20,7 +21,8 @@ __all__ = [
     'SourceCatalog',
     'Pointing',
     'Detector',
-    'Observation',
+    'Exposure',
+    'Measurement',
     'Optics',
     'Telescope',
     'Astrometry',

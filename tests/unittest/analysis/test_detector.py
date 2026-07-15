@@ -13,43 +13,42 @@ from warpfield.analysis.utils import _affine_transform
 
 def generate_detector():
     return Detector(
-        rotation=[0.0, 90.0],
-        offset=[[0.0, 0.0], [1.0, 2.0]],
-        pixel_scale=[[1.0, 1.0], [0.5, 2.0]],
+        rotation=90.0,
+        offset=[1.0, 2.0],
+        pixel_scale=[0.5, 2.0],
     )
 
 
 def test_detector():
     detector = generate_detector()
-    rotation, offset, pixel_scale = detector.take(jnp.array([1, 0]))
 
     assert isinstance(detector, zdx.Base)
-    assert len(detector) == 2
-    assert rotation == approx([90.0, 0.0])
-    assert offset == approx(jnp.array([[1.0, 2.0], [0.0, 0.0]]))
-    assert pixel_scale == approx(jnp.array([[0.5, 2.0], [1.0, 1.0]]))
+    assert detector.rotation == approx(90.0)
+    assert detector.offset == approx([1.0, 2.0])
+    assert detector.pixel_scale == approx([0.5, 2.0])
     assert len(jax.tree_util.tree_leaves(detector)) == 3
 
 
 def test_detector_transform():
     detector = generate_detector()
     xy = jnp.array([[1.0, -2.0], [3.0, 4.0], [-1.0, 2.0]])
-    index = jnp.array([0, 1, 0])
+    expected = _affine_transform(
+        xy,
+        jnp.full(3, detector.rotation),
+        jnp.tile(detector.offset, (3, 1)),
+        jnp.tile(detector.pixel_scale, (3, 1)),
+    )
 
-    rotation, offset, pixel_scale = detector.take(index)
-    expected = _affine_transform(xy, rotation, offset, pixel_scale)
-
-    assert detector(xy, index) == approx(expected)
-    assert eqx.filter_jit(detector)(xy, index) == approx(expected)
+    assert detector(xy) == approx(expected)
+    assert eqx.filter_jit(detector)(xy) == approx(expected)
 
 
 def test_detector_gradient():
     detector = generate_detector()
     xy = jnp.array([[1.0, -2.0], [3.0, 4.0]])
-    index = jnp.array([0, 1])
 
     def loss(model):
-        return jnp.sum(model(xy, index)**2)
+        return jnp.sum(model(xy)**2)
 
     gradient = eqx.filter_grad(loss)(detector)
 
@@ -60,26 +59,23 @@ def test_detector_gradient():
 
 def test_detector_zodiax_update():
     detector = generate_detector()
-    updated = detector.set('offset', jnp.ones((2, 2)))
+    updated = detector.set('offset', jnp.ones(2))
 
-    expected = jnp.array([[0.0, 0.0], [1.0, 2.0]])
-    assert detector.get('offset') == approx(expected)
-    assert updated.get('offset') == approx(jnp.ones((2, 2)))
+    assert detector.get('offset') == approx([1.0, 2.0])
+    assert updated.get('offset') == approx(jnp.ones(2))
 
 
 def test_detector_shape_validation():
-    with raises(ValueError, match='N_detector'):
-        Detector([0.0], [0.0, 0.0], [[1.0, 1.0]])
-    with raises(ValueError, match='N_detector'):
-        Detector([0.0], [[0.0, 0.0]], [1.0, 1.0])
+    with raises(ValueError, match='scalar'):
+        Detector([0.0], [0.0, 0.0], [1.0, 1.0])
+    with raises(ValueError, match='shape'):
+        Detector(0.0, [[0.0, 0.0]], [1.0, 1.0])
+    with raises(ValueError, match='shape'):
+        Detector(0.0, [0.0, 0.0], [[1.0, 1.0]])
 
 
 def test_detector_input_validation():
     detector = generate_detector()
 
-    with raises(ValueError, match='N_observation'):
-        detector(jnp.ones(2), jnp.array([0]))
-    with raises(ValueError, match='same length'):
-        detector(jnp.ones((2, 2)), jnp.array([0]))
-    with raises(ValueError, match='contain integers'):
-        detector(jnp.ones((2, 2)), jnp.array([0.0, 1.0]))
+    with raises(ValueError, match='N_coordinate'):
+        detector(jnp.ones(2))

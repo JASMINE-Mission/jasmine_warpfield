@@ -9,12 +9,14 @@ import zodiax as zdx
 from warpfield.analysis import (
     Astrometry,
     Detector,
-    Observation,
+    Exposure,
+    Measurement,
     Optics,
     Pointing,
     SourceCatalog,
     Telescope,
 )
+from warpfield.analysis.calibration import ScaleCalibration
 from warpfield.analysis.distortion import IdentityDistortion
 from warpfield.analysis.projection import GnomonicProjection
 
@@ -28,61 +30,75 @@ def generate_astrometry():
         ra=[266.4, 266.5],
         dec=[-29.0, -29.1],
         position_angle=[0.0, 5.0],
-        scale=[[1.0, 1.0], [2.0, 3.0]],
     )
-    optics = Optics(GnomonicProjection(), IdentityDistortion())
-    detector = Detector(
-        rotation=[0.0, 90.0],
-        offset=[[0.0, 0.0], [1.0, 2.0]],
-        pixel_scale=[[1.0, 1.0], [0.5, 2.0]],
+    calibration = ScaleCalibration(jnp.log(jnp.array([1.0, 1.1])))
+    exposure = Exposure(pointing, calibration)
+    optics = Optics(
+        GnomonicProjection(), IdentityDistortion(), plate_scale=[2.0, 3.0])
+    detectors = (
+        Detector(0.0, [0.0, 0.0], [1.0, 1.0]),
+        Detector(90.0, [1.0, 2.0], [0.5, 2.0]),
     )
     return Astrometry(
         source,
-        Telescope(pointing, optics, detector),
+        Telescope(optics, detectors),
+        exposure,
     )
 
 
-def generate_observation(astrometry):
+def generate_measurement(astrometry):
     source_index = jnp.array([0, 1, 0])
-    pointing_index = jnp.array([0, 1, 1])
+    exposure_index = jnp.array([0, 1, 1])
     detector_index = jnp.array([0, 1, 0])
     ra, dec = astrometry.source.take(source_index)
+    tel_ra, tel_dec, tel_pa, scale_factor = astrometry.exposure.take(
+        exposure_index)
     expected = astrometry.telescope(
-        ra, dec, pointing_index, detector_index)
-    offset = jnp.array([[0.1, -0.2], [0.3, 0.4], [-0.5, 0.6]])
-    observation = Observation(
-        expected + offset,
-        source_index,
-        pointing_index,
+        tel_ra,
+        tel_dec,
+        tel_pa,
+        ra,
+        dec,
+        scale_factor,
         detector_index,
     )
-    return observation, expected, offset
+    offset = jnp.array([[0.1, -0.2], [0.3, 0.4], [-0.5, 0.6]])
+    measurement = Measurement(
+        expected + offset,
+        source_index,
+        exposure_index,
+        detector_index,
+    )
+    return measurement, expected, offset
 
 
 def test_astrometry():
     astrometry = generate_astrometry()
-    observation, expected, offset = generate_observation(astrometry)
+    measurement, expected, offset = generate_measurement(astrometry)
 
     assert isinstance(astrometry, zdx.Base)
-    assert astrometry(observation) == approx(expected)
-    assert astrometry.residual(observation) == approx(offset)
-    assert eqx.filter_jit(astrometry)(observation) == approx(expected)
-    assert eqx.filter_jit(astrometry.residual)(observation) == approx(offset)
+    assert astrometry(measurement) == approx(expected)
+    assert astrometry.residual(measurement) == approx(offset)
+    assert eqx.filter_jit(astrometry)(measurement) == approx(expected)
+    assert eqx.filter_jit(astrometry.residual)(measurement) == approx(offset)
 
 
-def test_astrometry_gradient():
+def test_astrometry_gradient_excludes_measurement():
     astrometry = generate_astrometry()
-    observation, _, _ = generate_observation(astrometry)
+    measurement, _, _ = generate_measurement(astrometry)
 
-    def loss(value):
-        return jnp.sum(value.residual(observation)**2)
+    def loss(parameters, data):
+        return jnp.sum(parameters.residual(data)**2)
 
-    gradient = eqx.filter_grad(loss)(astrometry)
+    gradient = eqx.filter_grad(loss)(astrometry, measurement)
 
     assert jnp.isfinite(gradient.source.ra).all()
     assert jnp.isfinite(gradient.source.dec).all()
-    assert jnp.isfinite(gradient.telescope.pointing.ra).all()
-    assert jnp.isfinite(gradient.telescope.detector.offset).all()
+    assert jnp.isfinite(gradient.exposure.pointing.ra).all()
+    assert jnp.isfinite(gradient.exposure.calibration.coefficient).all()
+    assert jnp.isfinite(gradient.telescope.optics.plate_scale).all()
+    assert jnp.isfinite(gradient.telescope.detectors[0].offset).all()
+    assert jnp.isfinite(gradient.telescope.detectors[1].offset).all()
 
 
 def test_astrometry_zodiax_update():
@@ -92,13 +108,21 @@ def test_astrometry_zodiax_update():
     assert astrometry.get('source.ra') == approx([266.5, 266.4])
     assert updated.get('source.ra') == approx([1.0, 2.0])
 
+    path = 'exposure.calibration.coefficient'
+    updated = astrometry.set(path, jnp.array([0.1, 0.2]))
+
+    assert astrometry.get(path) == approx(jnp.log(jnp.array([1.0, 1.1])))
+    assert updated.get(path) == approx([0.1, 0.2])
+
 
 def test_astrometry_validation():
     astrometry = generate_astrometry()
 
     with raises(TypeError, match='SourceCatalog'):
-        Astrometry(object(), astrometry.telescope)
+        Astrometry(object(), astrometry.telescope, astrometry.exposure)
     with raises(TypeError, match='Telescope'):
-        Astrometry(astrometry.source, object())
-    with raises(TypeError, match='Observation'):
+        Astrometry(astrometry.source, object(), astrometry.exposure)
+    with raises(TypeError, match='Exposure'):
+        Astrometry(astrometry.source, astrometry.telescope, object())
+    with raises(TypeError, match='Measurement'):
         astrometry(object())

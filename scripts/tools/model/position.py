@@ -10,6 +10,7 @@ import jax.numpy as jnp
 from astropy.table import unique
 
 from warpfield.analysis import Detector
+from warpfield.analysis.detector import _apply_detectors
 from warpfield.analysis.distortion import LegendreDistortion
 from warpfield.analysis.projection import GnomonicProjection
 
@@ -77,6 +78,10 @@ def generate(src, env, ref, params={}):
         det_r = init.value('det_r_loc')
         det_o = init.value('det_o_loc')
         det_p = init.value('det_p_loc')
+        detectors = tuple(
+            Detector(det_r[n], det_o[n], det_p[n])
+            for n in range(det_r.shape[0])
+        )
 
         pq = numpyro.deterministic(
             'pq', GnomonicProjection()(ax, dx, tx, rax, dex, sx))
@@ -84,7 +89,7 @@ def generate(src, env, ref, params={}):
             'xy', pq + LegendreDistortion(
                 opt_A, opt_B, plane_scale)(pq))
         ij = numpyro.deterministic(
-            'ij', Detector(det_r, det_o, det_p)(xy, didx))
+            'ij', _apply_detectors(detectors, xy, didx))
 
         sig_x = init.value('sig_x_loc')
         sig_y = init.value('sig_y_loc')

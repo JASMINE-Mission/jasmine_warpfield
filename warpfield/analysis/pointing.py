@@ -14,24 +14,20 @@ class Pointing(zdx.Base):
     ''' Telescope pointings represented as a PyTree
 
     Attributes:
-        ra: Right ascensions in degrees with shape ``(N_pointing,)``.
-        dec: Declinations in degrees with shape ``(N_pointing,)``.
+        ra: Right ascensions in degrees with shape ``(N_exposure,)``.
+        dec: Declinations in degrees with shape ``(N_exposure,)``.
         position_angle: Position angles in degrees with shape
-            ``(N_pointing,)``.
-        scale: Focal-plane scales in mm/degree with shape
-            ``(N_pointing, 2)``.
+            ``(N_exposure,)``.
     '''
 
     ra: Array
     dec: Array
     position_angle: Array
-    scale: Array
 
-    def __init__(self, ra, dec, position_angle, scale):
+    def __init__(self, ra, dec, position_angle):
         ra = jnp.asarray(ra, dtype=float)
         dec = jnp.asarray(dec, dtype=float)
         position_angle = jnp.asarray(position_angle, dtype=float)
-        scale = jnp.asarray(scale, dtype=float)
 
         if ra.ndim != 1:
             raise ValueError('`ra` should be a one-dimensional array.')
@@ -40,13 +36,10 @@ class Pointing(zdx.Base):
         if position_angle.shape != ra.shape:
             raise ValueError(
                 '`position_angle` should have the same shape as `ra`.')
-        if scale.shape != (ra.shape[0], 2):
-            raise ValueError('`scale` should have shape (N_pointing, 2).')
 
         self.ra = ra
         self.dec = dec
         self.position_angle = position_angle
-        self.scale = scale
 
     def __len__(self):
         return self.ra.shape[0]
@@ -57,5 +50,4 @@ class Pointing(zdx.Base):
             self.ra[index],
             self.dec[index],
             self.position_angle[index],
-            self.scale[index],
         )
