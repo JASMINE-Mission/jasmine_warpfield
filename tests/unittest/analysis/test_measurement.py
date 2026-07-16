@@ -8,7 +8,7 @@ import astropy.units as u
 from pytest import approx, raises
 import zodiax as zdx
 
-from warpfield.analysis import Measurement
+from warpfield import Measurement
 
 
 def generate_measurement(uncertainty=None):

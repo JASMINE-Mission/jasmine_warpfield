@@ -9,7 +9,7 @@ import astropy.units as u
 from pytest import approx, raises
 import zodiax as zdx
 
-from warpfield.analysis import Pointing
+from warpfield import Pointing
 
 
 def generate_pointing():

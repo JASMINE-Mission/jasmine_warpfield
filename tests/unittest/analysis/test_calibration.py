@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from pytest import approx, raises
 import zodiax as zdx
 
-from warpfield.analysis.calibration import (
+from warpfield.calibration import (
     IdentityCalibration,
     ScaleCalibration,
 )

@@ -6,7 +6,7 @@ from astropy.time import Time
 import astropy.units as u
 from pytest import approx
 
-from warpfield.analysis.observer import GeoCentric, Observer
+from warpfield.observer import GeoCentric, Observer
 
 
 def test_geocentric_is_observer_frame():

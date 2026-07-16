@@ -6,7 +6,7 @@ import astropy.units as u
 import numpy as np
 from pytest import approx, fixture, mark, raises
 
-from warpfield.analysis.utils import (
+from warpfield.utils import (
     _affine_transform,
     _degree_to_radian,
     _rotation_matrix,

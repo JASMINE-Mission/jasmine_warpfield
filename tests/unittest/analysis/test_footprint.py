@@ -5,17 +5,17 @@ import jax.numpy as jnp
 import numpy as np
 from pytest import approx, mark, raises
 
-from warpfield.analysis import Detector, Exposure, Optics, Pointing, Telescope
-from warpfield.analysis.calibration import (
+from warpfield import Detector, Exposure, Optics, Pointing, Telescope
+from warpfield.calibration import (
     IdentityCalibration,
     ScaleCalibration,
 )
-from warpfield.analysis.distortion import IdentityDistortion
-from warpfield.analysis.footprint import (
+from warpfield.distortion import IdentityDistortion
+from warpfield.footprint import (
     detector_footprint,
     telescope_footprints,
 )
-from warpfield.analysis.projection import (
+from warpfield.projection import (
     EquidistantProjection,
     GnomonicProjection,
 )

@@ -5,7 +5,7 @@ from hypothesis import given, assume, settings
 
 from .util import WCSProjection, longitude, latitude
 from .util import suppress_too_much_filter
-from warpfield.analysis.projection.equidistant import _equidistant_conversion
+from warpfield.projection.equidistant import _equidistant_conversion
 
 
 class Equidistant(WCSProjection):

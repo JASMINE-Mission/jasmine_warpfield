@@ -5,13 +5,13 @@
 import astropy.units as u
 import numpy as np
 
-from .detector import Detector
-from .distortion import Distortion, IdentityDistortion
-from .optics import Optics
-from .projection import GnomonicProjection
-from .simulator import Simulator
-from .telescope import Telescope
-from .utils import plate_scale
+from ..detector import Detector
+from ..distortion import Distortion, IdentityDistortion
+from ..optics import Optics
+from ..projection import GnomonicProjection
+from ..simulator import Simulator
+from ..telescope import Telescope
+from ..utils import plate_scale
 
 
 __all__ = ['get_jasmine']

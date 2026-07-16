@@ -8,9 +8,9 @@ import astropy.units as u
 import numpy as np
 from pytest import approx, raises
 
-from warpfield.analysis import AstrometricCatalog
-from warpfield.analysis.catalog import compile_from_gaia, query_gaia
-from warpfield.analysis.catalog import gaia
+from warpfield import AstrometricCatalog
+from warpfield.catalog import compile_from_gaia, query_gaia
+from warpfield.catalog import gaia
 
 
 def _gaia_table():

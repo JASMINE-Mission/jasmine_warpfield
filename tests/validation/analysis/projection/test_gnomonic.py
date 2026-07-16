@@ -5,7 +5,7 @@ from hypothesis import given, assume, settings
 
 from .util import WCSProjection, longitude, latitude
 from .util import suppress_too_much_filter
-from warpfield.analysis.projection.gnomonic import _gnomonic_conversion
+from warpfield.projection.gnomonic import _gnomonic_conversion
 
 
 class Gnomonic(WCSProjection):

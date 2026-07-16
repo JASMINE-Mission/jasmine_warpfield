@@ -5,7 +5,7 @@ import jax
 import jax.numpy as jnp
 from pytest import approx
 
-from warpfield.analysis.projection.equidistant import (
+from warpfield.projection.equidistant import (
     EquidistantProjection,
     _equidistant,
     _equidistant_conversion,

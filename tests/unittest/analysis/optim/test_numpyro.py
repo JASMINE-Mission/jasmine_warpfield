@@ -7,7 +7,7 @@ from numpyro import handlers
 import numpyro.distributions as dist
 from pytest import approx, raises
 
-from warpfield.analysis.optim.numpyro import apply_sample, build_model
+from warpfield.optim.numpyro import apply_sample, build_model
 
 from .util import OFFSET_PATH, generate_problem
 

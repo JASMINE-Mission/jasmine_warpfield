@@ -5,7 +5,7 @@ import jax
 import jax.numpy as jnp
 from pytest import approx
 
-from warpfield.analysis.projection.gnomonic import (
+from warpfield.projection.gnomonic import (
     GnomonicProjection,
     _gnomonic,
     _gnomonic_conversion,

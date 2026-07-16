@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from pytest import approx, raises
 import zodiax as zdx
 
-from warpfield.analysis import (
+from warpfield import (
     Astrometry,
     Detector,
     Exposure,
@@ -16,9 +16,9 @@ from warpfield.analysis import (
     SourceCatalog,
     Telescope,
 )
-from warpfield.analysis.calibration import ScaleCalibration
-from warpfield.analysis.distortion import IdentityDistortion
-from warpfield.analysis.projection import GnomonicProjection
+from warpfield.calibration import ScaleCalibration
+from warpfield.distortion import IdentityDistortion
+from warpfield.projection import GnomonicProjection
 
 
 def generate_astrometry():

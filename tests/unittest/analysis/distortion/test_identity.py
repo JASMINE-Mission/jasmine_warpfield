@@ -6,7 +6,7 @@ import jax
 import jax.numpy as jnp
 from pytest import approx, raises
 
-from warpfield.analysis.distortion import Distortion, IdentityDistortion
+from warpfield.distortion import Distortion, IdentityDistortion
 
 
 def test_identity_distortion():

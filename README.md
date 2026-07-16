@@ -2,12 +2,10 @@
 [![validation](https://github.com/astronasutarou/warpfield/actions/workflows/validation.yml/badge.svg?branch=develop)](https://github.com/astronasutarou/warpfield/actions/workflows/validation.yml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/astronasutarou/warpfield)
 
-# warpfield: Plate Analysis demonstration code
+# warpfield: Differentiable astrometric analysis
 
-An experimental code to demonstrate Plate Analysis, an algorithm for precise relative astrometric analysis. The code consists of two modules:
-
-- `telescope`: A code to generate mock measurements.
-- `analysis`: A code to estimate an astrometric solution.
+An experimental package for precise relative astrometric analysis and mock
+measurement generation with JAX.
 
 ## Installation
 
@@ -23,27 +21,25 @@ Otherwise clone this repository and try the command below:
 pip install .
 ```
 
-The module `warpfield` will be installed in your system. A simple example is described below.
+The module `warpfield` will be installed in your system. A simple simulation
+example is described below.
 
 ```python
-from astropy.coordinates import SkyCoord, Angle
-import astropy.units as u
-import warpfield as w
+from warpfield import Exposure, Pointing, SourceCatalog
+from warpfield.calibration import IdentityCalibration
+from warpfield.instrument.jasmine import get_jasmine
 
-pointing = SkyCoord(0.0*u.deg, 0.0*u.deg, frame="galactic")
-position_angle = Angle(5.0*u.deg)
-
-jasmine = w.telescope.Telescope(pointing, position_angle)
-source_table = w.telescope.retrieve_gaia_sources(pointing, radius=0.4*u.deg)
-position = jasmine.observe(source_table.skycoord)
-
-import matplotlib.pyplot as plt
-fig = plt.figure()
-ax = fig.add_subplot()
-ax.set_aspect(1.0)
-ax.scatter(position[0].x, position[0].y, marker='x')
-ax.set_xlabel('focal plane position (um)', fontsize=14)
-ax.set_ylabel('focal plane position (um)', fontsize=14)
-fig.tight_layout()
-plt.show()
+telescope = get_jasmine()
+source = SourceCatalog(
+    ra=[266.4, 266.5],
+    dec=[-29.0, -29.1],
+)
+pointing = Pointing.from_coord(
+    frame='galactic',
+    lon=0.0,
+    lat=0.0,
+    pa=5.0,
+)
+exposure = Exposure(pointing, IdentityCalibration())
+measurement = telescope.observe(source, exposure)
 ```

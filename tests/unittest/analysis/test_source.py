@@ -11,8 +11,8 @@ import numpy as np
 from pytest import approx, raises
 import zodiax as zdx
 
-from warpfield.analysis import AstrometricCatalog, SourceCatalog
-from warpfield.analysis.observer import GeoCentric
+from warpfield import AstrometricCatalog, SourceCatalog
+from warpfield.observer import GeoCentric
 
 
 def test_source_catalog():

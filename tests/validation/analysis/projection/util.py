@@ -1,14 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from astropy.coordinates import SkyCoord
+from astropy.wcs import WCS
 from hypothesis.strategies import floats
 from hypothesis import HealthCheck
 import numpy as np
 
-from warpfield.telescope.util import get_projection
-
-
 suppress_too_much_filter = [HealthCheck.filter_too_much]
+
+
+def get_projection(pointing, scale, projection):
+    ''' Generate an Astropy WCS reference projection '''
+    wcs = WCS(naxis=2)
+    wcs.wcs.crpix = [1.0, 1.0]
+    wcs.wcs.crval = [
+        pointing.icrs.ra.degree,
+        pointing.icrs.dec.degree,
+    ]
+    wcs.wcs.ctype = [
+        f'RA---{projection}',
+        f'DEC--{projection}',
+    ]
+    wcs.wcs.cunit = ['deg', 'deg']
+    wcs.wcs.cd = np.diag([-scale, scale])
+    return wcs
 
 
 def longitude():

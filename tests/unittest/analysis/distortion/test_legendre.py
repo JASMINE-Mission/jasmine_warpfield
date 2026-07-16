@@ -8,7 +8,7 @@ import zodiax as zdx
 
 
 from .util import *
-from warpfield.analysis.distortion.legendre import (
+from warpfield.distortion.legendre import (
     LegendreDistortion,
     _distortion,
     _legval,

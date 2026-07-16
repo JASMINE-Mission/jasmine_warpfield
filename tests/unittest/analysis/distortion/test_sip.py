@@ -6,7 +6,7 @@ from pytest import approx, raises
 import zodiax as zdx
 
 from .util import *
-from warpfield.analysis.distortion.sip import (
+from warpfield.distortion.sip import (
     SIPDistortion,
     _distortion,
     _polymap,

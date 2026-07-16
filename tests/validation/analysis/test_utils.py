@@ -6,7 +6,7 @@ from hypothesis.strategies import floats
 import numpy as np
 from pytest import approx
 
-from warpfield.analysis.utils import _degree_to_radian
+from warpfield.utils import _degree_to_radian
 
 
 def degree():

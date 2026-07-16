@@ -5,9 +5,9 @@ import equinox as eqx
 import jax.numpy as jnp
 from pytest import approx, raises
 
-from warpfield.analysis import Detector, Optics, Telescope
-from warpfield.analysis.distortion import LegendreDistortion
-from warpfield.analysis.projection import GnomonicProjection
+from warpfield import Detector, Optics, Telescope
+from warpfield.distortion import LegendreDistortion
+from warpfield.projection import GnomonicProjection
 
 
 def generate_telescope():

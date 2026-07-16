@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import numpy as np
 import numpy.polynomial.legendre as legendre
 
-from warpfield.analysis.distortion.legendre import _legval, _legval2d
+from warpfield.distortion.legendre import _legval, _legval2d
 
 
 def seeds():

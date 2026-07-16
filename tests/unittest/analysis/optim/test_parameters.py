@@ -4,7 +4,7 @@
 import jax.numpy as jnp
 from pytest import approx, raises
 
-from warpfield.analysis.optim import get_parameters, set_parameters
+from warpfield.optim import get_parameters, set_parameters
 
 from .util import OFFSET_PATH, generate_problem
 

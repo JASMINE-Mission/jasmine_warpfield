@@ -1,16 +1,31 @@
 #!/usr/bin/env python
 # coding: utf-8
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import Distance, SkyCoord
 from astropy.table import QTable, unique, join
 from astropy.time import Time
 import astropy.units as u
 import jax
 import numpy as np
 
-from warpfield.telescope.source import SourceTable
-from warpfield.telescope.source import convert_skycoord_to_sourcetable
-
 jax.config.update('jax_enable_x64', True)
+
+
+def _skycoord(table):
+    ''' Construct an ICRS SkyCoord from a reference catalog '''
+    parallax = np.clip(table['parallax'], 1e-6 * u.mas, np.inf)
+    return SkyCoord(
+        ra=table['ra'],
+        dec=table['dec'],
+        pm_ra_cosdec=table['pmra'],
+        pm_dec=table['pmdec'],
+        distance=Distance(parallax=parallax),
+        obstime=Time(
+            table['ref_epoch'],
+            format='jyear',
+            scale='tcb',
+        ),
+        frame='icrs',
+    )
 
 
 def propagate(reference, obstime):
@@ -30,12 +45,16 @@ def propagate(reference, obstime):
     dT = obstime - Time(reference['ref_epoch'], format='jyear', scale='tcb')
     distant = reference.copy()
     distant['parallax'] = 1e-8 * u.mas
-    s = SourceTable(reference).skycoord.apply_space_motion(obstime)
-    t = SourceTable(distant).skycoord.apply_space_motion(obstime)
+    s = _skycoord(reference).apply_space_motion(obstime)
+    t = _skycoord(distant).apply_space_motion(obstime)
     ra = s.icrs.ra + (s.gcrs.ra - t.gcrs.ra)
     dec = s.icrs.dec + (s.gcrs.dec - t.gcrs.dec)
     skycoord = SkyCoord(ra, dec, frame='icrs', obstime=obstime)
-    propagated = convert_skycoord_to_sourcetable(skycoord).table
+    propagated = QTable({
+        'source_id': np.arange(len(skycoord), dtype=int),
+        'ra': skycoord.icrs.ra,
+        'dec': skycoord.icrs.dec,
+    })
     propagated['ra_error'] = \
         reference['ra_error'] + dT * reference['pmra_error']
     propagated['dec_error'] = \

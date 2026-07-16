@@ -5,7 +5,7 @@ import jax
 import jax.numpy as jnp
 from pytest import approx, raises
 
-from warpfield.analysis import (
+from warpfield import (
     Detector,
     Exposure,
     Measurement,
@@ -15,9 +15,9 @@ from warpfield.analysis import (
     SourceCatalog,
     Telescope,
 )
-from warpfield.analysis.calibration import IdentityCalibration
-from warpfield.analysis.distortion import IdentityDistortion
-from warpfield.analysis.projection import GnomonicProjection
+from warpfield.calibration import IdentityCalibration
+from warpfield.distortion import IdentityDistortion
+from warpfield.projection import GnomonicProjection
 
 
 def generate_simulator(detectors=None, imaging_radius=None):

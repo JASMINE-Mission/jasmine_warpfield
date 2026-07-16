@@ -5,8 +5,8 @@ import equinox as eqx
 from pytest import approx
 import optax
 
-from warpfield.analysis.optim import set_parameters
-from warpfield.analysis.optim.optax import initialize, least_squares, step
+from warpfield.optim import set_parameters
+from warpfield.optim.optax import initialize, least_squares, step
 
 from .util import OFFSET_PATH, generate_problem
 

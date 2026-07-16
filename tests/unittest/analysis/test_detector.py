@@ -7,10 +7,10 @@ import jax.numpy as jnp
 from pytest import approx, raises
 import zodiax as zdx
 
-from warpfield.analysis import Detector
-from warpfield.analysis.detector import _apply_detectors
-from warpfield.analysis.distortion import Distortion, IdentityDistortion
-from warpfield.analysis.utils import _affine_transform
+from warpfield import Detector
+from warpfield.detector import _apply_detectors
+from warpfield.distortion import Distortion, IdentityDistortion
+from warpfield.utils import _affine_transform
 
 
 class LinearDistortion(Distortion):

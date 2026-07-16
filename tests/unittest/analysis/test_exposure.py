@@ -8,8 +8,8 @@ import astropy.units as u
 from pytest import approx, raises
 import zodiax as zdx
 
-from warpfield.analysis import Exposure, Pointing
-from warpfield.analysis.calibration import (
+from warpfield import Exposure, Pointing
+from warpfield.calibration import (
     IdentityCalibration,
     ScaleCalibration,
 )

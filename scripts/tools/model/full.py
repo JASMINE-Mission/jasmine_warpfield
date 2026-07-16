@@ -9,10 +9,10 @@ import jax.numpy as jnp
 
 from astropy.table import unique
 
-from warpfield.analysis import Detector
-from warpfield.analysis.detector import _apply_detectors
-from warpfield.analysis.distortion import LegendreDistortion
-from warpfield.analysis.projection import GnomonicProjection
+from warpfield import Detector
+from warpfield.detector import _apply_detectors
+from warpfield.distortion import LegendreDistortion
+from warpfield.projection import GnomonicProjection
 
 from ..propagate import propagate
 from ..compile import compile_prior, compile_initial_value

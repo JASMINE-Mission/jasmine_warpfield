@@ -5,12 +5,12 @@ import equinox as eqx
 import jax.numpy as jnp
 from pytest import approx, raises
 
-from warpfield.analysis import Optics
-from warpfield.analysis.distortion import (
+from warpfield import Optics
+from warpfield.distortion import (
     IdentityDistortion,
     LegendreDistortion,
 )
-from warpfield.analysis.projection import GnomonicProjection
+from warpfield.projection import GnomonicProjection
 
 
 def generate_coordinates():
