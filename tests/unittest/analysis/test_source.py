@@ -4,8 +4,10 @@
 import jax
 import jax.numpy as jnp
 from astropy.coordinates import GCRS
+from astropy.table import QTable, Table
 from astropy.time import Time
 import astropy.units as u
+import numpy as np
 from pytest import approx, raises
 import zodiax as zdx
 
@@ -36,6 +38,34 @@ def test_source_catalog_shape_validation():
         SourceCatalog([[1.0]], [2.0])
     with raises(ValueError, match='same shape'):
         SourceCatalog([1.0], [2.0, 3.0])
+
+
+def test_source_catalog_qtable_roundtrip():
+    source = SourceCatalog([1.0, 2.0], [3.0, 4.0])
+
+    table = source.to_qtable()
+    restored = SourceCatalog.from_qtable(table)
+
+    assert isinstance(table, QTable)
+    assert table.colnames[0] == 'source_id'
+    assert np.issubdtype(table['source_id'].dtype, np.integer)
+    assert table['source_id'] == approx([0, 1])
+    assert table['ra'].unit == u.deg
+    assert table['dec'].unit == u.deg
+    assert restored.ra == approx(source.ra)
+    assert restored.dec == approx(source.dec)
+
+
+def test_source_catalog_qtable_validation():
+    with raises(TypeError, match='QTable'):
+        SourceCatalog.from_qtable(Table({'ra': [1.0], 'dec': [2.0]}))
+    with raises(ValueError, match='missing required columns'):
+        SourceCatalog.from_qtable(QTable({'ra': [1.0] * u.deg}))
+    with raises(ValueError, match='angular units'):
+        SourceCatalog.from_qtable(QTable({
+            'ra': [1.0] * u.m,
+            'dec': [2.0] * u.deg,
+        }))
 
 
 def test_astrometric_catalog():
@@ -73,6 +103,47 @@ def test_astrometric_catalog_propagate():
     assert isinstance(source, SourceCatalog)
     assert source.ra == approx(expected.ra.degree)
     assert source.dec == approx(expected.dec.degree)
+
+
+def test_astrometric_catalog_qtable_roundtrip():
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+    )
+
+    table = catalog.to_qtable()
+    restored = AstrometricCatalog.from_qtable(table)
+
+    assert isinstance(table, QTable)
+    assert table.colnames[0] == 'source_id'
+    assert np.issubdtype(table['source_id'].dtype, np.integer)
+    assert table['source_id'] == approx([0, 1])
+    assert isinstance(table['epoch'], Time)
+    assert table['epoch'].shape == (2,)
+    assert restored.ra.to_value(u.deg) == approx([10.0, 20.0])
+    assert restored.dec.to_value(u.deg) == approx([-5.0, 15.0])
+    assert restored.pm_ra_cosdec.to_value(u.mas / u.yr) == approx([1.0, 2.0])
+    assert restored.pm_dec.to_value(u.mas / u.yr) == approx([3.0, 4.0])
+    assert restored.parallax.to_value(u.mas) == approx([5.0, 10.0])
+    assert np.all(
+        restored.epoch == Time(['2016-01-01', '2016-01-01']))
+
+
+def test_astrometric_catalog_qtable_validation():
+    table = QTable({
+        'ra': [10.0] * u.deg,
+        'dec': [-5.0] * u.deg,
+        'pm_ra_cosdec': [1.0] * u.mas / u.yr,
+        'pm_dec': [3.0] * u.mas / u.yr,
+        'parallax': [5.0] * u.mas,
+    })
+
+    with raises(ValueError, match='missing required columns'):
+        AstrometricCatalog.from_qtable(table)
 
 
 def test_astrometric_catalog_validation():

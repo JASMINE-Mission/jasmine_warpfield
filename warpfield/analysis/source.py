@@ -5,6 +5,7 @@
 from dataclasses import dataclass
 
 from astropy.coordinates import Angle, Distance, SkyCoord
+from astropy.table import QTable
 from astropy.time import Time
 from astropy.units import Quantity
 import astropy.units as u
@@ -107,6 +108,52 @@ class AstrometricCatalog:
     def __len__(self):
         return self.ra.shape[0]
 
+    def to_qtable(self):
+        ''' Convert catalog attributes into a unit-aware QTable '''
+        epoch = self.epoch
+        if epoch.isscalar:
+            epoch = epoch + np.zeros(len(self)) * u.day
+        return QTable({
+            'source_id': np.arange(len(self), dtype=int),
+            'ra': self.ra,
+            'dec': self.dec,
+            'pm_ra_cosdec': self.pm_ra_cosdec,
+            'pm_dec': self.pm_dec,
+            'parallax': self.parallax,
+            'epoch': epoch,
+        })
+
+    @classmethod
+    def from_qtable(cls, table):
+        ''' Construct a catalog from a unit-aware QTable '''
+        cls._validate_qtable(table)
+        return cls(
+            ra=table['ra'],
+            dec=table['dec'],
+            pm_ra_cosdec=table['pm_ra_cosdec'],
+            pm_dec=table['pm_dec'],
+            parallax=table['parallax'],
+            epoch=Time(table['epoch']),
+        )
+
+    @staticmethod
+    def _validate_qtable(table):
+        if not isinstance(table, QTable):
+            raise TypeError('`table` should be a QTable instance.')
+        required = (
+            'ra',
+            'dec',
+            'pm_ra_cosdec',
+            'pm_dec',
+            'parallax',
+            'epoch',
+        )
+        missing = [name for name in required if name not in table.colnames]
+        if missing:
+            raise ValueError(
+                '`table` is missing required columns: '
+                + ', '.join(missing))
+
     def propagate(self, observer):
         ''' Generate apparent source positions in an observer frame '''
         if not isinstance(observer, Observer):
@@ -151,6 +198,33 @@ class SourceCatalog(zdx.Base):
 
     def __len__(self):
         return self.ra.shape[0]
+
+    def to_qtable(self):
+        ''' Convert catalog attributes into a unit-aware QTable '''
+        return QTable({
+            'source_id': np.arange(len(self), dtype=int),
+            'ra': np.asarray(self.ra) * u.deg,
+            'dec': np.asarray(self.dec) * u.deg,
+        })
+
+    @classmethod
+    def from_qtable(cls, table):
+        ''' Construct a catalog from a unit-aware QTable '''
+        if not isinstance(table, QTable):
+            raise TypeError('`table` should be a QTable instance.')
+        missing = [
+            name for name in ('ra', 'dec') if name not in table.colnames]
+        if missing:
+            raise ValueError(
+                '`table` is missing required columns: '
+                + ', '.join(missing))
+        try:
+            ra = u.Quantity(table['ra']).to_value(u.deg)
+            dec = u.Quantity(table['dec']).to_value(u.deg)
+        except u.UnitConversionError as error:
+            raise ValueError(
+                '`ra` and `dec` should have angular units.') from error
+        return cls(ra, dec)
 
     def take(self, index):
         ''' Select source positions using an integer index array '''
