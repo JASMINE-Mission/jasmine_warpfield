@@ -11,6 +11,7 @@ from .exposure import Exposure
 from .measurement import Measurement
 from .optics import Optics
 from .telescope import Telescope
+from .simulator import Simulator
 from .astrometry import Astrometry
 
 
@@ -26,5 +27,6 @@ __all__ = [
     'Measurement',
     'Optics',
     'Telescope',
+    'Simulator',
     'Astrometry',
 ]

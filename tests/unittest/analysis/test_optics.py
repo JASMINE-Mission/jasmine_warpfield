@@ -31,6 +31,7 @@ def test_identity_optics():
     expected = projection(
         *coordinates[:-1], optics.plate_scale * coordinates[-1])
 
+    assert optics.imaging_radius is None
     assert optics(*coordinates) == approx(expected)
     assert eqx.filter_jit(optics)(*coordinates) == approx(expected)
 
@@ -67,6 +68,14 @@ def test_optics_validation():
         Optics(GnomonicProjection(), object(), [1.0, 1.0])
     with raises(ValueError, match='plate_scale'):
         Optics(GnomonicProjection(), IdentityDistortion(), [1.0])
+    with raises(ValueError, match='positive float'):
+        Optics(
+            GnomonicProjection(), IdentityDistortion(), [1.0, 1.0],
+            imaging_radius=0.0)
+    with raises(ValueError, match='positive float'):
+        Optics(
+            GnomonicProjection(), IdentityDistortion(), [1.0, 1.0],
+            imaging_radius=1)
 
     optics = Optics(
         GnomonicProjection(), IdentityDistortion(), [1.0, 1.0])

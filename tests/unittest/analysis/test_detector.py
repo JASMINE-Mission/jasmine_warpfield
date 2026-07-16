@@ -26,6 +26,7 @@ def test_detector():
     assert detector.rotation == approx(90.0)
     assert detector.offset == approx([1.0, 2.0])
     assert detector.pixel_scale == approx([0.5, 2.0])
+    assert detector.shape == (1024, 1024)
     assert len(jax.tree_util.tree_leaves(detector)) == 3
 
 
@@ -72,6 +73,10 @@ def test_detector_shape_validation():
         Detector(0.0, [[0.0, 0.0]], [1.0, 1.0])
     with raises(ValueError, match='shape'):
         Detector(0.0, [0.0, 0.0], [[1.0, 1.0]])
+    with raises(TypeError, match='tuple of two integers'):
+        Detector(0.0, [0.0, 0.0], [1.0, 1.0], [1024, 1024])
+    with raises(ValueError, match='positive'):
+        Detector(0.0, [0.0, 0.0], [1.0, 1.0], (0, 1024))
 
 
 def test_detector_input_validation():

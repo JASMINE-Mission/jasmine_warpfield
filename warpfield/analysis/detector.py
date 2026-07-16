@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 ''' Detector geometry for astrometric analysis '''
 
+import equinox as eqx
 from jax import Array
 import jax.numpy as jnp
 import zodiax as zdx
@@ -19,13 +20,16 @@ class Detector(zdx.Base):
         rotation: Rotation angle in degrees represented as a scalar.
         offset: Focal-plane offset in mm with shape ``(2,)``.
         pixel_scale: Physical pixel size in mm/pixel with shape ``(2,)``.
+        shape: Detector dimensions in pixels as ``(NAXIS1, NAXIS2)``.
     '''
 
     rotation: Array
     offset: Array
     pixel_scale: Array
+    shape: tuple[int, int] = eqx.field(static=True)
 
-    def __init__(self, rotation, offset, pixel_scale):
+    def __init__(
+            self, rotation, offset, pixel_scale, shape=(1024, 1024)):
         rotation = jnp.asarray(rotation, dtype=float)
         offset = jnp.asarray(offset, dtype=float)
         pixel_scale = jnp.asarray(pixel_scale, dtype=float)
@@ -36,10 +40,20 @@ class Detector(zdx.Base):
             raise ValueError('`offset` should have shape (2,).')
         if pixel_scale.shape != (2,):
             raise ValueError('`pixel_scale` should have shape (2,).')
+        if (
+                not isinstance(shape, tuple)
+                or len(shape) != 2
+                or not all(
+                    isinstance(size, int) and not isinstance(size, bool)
+                    for size in shape)):
+            raise TypeError('`shape` should be a tuple of two integers.')
+        if any(size <= 0 for size in shape):
+            raise ValueError('Detector dimensions should be positive.')
 
         self.rotation = rotation
         self.offset = offset
         self.pixel_scale = pixel_scale
+        self.shape = shape
 
     def __call__(self, xy):
         ''' Transform focal-plane coordinates onto this detector '''
