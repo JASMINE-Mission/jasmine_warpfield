@@ -108,6 +108,24 @@ class AstrometricCatalog:
     def __len__(self):
         return self.ra.shape[0]
 
+    def __getitem__(self, index):
+        ''' Select sources while preserving the catalog dimension '''
+        index = np.atleast_1d(np.arange(len(self))[index])
+        epoch = self.epoch if self.epoch.isscalar else self.epoch[index]
+        return AstrometricCatalog(
+            self.ra[index],
+            self.dec[index],
+            self.pm_ra_cosdec[index],
+            self.pm_dec[index],
+            self.parallax[index],
+            epoch,
+        )
+
+    def __iter__(self):
+        ''' Iterate over single-source catalogs '''
+        for index in range(len(self)):
+            yield self[index]
+
     def to_qtable(self):
         ''' Convert catalog attributes into a unit-aware QTable '''
         epoch = self.epoch
@@ -198,6 +216,16 @@ class SourceCatalog(zdx.Base):
 
     def __len__(self):
         return self.ra.shape[0]
+
+    def __getitem__(self, index):
+        ''' Select sources while preserving the catalog dimension '''
+        index = np.atleast_1d(np.arange(len(self))[index])
+        return SourceCatalog(self.ra[index], self.dec[index])
+
+    def __iter__(self):
+        ''' Iterate over single-source catalogs '''
+        for index in range(len(self)):
+            yield self[index]
 
     def to_qtable(self):
         ''' Convert catalog attributes into a unit-aware QTable '''

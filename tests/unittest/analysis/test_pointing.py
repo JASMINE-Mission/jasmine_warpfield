@@ -40,6 +40,16 @@ def test_pointing_zodiax_update():
     assert updated.get('position_angle') == approx([2.0, 3.0])
 
 
+def test_pointing_iteration():
+    items = list(generate_pointing())
+
+    assert len(items) == 2
+    assert all(isinstance(item, Pointing) for item in items)
+    assert all(len(item) == 1 for item in items)
+    assert items[0].ra == approx([10.0])
+    assert items[1].position_angle == approx([2.0])
+
+
 def test_pointing_from_galactic_coord():
     coordinate = SkyCoord(
         l=[0.0, 10.0] * u.deg,

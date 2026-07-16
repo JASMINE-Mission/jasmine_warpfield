@@ -24,7 +24,9 @@ class Exposure(zdx.Base):
     pointing: Pointing
     calibration: Calibration
 
-    def __init__(self, pointing, calibration):
+    def __init__(self, pointing, calibration=None):
+        if calibration is None:
+            calibration = IdentityCalibration()
         if not isinstance(pointing, Pointing):
             raise TypeError('`pointing` should be a Pointing instance.')
         if not isinstance(calibration, Calibration):
@@ -46,6 +48,11 @@ class Exposure(zdx.Base):
             self.pointing[index],
             self.calibration[index],
         )
+
+    def __iter__(self):
+        ''' Iterate over single-exposure collections '''
+        for index in range(len(self)):
+            yield self[index]
 
     def to_qtable(self):
         ''' Convert exposure parameters into a unit-aware QTable '''

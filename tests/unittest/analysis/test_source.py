@@ -33,6 +33,19 @@ def test_source_catalog_zodiax_update():
     assert updated.get('ra') == approx([5.0, 6.0])
 
 
+def test_source_catalog_index_and_iteration():
+    catalog = SourceCatalog([1.0, 2.0], [3.0, 4.0])
+
+    selected = catalog[1]
+    items = list(catalog)
+
+    assert len(selected) == 1
+    assert selected.ra == approx([2.0])
+    assert len(items) == 2
+    assert items[0].ra == approx([1.0])
+    assert items[1].dec == approx([4.0])
+
+
 def test_source_catalog_shape_validation():
     with raises(ValueError, match='one-dimensional'):
         SourceCatalog([[1.0]], [2.0])
@@ -82,6 +95,27 @@ def test_astrometric_catalog():
     assert not isinstance(catalog, zdx.Base)
     assert catalog.skycoord.frame.name == 'icrs'
     assert catalog.skycoord.obstime == Time('2016-01-01')
+
+
+def test_astrometric_catalog_index_and_iteration():
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+    )
+
+    selected = catalog[1]
+    items = list(catalog)
+
+    assert len(selected) == 1
+    assert selected.ra.to_value(u.deg) == approx([20.0])
+    assert selected.epoch == catalog.epoch
+    assert len(items) == 2
+    assert items[0].ra.to_value(u.deg) == approx([10.0])
+    assert items[1].dec.to_value(u.deg) == approx([15.0])
 
 
 def test_astrometric_catalog_propagate():

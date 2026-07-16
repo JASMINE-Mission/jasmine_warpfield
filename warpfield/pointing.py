@@ -56,6 +56,11 @@ class Pointing(zdx.Base):
             jnp.atleast_1d(self.position_angle[index]),
         )
 
+    def __iter__(self):
+        ''' Iterate over single-pointing collections '''
+        for index in range(len(self)):
+            yield self[index]
+
     @classmethod
     def from_coord(cls, frame, lon, lat, pa):
         ''' Convert an ICRS or Galactic attitude into an ICRS pointing

@@ -46,6 +46,14 @@ def test_identity_calibrated_exposure():
         jnp.ones((2, 1)))
 
 
+def test_default_identity_calibration():
+    exposure = Exposure(generate_pointing())
+
+    assert isinstance(exposure.calibration, IdentityCalibration)
+    assert exposure.take(jnp.array([0, 1]))[-1] == approx(
+        jnp.ones((2, 1)))
+
+
 def test_exposure_index_accessor():
     exposure = Exposure(
         generate_pointing(),
@@ -69,6 +77,21 @@ def test_identity_exposure_index_accessor():
 
     assert len(selected) == 1
     assert isinstance(selected.calibration, IdentityCalibration)
+
+
+def test_exposure_iteration():
+    exposure = Exposure(
+        generate_pointing(),
+        ScaleCalibration([0.0, 0.1]),
+    )
+
+    items = list(exposure)
+
+    assert len(items) == 2
+    assert all(isinstance(item, Exposure) for item in items)
+    assert all(len(item) == 1 for item in items)
+    assert items[0].pointing.ra == approx([10.0])
+    assert items[1].calibration.coefficient == approx([0.1])
 
 
 def test_exposure_zodiax_update():

@@ -6,14 +6,10 @@ import numpy as np
 from pytest import approx, mark, raises
 
 from warpfield import Detector, Exposure, Optics, Pointing, Telescope
-from warpfield.calibration import (
-    IdentityCalibration,
-    ScaleCalibration,
-)
 from warpfield.distortion import IdentityDistortion
 from warpfield.footprint import (
-    detector_footprint,
-    telescope_footprints,
+    celestial_footprints,
+    focalplane_footprints,
 )
 from warpfield.projection import (
     EquidistantProjection,
@@ -45,10 +41,12 @@ def generate_telescope(projection):
     return Telescope(optics, (detector,))
 
 
-def test_detector_footprint():
-    footprint = detector_footprint(generate_detector())
+def test_focalplane_footprints_from_detector():
+    footprints = focalplane_footprints(generate_detector())
 
-    assert footprint == approx(np.array([
+    assert isinstance(footprints, tuple)
+    assert len(footprints) == 1
+    assert footprints[0] == approx(np.array([
         [0.0, 0.0],
         [2.0, 0.0],
         [2.0, 4.0],
@@ -57,79 +55,111 @@ def test_detector_footprint():
     ]))
 
 
-def test_detector_footprint_sampling():
-    footprint = detector_footprint(
+def test_focalplane_footprints_sampling():
+    footprint = focalplane_footprints(
         generate_detector(),
         samples_per_edge=3,
-    )
+    )[0]
 
     assert footprint.shape == (13, 2)
     assert footprint[0] == approx(footprint[-1])
+
+
+def test_focalplane_footprints_from_tuple_and_telescope():
+    telescope = generate_telescope(GnomonicProjection())
+    detector = generate_detector()
+
+    from_tuple = focalplane_footprints((detector, *telescope.detectors))
+    from_telescope = focalplane_footprints(telescope)
+
+    assert len(from_tuple) == 2
+    assert len(from_telescope) == 1
+    assert from_tuple[1] == approx(from_telescope[0])
 
 
 @mark.parametrize(
     'projection',
     [GnomonicProjection(), EquidistantProjection()],
 )
-def test_telescope_footprints_roundtrip(projection):
+def test_celestial_footprints_roundtrip(projection):
     telescope = generate_telescope(projection)
-    exposures = Exposure(
-        Pointing([10.0, 20.0], [30.0, 40.0], [15.0, 25.0]),
-        ScaleCalibration([np.log(1.1), 0.0]),
+    pointings = Pointing(
+        [10.0, 20.0],
+        [30.0, 40.0],
+        [15.0, 25.0],
     )
-    exposure = exposures[0]
+    pointing = pointings[0]
 
-    sky = telescope_footprints(
+    sky = celestial_footprints(
         telescope,
-        exposure,
+        pointing,
         samples_per_edge=2,
         limit=False,
     )[0]
     size = len(sky)
     focal_plane = telescope.focal_plane(
-        jnp.full(size, exposure.pointing.ra[0]),
-        jnp.full(size, exposure.pointing.dec[0]),
-        jnp.full(size, exposure.pointing.position_angle[0]),
+        jnp.full(size, pointing.ra[0]),
+        jnp.full(size, pointing.dec[0]),
+        jnp.full(size, pointing.position_angle[0]),
         jnp.asarray(sky.icrs.ra.degree),
         jnp.asarray(sky.icrs.dec.degree),
-        jnp.full((size, 1), 1.1),
+        jnp.ones((size, 1)),
     )
-    expected = detector_footprint(
+    expected = focalplane_footprints(
         telescope.detectors[0],
         samples_per_edge=2,
-    )
+    )[0]
 
     assert focal_plane == approx(expected, abs=1e-7)
 
 
-def test_telescope_footprints_galactic():
+def test_celestial_footprints_galactic():
     telescope = generate_telescope(GnomonicProjection())
-    exposure = Exposure(
-        Pointing([10.0], [30.0], [15.0]),
-        IdentityCalibration(),
-    )
+    pointing = Pointing([10.0], [30.0], [15.0])
 
-    footprint = telescope_footprints(
+    footprint = celestial_footprints(
         telescope,
-        exposure,
+        pointing,
         frame='galactic',
     )[0]
 
     assert footprint.frame.name == 'galactic'
 
 
+def test_celestial_footprints_from_exposure():
+    telescope = generate_telescope(GnomonicProjection())
+    exposure = Exposure(Pointing([10.0], [30.0], [15.0]))
+
+    from_pointing = celestial_footprints(
+        telescope,
+        exposure.pointing,
+    )[0]
+    from_exposure = celestial_footprints(
+        telescope,
+        exposure,
+    )[0]
+
+    assert from_exposure.ra.degree == approx(from_pointing.ra.degree)
+    assert from_exposure.dec.degree == approx(from_pointing.dec.degree)
+
+
 def test_footprint_validation():
-    with raises(TypeError, match='Detector'):
-        detector_footprint(object())
+    with raises(TypeError, match='Telescope, Detector'):
+        focalplane_footprints(object())
+    with raises(TypeError, match='Telescope, Detector'):
+        focalplane_footprints((generate_detector(), object()))
     with raises(ValueError, match='positive'):
-        detector_footprint(generate_detector(), samples_per_edge=0)
+        focalplane_footprints(generate_detector(), samples_per_edge=0)
 
     telescope = generate_telescope(GnomonicProjection())
-    exposure = Exposure(
-        Pointing([10.0, 20.0], [30.0, 40.0], [15.0, 25.0]),
-        IdentityCalibration(),
+    pointing = Pointing(
+        [10.0, 20.0],
+        [30.0, 40.0],
+        [15.0, 25.0],
     )
     with raises(ValueError, match='exactly one'):
-        telescope_footprints(telescope, exposure)
+        celestial_footprints(telescope, pointing)
     with raises(ValueError, match='frame'):
-        telescope_footprints(telescope, exposure[0], frame='ecliptic')
+        celestial_footprints(telescope, pointing[0], frame='ecliptic')
+    with raises(TypeError, match='Pointing or Exposure'):
+        celestial_footprints(telescope, object())
