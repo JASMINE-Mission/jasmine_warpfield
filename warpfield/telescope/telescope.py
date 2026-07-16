@@ -61,7 +61,8 @@ class Telescope:
 
         Returns:
             A list of detector footprints on the sky.
-            Each footprint is given as a 2-dimensional numpy array [[x,y], ...].
+            Each footprint is given as a 2-dimensional numpy array
+            [[x,y], ...].
         '''
         limit = options.pop('limit', True)
 

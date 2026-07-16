@@ -10,13 +10,6 @@ runs:
       shell: bash
 
     - name: Test with pytest
-      id: pytest
-      continue-on-error: true
       run: |
         python -m pytest ./tests/validation/ --hypothesis-explain --hypothesis-show-statistics
-      shell: bash
-
-    - name: Notice Error
-      if: ${{ steps.pytest.outcome == 'failure' }}
-      run: exit 1
       shell: bash

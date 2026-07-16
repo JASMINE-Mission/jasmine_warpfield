@@ -30,8 +30,8 @@ class Sip(BiPolynomialFunction, InvertibleFunction):
 
         Arguments:
             position (ndarray):
-                An array contains the list of coordinates. The shape of the array
-                should be (2, Nsrc), where Nsrc is the number of sources.
+                An array contains the list of coordinates. The shape of the
+                array should be (2, Nsrc), where Nsrc is the number of sources.
 
         Returns:
             An ndarray instance contains modified coordinates.

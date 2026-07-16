@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# ruff: noqa: F401, F811
 from pytest import approx, fixture
 from astropy.coordinates import SkyCoord
 import astropy.units as u

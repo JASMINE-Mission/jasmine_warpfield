@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# ruff: noqa: F401, F811
 from pytest import approx, fixture
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
