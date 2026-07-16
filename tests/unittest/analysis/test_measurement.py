@@ -3,6 +3,8 @@
 
 import jax
 import jax.numpy as jnp
+from astropy.table import QTable
+import astropy.units as u
 from pytest import approx, raises
 import zodiax as zdx
 
@@ -68,3 +70,58 @@ def test_measurement_index_validation():
         Measurement([[1.0, 2.0]], [0], [0.0], [0])
     with raises(ValueError, match='contain integers'):
         Measurement([[1.0, 2.0]], [0], [0], [0.0])
+
+
+def test_measurement_qtable_roundtrip():
+    measurement = generate_measurement(
+        [[0.1, 0.2], [0.3, 0.4]])
+
+    table = measurement.to_qtable()
+    restored = Measurement.from_qtable(table)
+
+    assert table.colnames == [
+        'measurement_id',
+        'x',
+        'y',
+        'source_id',
+        'exposure_id',
+        'detector_id',
+        'x_error',
+        'y_error',
+    ]
+    assert table['measurement_id'].tolist() == [0, 1]
+    assert table['x'].unit == u.pix
+    assert restored.xy == approx(measurement.xy)
+    assert restored.source_index == approx(measurement.source_index)
+    assert restored.exposure_index == approx(measurement.exposure_index)
+    assert restored.detector_index == approx(measurement.detector_index)
+    assert restored.uncertainty == approx(measurement.uncertainty)
+
+
+def test_measurement_qtable_without_uncertainty():
+    restored = Measurement.from_qtable(
+        generate_measurement().to_qtable())
+
+    assert restored.uncertainty is None
+
+
+def test_measurement_qtable_validation():
+    table = generate_measurement().to_qtable()
+    table.remove_column('source_id')
+    with raises(ValueError, match='missing required columns'):
+        Measurement.from_qtable(table)
+
+    table = generate_measurement().to_qtable()
+    table['x_error'] = [0.1, 0.2] * u.pix
+    with raises(ValueError, match='both x_error and y_error'):
+        Measurement.from_qtable(table)
+
+    table = QTable({
+        'x': [1.0] * u.m,
+        'y': [2.0] * u.pix,
+        'source_id': [0],
+        'exposure_id': [0],
+        'detector_id': [0],
+    })
+    with raises(ValueError, match='pixel units'):
+        Measurement.from_qtable(table)

@@ -28,6 +28,10 @@ class ScaleCalibration(Calibration):
                 '`coefficient` should be a one-dimensional array.')
         self.coefficient = coefficient
 
+    def __getitem__(self, index):
+        ''' Select coefficients while preserving the collection dimension '''
+        return ScaleCalibration(jnp.atleast_1d(self.coefficient[index]))
+
     @property
     def num_exposure(self):
         return self.coefficient.shape[0]

@@ -7,6 +7,7 @@ from jax import Array
 import jax.numpy as jnp
 import zodiax as zdx
 
+from .distortion import Distortion, IdentityDistortion
 from .utils import _affine_transform
 
 
@@ -21,15 +22,18 @@ class Detector(zdx.Base):
         offset: Focal-plane offset in mm with shape ``(2,)``.
         pixel_scale: Physical pixel size in mm/pixel with shape ``(2,)``.
         shape: Detector dimensions in pixels as ``(NAXIS1, NAXIS2)``.
+        distortion: Displacement model in normalized detector coordinates.
     '''
 
     rotation: Array
     offset: Array
     pixel_scale: Array
     shape: tuple[int, int] = eqx.field(static=True)
+    distortion: Distortion
 
     def __init__(
-            self, rotation, offset, pixel_scale, shape=(1024, 1024)):
+            self, rotation, offset, pixel_scale, shape=(1024, 1024),
+            distortion=None):
         rotation = jnp.asarray(rotation, dtype=float)
         offset = jnp.asarray(offset, dtype=float)
         pixel_scale = jnp.asarray(pixel_scale, dtype=float)
@@ -49,11 +53,22 @@ class Detector(zdx.Base):
             raise TypeError('`shape` should be a tuple of two integers.')
         if any(size <= 0 for size in shape):
             raise ValueError('Detector dimensions should be positive.')
+        if distortion is None:
+            distortion = IdentityDistortion()
+        if not isinstance(distortion, Distortion):
+            raise TypeError('`distortion` should be a Distortion instance.')
 
         self.rotation = rotation
         self.offset = offset
         self.pixel_scale = pixel_scale
         self.shape = shape
+        self.distortion = distortion
+
+    def distort(self, xy):
+        ''' Apply displacements in normalized detector coordinates '''
+        scale = jnp.asarray(self.shape, dtype=xy.dtype) / 2
+        normalized = xy / scale
+        return (normalized + self.distortion(normalized)) * scale
 
     def __call__(self, xy):
         ''' Transform focal-plane coordinates onto this detector '''
@@ -66,7 +81,8 @@ class Detector(zdx.Base):
         rotation = jnp.broadcast_to(self.rotation, (size,))
         offset = jnp.broadcast_to(self.offset, (size, 2))
         pixel_scale = jnp.broadcast_to(self.pixel_scale, (size, 2))
-        return _affine_transform(xy, rotation, offset, pixel_scale)
+        pixel_xy = _affine_transform(xy, rotation, offset, pixel_scale)
+        return self.distort(pixel_xy)
 
 
 def _apply_detectors(detectors, xy, detector_index):
@@ -89,9 +105,12 @@ def _apply_detectors(detectors, xy, detector_index):
     offset = jnp.stack([detector.offset for detector in detectors])
     pixel_scale = jnp.stack([
         detector.pixel_scale for detector in detectors])
-    return _affine_transform(
+    pixel_xy = _affine_transform(
         xy,
         rotation[detector_index],
         offset[detector_index],
         pixel_scale[detector_index],
     )
+    distorted = jnp.stack([
+        detector.distort(pixel_xy) for detector in detectors])
+    return distorted[detector_index, jnp.arange(xy.shape[0])]

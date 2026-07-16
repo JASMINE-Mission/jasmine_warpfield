@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 ''' Astrometric measurements for differentiable analysis '''
 
+from astropy.table import QTable
+import astropy.units as u
 from jax import Array
 import jax.numpy as jnp
+import numpy as np
 import zodiax as zdx
 
 
@@ -73,3 +76,62 @@ class Measurement(zdx.Base):
 
     def __len__(self):
         return self.xy.shape[0]
+
+    def to_qtable(self):
+        ''' Convert measurements into a unit-aware QTable '''
+        table = QTable({
+            'measurement_id': np.arange(len(self), dtype=int),
+            'x': np.asarray(self.xy[:, 0]) * u.pix,
+            'y': np.asarray(self.xy[:, 1]) * u.pix,
+            'source_id': np.asarray(self.source_index, dtype=int),
+            'exposure_id': np.asarray(self.exposure_index, dtype=int),
+            'detector_id': np.asarray(self.detector_index, dtype=int),
+        })
+        if self.uncertainty is not None:
+            table['x_error'] = np.asarray(self.uncertainty[:, 0]) * u.pix
+            table['y_error'] = np.asarray(self.uncertainty[:, 1]) * u.pix
+        return table
+
+    @classmethod
+    def from_qtable(cls, table):
+        ''' Construct measurements from a unit-aware QTable '''
+        if not isinstance(table, QTable):
+            raise TypeError('`table` should be a QTable instance.')
+        required = ('x', 'y', 'source_id', 'exposure_id', 'detector_id')
+        missing = [name for name in required if name not in table.colnames]
+        if missing:
+            raise ValueError(
+                '`table` is missing required columns: '
+                + ', '.join(missing))
+        try:
+            xy = np.stack([
+                u.Quantity(table[name]).to_value(u.pix)
+                for name in ('x', 'y')
+            ], axis=1)
+        except u.UnitConversionError as error:
+            raise ValueError(
+                'Measurement coordinates should have pixel units.') from error
+
+        error_columns = [
+            name in table.colnames for name in ('x_error', 'y_error')]
+        if any(error_columns) and not all(error_columns):
+            raise ValueError(
+                '`table` should contain both x_error and y_error.')
+        uncertainty = None
+        if all(error_columns):
+            try:
+                uncertainty = np.stack([
+                    u.Quantity(table[name]).to_value(u.pix)
+                    for name in ('x_error', 'y_error')
+                ], axis=1)
+            except u.UnitConversionError as error:
+                raise ValueError(
+                    'Measurement errors should have pixel units.') from error
+
+        return cls(
+            xy=xy,
+            source_index=table['source_id'],
+            exposure_index=table['exposure_id'],
+            detector_index=table['detector_id'],
+            uncertainty=uncertainty,
+        )

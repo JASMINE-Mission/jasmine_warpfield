@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import jax.numpy as jnp
+import astropy.units as u
 import numpy as np
-from pytest import approx, fixture, mark
+from pytest import approx, fixture, mark, raises
 
 from warpfield.analysis.utils import (
     _affine_transform,
     _degree_to_radian,
     _rotation_matrix,
+    plate_scale,
 )
 
 
@@ -22,6 +24,24 @@ def generate(rotation, offset, pixel_scale):
     offset = jnp.array([offset, ] * 5)
     pixel_scale = jnp.array([pixel_scale, ] * 5)
     return rotation, offset, pixel_scale
+
+
+def test_plate_scale():
+    expected = 1000 * np.pi / 180
+
+    assert plate_scale(1.0 * u.m) == approx([expected, expected])
+    assert plate_scale(100.0 * u.cm) == approx([expected, expected])
+
+
+def test_plate_scale_validation():
+    with raises(TypeError, match='Astropy Quantity'):
+        plate_scale(1000.0)
+    with raises(ValueError, match='length units'):
+        plate_scale(1.0 * u.deg)
+    with raises(ValueError, match='scalar'):
+        plate_scale([1.0, 2.0] * u.m)
+    with raises(ValueError, match='finite and positive'):
+        plate_scale(0.0 * u.m)
 
 
 def test_degree_to_radian():

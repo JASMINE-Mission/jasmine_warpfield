@@ -11,6 +11,9 @@ __all__ = ['Calibration']
 class Calibration(zdx.Base):
     ''' Interface for exposure-dependent calibration parameters '''
 
+    def __getitem__(self, index):
+        raise NotImplementedError
+
     @property
     def num_exposure(self):
         ''' Number of calibrated exposures, or None when unrestricted '''

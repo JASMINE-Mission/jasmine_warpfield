@@ -3,6 +3,8 @@
 
 import jax
 import jax.numpy as jnp
+from astropy.table import QTable
+import astropy.units as u
 from pytest import approx, raises
 import zodiax as zdx
 
@@ -44,6 +46,31 @@ def test_identity_calibrated_exposure():
         jnp.ones((2, 1)))
 
 
+def test_exposure_index_accessor():
+    exposure = Exposure(
+        generate_pointing(),
+        ScaleCalibration([0.0, 0.1]),
+    )
+
+    selected = exposure[1]
+
+    assert isinstance(selected, Exposure)
+    assert len(selected) == 1
+    assert selected.pointing.ra == approx([20.0])
+    assert selected.pointing.dec == approx([-20.0])
+    assert selected.pointing.position_angle == approx([2.0])
+    assert selected.calibration.coefficient == approx([0.1])
+
+
+def test_identity_exposure_index_accessor():
+    exposure = Exposure(generate_pointing(), IdentityCalibration())
+
+    selected = exposure[:1]
+
+    assert len(selected) == 1
+    assert isinstance(selected.calibration, IdentityCalibration)
+
+
 def test_exposure_zodiax_update():
     exposure = Exposure(generate_pointing(), ScaleCalibration([0.0, 0.1]))
     updated = exposure.set(
@@ -62,3 +89,41 @@ def test_exposure_validation():
         Exposure(pointing, object())
     with raises(ValueError, match='same length'):
         Exposure(pointing, ScaleCalibration([0.0]))
+
+
+def test_scale_calibrated_exposure_qtable_roundtrip():
+    exposure = Exposure(
+        generate_pointing(),
+        ScaleCalibration([0.0, 0.1]),
+    )
+
+    table = exposure.to_qtable()
+    restored = Exposure.from_qtable(table)
+
+    assert table.meta['calibration'] == 'scale'
+    assert table['scale_coefficient'].unit == u.dimensionless_unscaled
+    assert isinstance(restored.calibration, ScaleCalibration)
+    assert restored.pointing.ra == approx(exposure.pointing.ra)
+    assert restored.calibration.coefficient == approx([0.0, 0.1])
+
+
+def test_identity_calibrated_exposure_qtable_roundtrip():
+    exposure = Exposure(generate_pointing(), IdentityCalibration())
+
+    table = exposure.to_qtable()
+    restored = Exposure.from_qtable(table)
+
+    assert table.meta['calibration'] == 'identity'
+    assert isinstance(restored.calibration, IdentityCalibration)
+
+
+def test_exposure_qtable_validation():
+    table = generate_pointing().to_qtable()
+    table.meta['calibration'] = 'scale'
+    with raises(ValueError, match='scale_coefficient'):
+        Exposure.from_qtable(table)
+
+    table = QTable(table)
+    table.meta['calibration'] = 'unknown'
+    with raises(ValueError, match='Unsupported calibration'):
+        Exposure.from_qtable(table)

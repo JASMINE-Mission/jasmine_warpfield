@@ -8,7 +8,14 @@ from pytest import approx, raises
 import zodiax as zdx
 
 from warpfield.analysis import Detector
+from warpfield.analysis.detector import _apply_detectors
+from warpfield.analysis.distortion import Distortion, IdentityDistortion
 from warpfield.analysis.utils import _affine_transform
+
+
+class LinearDistortion(Distortion):
+    def __call__(self, xy):
+        return xy
 
 
 def generate_detector():
@@ -27,6 +34,7 @@ def test_detector():
     assert detector.offset == approx([1.0, 2.0])
     assert detector.pixel_scale == approx([0.5, 2.0])
     assert detector.shape == (1024, 1024)
+    assert isinstance(detector.distortion, IdentityDistortion)
     assert len(jax.tree_util.tree_leaves(detector)) == 3
 
 
@@ -58,6 +66,41 @@ def test_detector_gradient():
     assert jnp.isfinite(gradient.pixel_scale).all()
 
 
+def test_detector_distortion_in_normalized_coordinates():
+    detector = Detector(
+        rotation=0.0,
+        offset=[0.0, 0.0],
+        pixel_scale=[1.0, 1.0],
+        shape=(100, 200),
+        distortion=LinearDistortion(),
+    )
+
+    assert detector(jnp.array([[10.0, 20.0]])) == approx(
+        jnp.array([[20.0, 40.0]]))
+
+
+def test_apply_detector_distortions():
+    detectors = (
+        Detector(
+            0.0, [0.0, 0.0], [1.0, 1.0], shape=(100, 200)),
+        Detector(
+            0.0,
+            [0.0, 0.0],
+            [1.0, 1.0],
+            shape=(100, 200),
+            distortion=LinearDistortion(),
+        ),
+    )
+
+    actual = _apply_detectors(
+        detectors,
+        jnp.array([[10.0, 20.0], [10.0, 20.0]]),
+        jnp.array([0, 1]),
+    )
+
+    assert actual == approx(jnp.array([[10.0, 20.0], [20.0, 40.0]]))
+
+
 def test_detector_zodiax_update():
     detector = generate_detector()
     updated = detector.set('offset', jnp.ones(2))
@@ -77,6 +120,9 @@ def test_detector_shape_validation():
         Detector(0.0, [0.0, 0.0], [1.0, 1.0], [1024, 1024])
     with raises(ValueError, match='positive'):
         Detector(0.0, [0.0, 0.0], [1.0, 1.0], (0, 1024))
+    with raises(TypeError, match='Distortion'):
+        Detector(
+            0.0, [0.0, 0.0], [1.0, 1.0], distortion=object())
 
 
 def test_detector_input_validation():
