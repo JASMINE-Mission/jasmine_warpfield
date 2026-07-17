@@ -5,7 +5,7 @@ import numpy as np
 from pytest import approx, raises
 
 from warpfield.distortion import IdentityDistortion, SIPDistortion
-from warpfield.instrument.jasmine import get_jasmine
+from warpfield.model import get_jasmine
 from warpfield.simulator import Simulator
 from warpfield.telescope import Telescope
 from warpfield.utils import plate_scale

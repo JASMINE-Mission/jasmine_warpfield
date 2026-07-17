@@ -27,7 +27,7 @@ example is described below.
 ```python
 from warpfield import Exposure, Pointing, SourceCatalog
 from warpfield.calibration import IdentityCalibration
-from warpfield.instrument.jasmine import get_jasmine
+from warpfield.model import get_jasmine
 
 telescope = get_jasmine(simulator=True)
 source = SourceCatalog(

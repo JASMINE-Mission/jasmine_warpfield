@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Nominal JASMINE telescope preset '''
+''' Nominal JASMINE system model '''
 
 import astropy.units as u
 import numpy as np
