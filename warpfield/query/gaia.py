@@ -31,18 +31,36 @@ def _column(table, name):
             f'Gaia table is missing required column: {name}') from error
 
 
+def _optional_column(table, name):
+    ''' Find an optional Gaia column without depending on letter case '''
+    columns = {column.casefold(): column for column in table.colnames}
+    column = columns.get(name.casefold())
+    return None if column is None else table[column]
+
+
 def compile_from_gaia(table):
     ''' Convert a Gaia result table into an AstrometricCatalog
 
     The input should contain ``ra``, ``dec``, ``pmra``, ``pmdec``,
     ``parallax``, and ``ref_epoch``. Gaia ``pmra`` is interpreted as proper
     motion in right ascension including the cosine declination factor.
+    Astrometric errors and G-band photometry are included when their columns
+    are available. Magnitude errors are derived from G-band flux
+    signal-to-noise ratios.
     '''
     if not isinstance(table, Table):
         raise TypeError('`table` should be an Astropy Table instance.')
     table = QTable(table)
 
     epoch = u.Quantity(_column(table, 'ref_epoch'), unit=u.yr)
+    flux_snr = _optional_column(table, 'phot_g_mean_flux_over_error')
+    magnitude_error = None
+    if flux_snr is not None:
+        magnitude_error = (
+            2.5 / np.log(10)
+            / u.Quantity(flux_snr, unit=u.one)
+            * u.mag
+        )
     return AstrometricCatalog(
         ra=_column(table, 'ra'),
         dec=_column(table, 'dec'),
@@ -50,6 +68,13 @@ def compile_from_gaia(table):
         pm_dec=_column(table, 'pmdec'),
         parallax=_column(table, 'parallax'),
         epoch=Time(epoch.to_value(u.yr), format='jyear', scale='tcb'),
+        magnitude=_optional_column(table, 'phot_g_mean_mag'),
+        magnitude_error=magnitude_error,
+        ra_error=_optional_column(table, 'ra_error'),
+        dec_error=_optional_column(table, 'dec_error'),
+        pm_ra_cosdec_error=_optional_column(table, 'pmra_error'),
+        pm_dec_error=_optional_column(table, 'pmdec_error'),
+        parallax_error=_optional_column(table, 'parallax_error'),
     )
 
 
@@ -83,10 +108,17 @@ def _build_query(center, radius, snr_limit, row_limit, catalog):
 SELECT {top}
     source_id,
     ra,
+    ra_error,
     dec,
+    dec_error,
     pmra,
+    pmra_error,
     pmdec,
+    pmdec_error,
     parallax,
+    parallax_error,
+    phot_g_mean_mag,
+    phot_g_mean_flux_over_error,
     ref_epoch
 FROM {catalog}
 WHERE
@@ -103,6 +135,8 @@ WHERE
     AND pmra IS NOT NULL
     AND pmdec IS NOT NULL
     AND parallax IS NOT NULL
+    AND phot_g_mean_mag IS NOT NULL
+    AND phot_g_mean_flux_over_error IS NOT NULL
 '''
 
 

@@ -35,6 +35,24 @@ def test_source_catalog():
     assert len(jax.tree_util.tree_leaves(source)) == 2
 
 
+def test_source_catalog_optional_attributes():
+    source = SourceCatalog(
+        [1.0, 2.0],
+        [3.0, 4.0],
+        magnitude=[15.0, 16.0],
+        magnitude_error=[0.01, 0.02],
+        ra_error=[1.0e-6, 2.0e-6],
+        dec_error=[3.0e-6, 4.0e-6],
+    )
+
+    assert source.magnitude == approx([15.0, 16.0])
+    assert source.magnitude_error == approx([0.01, 0.02])
+    assert source.ra_error == approx([1.0e-6, 2.0e-6])
+    assert source.dec_error == approx([3.0e-6, 4.0e-6])
+    assert len(jax.tree_util.tree_leaves(source)) == 6
+    assert source[1].magnitude == approx([16.0])
+
+
 def test_source_catalog_zodiax_update():
     source = SourceCatalog([1.0, 2.0], [3.0, 4.0])
     updated = source.set('ra', jnp.array([5.0, 6.0]))
@@ -61,10 +79,21 @@ def test_source_catalog_shape_validation():
         SourceCatalog([[1.0]], [2.0])
     with raises(ValueError, match='same shape'):
         SourceCatalog([1.0], [2.0, 3.0])
+    with raises(ValueError, match='magnitude.*same shape'):
+        SourceCatalog([1.0], [2.0], magnitude=[15.0, 16.0])
+    with raises(ValueError, match='magnitude_error.*non-negative'):
+        SourceCatalog([1.0], [2.0], magnitude_error=[-0.1])
 
 
 def test_source_catalog_qtable_roundtrip():
-    source = SourceCatalog([1.0, 2.0], [3.0, 4.0])
+    source = SourceCatalog(
+        [1.0, 2.0],
+        [3.0, 4.0],
+        magnitude=[15.0, 16.0],
+        magnitude_error=[0.01, 0.02],
+        ra_error=[1.0e-6, 2.0e-6],
+        dec_error=[3.0e-6, 4.0e-6],
+    )
 
     table = source.to_qtable()
     restored = SourceCatalog.from_qtable(table)
@@ -75,8 +104,16 @@ def test_source_catalog_qtable_roundtrip():
     assert table['source_id'] == approx([0, 1])
     assert table['ra'].unit == u.deg
     assert table['dec'].unit == u.deg
+    assert table['magnitude'].unit == u.mag
+    assert table['magnitude_error'].unit == u.mag
+    assert table['ra_error'].unit == u.deg
+    assert table['dec_error'].unit == u.deg
     assert restored.ra == approx(source.ra)
     assert restored.dec == approx(source.dec)
+    assert restored.magnitude == approx(source.magnitude)
+    assert restored.magnitude_error == approx(source.magnitude_error)
+    assert restored.ra_error == approx(source.ra_error)
+    assert restored.dec_error == approx(source.dec_error)
 
 
 def test_source_catalog_qtable_validation():
@@ -105,6 +142,37 @@ def test_astrometric_catalog():
     assert not isinstance(catalog, zdx.Base)
     assert catalog.skycoord.frame.name == 'icrs'
     assert catalog.skycoord.obstime == Time('2016-01-01')
+    assert catalog.magnitude is None
+    assert catalog.parallax_error is None
+
+
+def test_astrometric_catalog_optional_attributes():
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+        magnitude=[15.0, 16.0] * u.mag,
+        magnitude_error=[0.01, 0.02] * u.mag,
+        ra_error=[0.1, 0.2] * u.mas,
+        dec_error=[0.3, 0.4] * u.mas,
+        pm_ra_cosdec_error=[0.5, 0.6] * u.mas / u.yr,
+        pm_dec_error=[0.7, 0.8] * u.mas / u.yr,
+        parallax_error=[0.9, 1.0] * u.mas,
+    )
+
+    assert catalog.magnitude.to_value(u.mag) == approx([15.0, 16.0])
+    assert catalog.magnitude_error.to_value(u.mag) == approx([0.01, 0.02])
+    assert catalog.ra_error.to_value(u.mas) == approx([0.1, 0.2])
+    assert catalog.dec_error.to_value(u.mas) == approx([0.3, 0.4])
+    assert catalog.pm_ra_cosdec_error.to_value(
+        u.mas / u.yr) == approx([0.5, 0.6])
+    assert catalog.pm_dec_error.to_value(
+        u.mas / u.yr) == approx([0.7, 0.8])
+    assert catalog.parallax_error.to_value(u.mas) == approx([0.9, 1.0])
+    assert catalog[1].magnitude.to_value(u.mag) == approx([16.0])
 
 
 def test_astrometric_catalog_index_and_iteration():
@@ -147,6 +215,30 @@ def test_astrometric_catalog_propagate():
     assert isinstance(source, SourceCatalog)
     assert source.ra == approx(expected.ra.degree)
     assert source.dec == approx(expected.dec.degree)
+
+
+def test_astrometric_catalog_propagate_optional_attributes():
+    catalog = AstrometricCatalog(
+        ra=[10.0] * u.deg,
+        dec=[-5.0] * u.deg,
+        pm_ra_cosdec=[1.0] * u.mas / u.yr,
+        pm_dec=[3.0] * u.mas / u.yr,
+        parallax=[5.0] * u.mas,
+        epoch=Time('2016-01-01'),
+        magnitude=[15.0] * u.mag,
+        magnitude_error=[0.01] * u.mag,
+        ra_error=[0.1] * u.mas,
+        dec_error=[0.2] * u.mas,
+    )
+
+    source = catalog.propagate(GeoCentric(Time('2025-01-01')))
+
+    assert source.magnitude == approx([15.0])
+    assert source.magnitude_error == approx([0.01])
+    assert source.ra_error == approx(
+        [u.Quantity(0.1, u.mas).to_value(u.deg)])
+    assert source.dec_error == approx(
+        [u.Quantity(0.2, u.mas).to_value(u.deg)])
 
 
 def test_astrometric_catalog_propagate_barycentric():
@@ -318,6 +410,13 @@ def test_astrometric_catalog_qtable_roundtrip():
         pm_dec=[3.0, 4.0] * u.mas / u.yr,
         parallax=[5.0, 10.0] * u.mas,
         epoch=Time('2016-01-01'),
+        magnitude=[15.0, 16.0] * u.mag,
+        magnitude_error=[0.01, 0.02] * u.mag,
+        ra_error=[0.1, 0.2] * u.mas,
+        dec_error=[0.3, 0.4] * u.mas,
+        pm_ra_cosdec_error=[0.5, 0.6] * u.mas / u.yr,
+        pm_dec_error=[0.7, 0.8] * u.mas / u.yr,
+        parallax_error=[0.9, 1.0] * u.mas,
     )
 
     table = catalog.to_qtable()
@@ -334,6 +433,15 @@ def test_astrometric_catalog_qtable_roundtrip():
     assert restored.pm_ra_cosdec.to_value(u.mas / u.yr) == approx([1.0, 2.0])
     assert restored.pm_dec.to_value(u.mas / u.yr) == approx([3.0, 4.0])
     assert restored.parallax.to_value(u.mas) == approx([5.0, 10.0])
+    assert restored.magnitude.to_value(u.mag) == approx([15.0, 16.0])
+    assert restored.magnitude_error.to_value(u.mag) == approx([0.01, 0.02])
+    assert restored.ra_error.to_value(u.mas) == approx([0.1, 0.2])
+    assert restored.dec_error.to_value(u.mas) == approx([0.3, 0.4])
+    assert restored.pm_ra_cosdec_error.to_value(
+        u.mas / u.yr) == approx([0.5, 0.6])
+    assert restored.pm_dec_error.to_value(
+        u.mas / u.yr) == approx([0.7, 0.8])
+    assert restored.parallax_error.to_value(u.mas) == approx([0.9, 1.0])
     assert np.all(
         restored.epoch == Time(['2016-01-01', '2016-01-01']))
 
@@ -365,5 +473,11 @@ def test_astrometric_catalog_validation():
         AstrometricCatalog(**(values | {'parallax': [5.0, 6.0] * u.mas}))
     with raises(ValueError, match='non-negative'):
         AstrometricCatalog(**(values | {'parallax': [-1.0] * u.mas}))
+    with raises(ValueError, match='ra_error.*same shape'):
+        AstrometricCatalog(**(
+            values | {'ra_error': [0.1, 0.2] * u.mas}))
+    with raises(ValueError, match='parallax_error.*non-negative'):
+        AstrometricCatalog(**(
+            values | {'parallax_error': [-0.1] * u.mas}))
     with raises(TypeError, match='Observer'):
         AstrometricCatalog(**values).propagate(GCRS(obstime=values['epoch']))

@@ -20,6 +20,41 @@ from .observer import Observer
 __all__ = ['AstrometricCatalog', 'SourceCatalog']
 
 
+def _optional_quantity(value, unit, name, shape, *, non_negative=False):
+    ''' Validate one optional unit-aware catalog attribute '''
+    if value is None:
+        return None
+    value = Quantity(value, unit=unit)
+    if value.shape != shape:
+        raise ValueError(f'`{name}` should have the same shape as `ra`.')
+    numeric = value.to_value(unit)
+    if np.any(~np.isfinite(numeric)):
+        raise ValueError(f'`{name}` should contain finite values.')
+    if non_negative and np.any(numeric < 0):
+        raise ValueError(f'`{name}` should be non-negative.')
+    return value
+
+
+def _optional_array(value, name, shape, *, non_negative=False):
+    ''' Validate one optional array-valued catalog attribute '''
+    if value is None:
+        return None
+    value = jnp.asarray(value, dtype=float)
+    if value.shape != shape:
+        raise ValueError(f'`{name}` should have the same shape as `ra`.')
+    numeric = np.asarray(value)
+    if np.any(~np.isfinite(numeric)):
+        raise ValueError(f'`{name}` should contain finite values.')
+    if non_negative and np.any(numeric < 0):
+        raise ValueError(f'`{name}` should be non-negative.')
+    return value
+
+
+def _select_optional(value, index):
+    ''' Select an optional catalog attribute '''
+    return None if value is None else value[index]
+
+
 @dataclass(frozen=True, init=False)
 class AstrometricCatalog:
     ''' Astrometric source parameters at a reference epoch
@@ -32,6 +67,14 @@ class AstrometricCatalog:
         pm_dec: Proper motions in declination with shape ``(N_source,)``.
         parallax: Annual parallaxes with shape ``(N_source,)``.
         epoch: Reference epoch of the catalog.
+        magnitude: Optional magnitudes with shape ``(N_source,)``.
+        magnitude_error: Optional magnitude uncertainties.
+        ra_error: Optional right-ascension uncertainties.
+        dec_error: Optional declination uncertainties.
+        pm_ra_cosdec_error: Optional proper-motion uncertainties in right
+            ascension including the cosine declination factor.
+        pm_dec_error: Optional proper-motion uncertainties in declination.
+        parallax_error: Optional parallax uncertainties.
     '''
 
     ra: Angle
@@ -40,9 +83,19 @@ class AstrometricCatalog:
     pm_dec: Quantity
     parallax: Quantity
     epoch: Time
+    magnitude: Quantity | None
+    magnitude_error: Quantity | None
+    ra_error: Quantity | None
+    dec_error: Quantity | None
+    pm_ra_cosdec_error: Quantity | None
+    pm_dec_error: Quantity | None
+    parallax_error: Quantity | None
 
     def __init__(
-            self, ra, dec, pm_ra_cosdec, pm_dec, parallax, epoch):
+            self, ra, dec, pm_ra_cosdec, pm_dec, parallax, epoch, *,
+            magnitude=None, magnitude_error=None, ra_error=None,
+            dec_error=None, pm_ra_cosdec_error=None, pm_dec_error=None,
+            parallax_error=None):
         ra = Angle(ra, unit=u.deg)
         dec = Angle(dec, unit=u.deg)
         pm_ra_cosdec = Quantity(pm_ra_cosdec, unit=u.mas / u.yr)
@@ -69,6 +122,41 @@ class AstrometricCatalog:
         if np.any(parallax < 0 * u.mas):
             raise ValueError('`parallax` should be non-negative.')
 
+        magnitude = _optional_quantity(
+            magnitude, u.mag, 'magnitude', shape)
+        magnitude_error = _optional_quantity(
+            magnitude_error,
+            u.mag,
+            'magnitude_error',
+            shape,
+            non_negative=True,
+        )
+        ra_error = _optional_quantity(
+            ra_error, u.mas, 'ra_error', shape, non_negative=True)
+        dec_error = _optional_quantity(
+            dec_error, u.mas, 'dec_error', shape, non_negative=True)
+        pm_ra_cosdec_error = _optional_quantity(
+            pm_ra_cosdec_error,
+            u.mas / u.yr,
+            'pm_ra_cosdec_error',
+            shape,
+            non_negative=True,
+        )
+        pm_dec_error = _optional_quantity(
+            pm_dec_error,
+            u.mas / u.yr,
+            'pm_dec_error',
+            shape,
+            non_negative=True,
+        )
+        parallax_error = _optional_quantity(
+            parallax_error,
+            u.mas,
+            'parallax_error',
+            shape,
+            non_negative=True,
+        )
+
         # Constructing SkyCoord here also validates the declination range and
         # the compatibility of the supplied Astropy quantities.
         self._to_skycoord(ra, dec, pm_ra_cosdec, pm_dec, parallax, epoch)
@@ -79,6 +167,14 @@ class AstrometricCatalog:
         object.__setattr__(self, 'pm_dec', pm_dec)
         object.__setattr__(self, 'parallax', parallax)
         object.__setattr__(self, 'epoch', epoch)
+        object.__setattr__(self, 'magnitude', magnitude)
+        object.__setattr__(self, 'magnitude_error', magnitude_error)
+        object.__setattr__(self, 'ra_error', ra_error)
+        object.__setattr__(self, 'dec_error', dec_error)
+        object.__setattr__(
+            self, 'pm_ra_cosdec_error', pm_ra_cosdec_error)
+        object.__setattr__(self, 'pm_dec_error', pm_dec_error)
+        object.__setattr__(self, 'parallax_error', parallax_error)
 
     @staticmethod
     def _to_skycoord(
@@ -119,6 +215,14 @@ class AstrometricCatalog:
             self.pm_dec[index],
             self.parallax[index],
             epoch,
+            magnitude=_select_optional(self.magnitude, index),
+            magnitude_error=_select_optional(self.magnitude_error, index),
+            ra_error=_select_optional(self.ra_error, index),
+            dec_error=_select_optional(self.dec_error, index),
+            pm_ra_cosdec_error=_select_optional(
+                self.pm_ra_cosdec_error, index),
+            pm_dec_error=_select_optional(self.pm_dec_error, index),
+            parallax_error=_select_optional(self.parallax_error, index),
         )
 
     def __iter__(self):
@@ -131,7 +235,7 @@ class AstrometricCatalog:
         epoch = self.epoch
         if epoch.isscalar:
             epoch = epoch + np.zeros(len(self)) * u.day
-        return QTable({
+        table = QTable({
             'source_id': np.arange(len(self), dtype=int),
             'ra': self.ra,
             'dec': self.dec,
@@ -140,6 +244,18 @@ class AstrometricCatalog:
             'parallax': self.parallax,
             'epoch': epoch,
         })
+        for name in (
+                'magnitude',
+                'magnitude_error',
+                'ra_error',
+                'dec_error',
+                'pm_ra_cosdec_error',
+                'pm_dec_error',
+                'parallax_error'):
+            value = getattr(self, name)
+            if value is not None:
+                table[name] = value
+        return table
 
     @classmethod
     def from_qtable(cls, table):
@@ -152,6 +268,18 @@ class AstrometricCatalog:
             pm_dec=table['pm_dec'],
             parallax=table['parallax'],
             epoch=Time(table['epoch']),
+            **{
+                name: table[name] if name in table.colnames else None
+                for name in (
+                    'magnitude',
+                    'magnitude_error',
+                    'ra_error',
+                    'dec_error',
+                    'pm_ra_cosdec_error',
+                    'pm_dec_error',
+                    'parallax_error',
+                )
+            },
         )
 
     @staticmethod
@@ -173,7 +301,12 @@ class AstrometricCatalog:
                 + ', '.join(missing))
 
     def propagate(self, observer):
-        ''' Generate apparent source positions in an observer frame '''
+        ''' Generate apparent source positions in an observer frame
+
+        Magnitudes and their uncertainties are copied unchanged. Coordinate
+        uncertainties are converted to degrees and copied without propagating
+        proper-motion, parallax, or covariance uncertainties.
+        '''
         if not isinstance(observer, Observer):
             raise TypeError('`observer` should be an Observer instance.')
         if not hasattr(observer, 'obstime'):
@@ -186,6 +319,14 @@ class AstrometricCatalog:
         return SourceCatalog(
             apparent.spherical.lon.to_value(u.deg),
             apparent.spherical.lat.to_value(u.deg),
+            magnitude=None if self.magnitude is None else (
+                self.magnitude.to_value(u.mag)),
+            magnitude_error=None if self.magnitude_error is None else (
+                self.magnitude_error.to_value(u.mag)),
+            ra_error=None if self.ra_error is None else (
+                self.ra_error.to_value(u.deg)),
+            dec_error=None if self.dec_error is None else (
+                self.dec_error.to_value(u.deg)),
         )
 
 
@@ -195,12 +336,22 @@ class SourceCatalog(zdx.Base):
     Attributes:
         ra: Right ascensions in degrees with shape ``(N_source,)``.
         dec: Declinations in degrees with shape ``(N_source,)``.
+        magnitude: Optional magnitudes with shape ``(N_source,)``.
+        magnitude_error: Optional magnitude uncertainties in magnitudes.
+        ra_error: Optional right-ascension uncertainties in degrees.
+        dec_error: Optional declination uncertainties in degrees.
     '''
 
     ra: Array
     dec: Array
+    magnitude: Array | None
+    magnitude_error: Array | None
+    ra_error: Array | None
+    dec_error: Array | None
 
-    def __init__(self, ra, dec):
+    def __init__(
+            self, ra, dec, *, magnitude=None, magnitude_error=None,
+            ra_error=None, dec_error=None):
         ra = jnp.asarray(ra, dtype=float)
         dec = jnp.asarray(dec, dtype=float)
 
@@ -211,8 +362,24 @@ class SourceCatalog(zdx.Base):
         if ra.shape != dec.shape:
             raise ValueError('`ra` and `dec` should have the same shape.')
 
+        magnitude = _optional_array(magnitude, 'magnitude', ra.shape)
+        magnitude_error = _optional_array(
+            magnitude_error,
+            'magnitude_error',
+            ra.shape,
+            non_negative=True,
+        )
+        ra_error = _optional_array(
+            ra_error, 'ra_error', ra.shape, non_negative=True)
+        dec_error = _optional_array(
+            dec_error, 'dec_error', ra.shape, non_negative=True)
+
         self.ra = ra
         self.dec = dec
+        self.magnitude = magnitude
+        self.magnitude_error = magnitude_error
+        self.ra_error = ra_error
+        self.dec_error = dec_error
 
     def __len__(self):
         return self.ra.shape[0]
@@ -220,7 +387,14 @@ class SourceCatalog(zdx.Base):
     def __getitem__(self, index):
         ''' Select sources while preserving the catalog dimension '''
         index = np.atleast_1d(np.arange(len(self))[index])
-        return SourceCatalog(self.ra[index], self.dec[index])
+        return SourceCatalog(
+            self.ra[index],
+            self.dec[index],
+            magnitude=_select_optional(self.magnitude, index),
+            magnitude_error=_select_optional(self.magnitude_error, index),
+            ra_error=_select_optional(self.ra_error, index),
+            dec_error=_select_optional(self.dec_error, index),
+        )
 
     def __iter__(self):
         ''' Iterate over single-source catalogs '''
@@ -229,11 +403,22 @@ class SourceCatalog(zdx.Base):
 
     def to_qtable(self):
         ''' Convert catalog attributes into a unit-aware QTable '''
-        return QTable({
+        table = QTable({
             'source_id': np.arange(len(self), dtype=int),
             'ra': np.asarray(self.ra) * u.deg,
             'dec': np.asarray(self.dec) * u.deg,
         })
+        units = {
+            'magnitude': u.mag,
+            'magnitude_error': u.mag,
+            'ra_error': u.deg,
+            'dec_error': u.deg,
+        }
+        for name, unit in units.items():
+            value = getattr(self, name)
+            if value is not None:
+                table[name] = np.asarray(value) * unit
+        return table
 
     @classmethod
     def from_qtable(cls, table):
@@ -252,7 +437,24 @@ class SourceCatalog(zdx.Base):
         except u.UnitConversionError as error:
             raise ValueError(
                 '`ra` and `dec` should have angular units.') from error
-        return cls(ra, dec)
+        optional = {}
+        units = {
+            'magnitude': u.mag,
+            'magnitude_error': u.mag,
+            'ra_error': u.deg,
+            'dec_error': u.deg,
+        }
+        try:
+            for name, unit in units.items():
+                optional[name] = (
+                    u.Quantity(table[name]).to_value(unit)
+                    if name in table.colnames else None
+                )
+        except u.UnitConversionError as error:
+            raise ValueError(
+                'Optional source attributes have incompatible units.'
+            ) from error
+        return cls(ra, dec, **optional)
 
     def take(self, index):
         ''' Select source positions using an integer index array '''

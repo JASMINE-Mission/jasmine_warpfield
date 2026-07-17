@@ -17,10 +17,17 @@ def _gaia_table():
     return QTable({
         'source_id': [10, 20],
         'ra': [10.0, 20.0] * u.deg,
+        'ra_error': [0.1, 0.2] * u.mas,
         'dec': [-5.0, 15.0] * u.deg,
+        'dec_error': [0.3, 0.4] * u.mas,
         'pmra': [1.0, 2.0] * u.mas / u.yr,
+        'pmra_error': [0.5, 0.6] * u.mas / u.yr,
         'pmdec': [3.0, 4.0] * u.mas / u.yr,
+        'pmdec_error': [0.7, 0.8] * u.mas / u.yr,
         'parallax': [5.0, 10.0] * u.mas,
+        'parallax_error': [0.9, 1.0] * u.mas,
+        'phot_g_mean_mag': [15.0, 16.0] * u.mag,
+        'phot_g_mean_flux_over_error': [100.0, 50.0],
         'ref_epoch': [2016.0, 2016.0] * u.yr,
     })
 
@@ -34,6 +41,16 @@ def test_compile_from_gaia():
     assert catalog.pm_ra_cosdec.to_value(u.mas / u.yr) == approx([1.0, 2.0])
     assert catalog.pm_dec.to_value(u.mas / u.yr) == approx([3.0, 4.0])
     assert catalog.parallax.to_value(u.mas) == approx([5.0, 10.0])
+    assert catalog.magnitude.to_value(u.mag) == approx([15.0, 16.0])
+    assert catalog.magnitude_error.to_value(u.mag) == approx(
+        2.5 / np.log(10) / np.array([100.0, 50.0]))
+    assert catalog.ra_error.to_value(u.mas) == approx([0.1, 0.2])
+    assert catalog.dec_error.to_value(u.mas) == approx([0.3, 0.4])
+    assert catalog.pm_ra_cosdec_error.to_value(
+        u.mas / u.yr) == approx([0.5, 0.6])
+    assert catalog.pm_dec_error.to_value(
+        u.mas / u.yr) == approx([0.7, 0.8])
+    assert catalog.parallax_error.to_value(u.mas) == approx([0.9, 1.0])
     assert np.all(catalog.epoch == Time(
         [2016.0, 2016.0], format='jyear', scale='tcb'))
 
@@ -83,6 +100,7 @@ def test_query_gaia(monkeypatch):
     assert 'SELECT TOP 25' in captured['query']
     assert 'gaiadr3.gaia_source' in captured['query']
     assert 'parallax_over_error > 5.0' in captured['query']
+    assert 'phot_g_mean_mag' in captured['query']
 
 
 def test_query_gaia_validation():
