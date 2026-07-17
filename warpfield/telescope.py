@@ -5,27 +5,31 @@
 import jax.numpy as jnp
 import zodiax as zdx
 
-from .detector import Detector, _apply_detectors
+from .detector import Detector, _apply_detectors, _calculate_imaging_radius
+from .distortion import Distortion, IdentityDistortion
 from .optics import Optics
+from .projection import Projection
 
 
 __all__ = ['Telescope']
 
 
 class Telescope(zdx.Base):
-    ''' Composition of optics and detector models
+    ''' Composition of projection, distortion, and detector models
 
     Attributes:
-        optics: Projection and focal-plane distortion model.
+        optics: Internally constructed projection and distortion model.
         detectors: Detector geometry models.
     '''
 
     optics: Optics
     detectors: tuple[Detector, ...]
 
-    def __init__(self, optics, detectors):
-        if not isinstance(optics, Optics):
-            raise TypeError('`optics` should be an Optics instance.')
+    def __init__(
+            self, projection, plate_scale, detectors, *,
+            distortion=None, imaging_radius=None):
+        if not isinstance(projection, Projection):
+            raise TypeError('`projection` should be a Projection instance.')
         if not isinstance(detectors, tuple):
             raise TypeError('`detectors` should be a tuple of Detector.')
         if len(detectors) == 0:
@@ -33,8 +37,19 @@ class Telescope(zdx.Base):
                 '`detectors` should contain at least one Detector.')
         if not all(isinstance(detector, Detector) for detector in detectors):
             raise TypeError('`detectors` should contain only Detector.')
+        if distortion is None:
+            distortion = IdentityDistortion()
+        if not isinstance(distortion, Distortion):
+            raise TypeError('`distortion` should be a Distortion instance.')
+        if imaging_radius is None:
+            imaging_radius = _calculate_imaging_radius(detectors)
 
-        self.optics = optics
+        self.optics = Optics(
+            projection,
+            distortion,
+            plate_scale,
+            imaging_radius,
+        )
         self.detectors = detectors
 
     @staticmethod

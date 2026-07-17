@@ -5,8 +5,7 @@ import jax.numpy as jnp
 import numpy as np
 from pytest import approx, mark, raises
 
-from warpfield import Detector, Exposure, Optics, Pointing, Telescope
-from warpfield.distortion import IdentityDistortion
+from warpfield import Detector, Exposure, Pointing, Telescope
 from warpfield.footprint import (
     celestial_footprints,
     focalplane_footprints,
@@ -27,18 +26,13 @@ def generate_detector():
 
 
 def generate_telescope(projection):
-    optics = Optics(
-        projection,
-        IdentityDistortion(),
-        plate_scale=[1.0, 1.2],
-    )
     detector = Detector(
         rotation=20.0,
         offset=[0.01, -0.02],
         pixel_scale=[0.002, 0.003],
         shape=(20, 16),
     )
-    return Telescope(optics, (detector,))
+    return Telescope(projection, [1.0, 1.2], (detector,))
 
 
 def test_focalplane_footprints_from_detector():

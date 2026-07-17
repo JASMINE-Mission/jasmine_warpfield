@@ -23,18 +23,16 @@ class Optics(zdx.Base):
         distortion: Model that returns focal-plane coordinate displacements.
         plate_scale: Nominal focal-plane scale in mm/degree with shape
             ``(2,)``.
-        imaging_radius: Optional radius of the valid focal-plane region in
-            mm. The detector layout determines the radius when ``None``.
+        imaging_radius: Radius of the valid focal-plane region in mm.
     '''
 
     projection: Projection
     distortion: Distortion
     plate_scale: Array
-    imaging_radius: float | None = eqx.field(static=True)
+    imaging_radius: float = eqx.field(static=True)
 
     def __init__(
-            self, projection, distortion, plate_scale,
-            imaging_radius=None):
+            self, projection, distortion, plate_scale, imaging_radius):
         if not isinstance(projection, Projection):
             raise TypeError('`projection` should be a Projection instance.')
         if not isinstance(distortion, Distortion):
@@ -42,14 +40,13 @@ class Optics(zdx.Base):
         plate_scale = jnp.asarray(plate_scale, dtype=float)
         if plate_scale.shape != (2,):
             raise ValueError('`plate_scale` should have shape (2,).')
-        if imaging_radius is not None:
-            if (
-                    not isinstance(imaging_radius, (float, np.floating))
-                    or not np.isfinite(imaging_radius)
-                    or imaging_radius <= 0):
-                raise ValueError(
-                    '`imaging_radius` should be None or a positive float.')
-            imaging_radius = float(imaging_radius)
+        if (
+                not isinstance(imaging_radius, (float, np.floating))
+                or not np.isfinite(imaging_radius)
+                or imaging_radius <= 0):
+            raise ValueError(
+                '`imaging_radius` should be a positive float.')
+        imaging_radius = float(imaging_radius)
 
         self.projection = projection
         self.distortion = distortion
@@ -70,8 +67,11 @@ class Optics(zdx.Base):
         return self.projection(tel_ra, tel_dec, tel_pa, ra, dec, scale)
 
     def distort(self, xy):
-        ''' Apply coordinate displacements to ideal focal-plane positions '''
-        return xy + self.distortion(xy)
+        ''' Apply displacements evaluated in normalized focal-plane coordinates
+
+        Distortion inputs are normalized by ``imaging_radius``.
+        '''
+        return xy + self.distortion(xy / self.imaging_radius)
 
     def __call__(self, tel_ra, tel_dec, tel_pa, ra, dec, scale_factor):
         ''' Project sky coordinates and apply the configured distortion '''

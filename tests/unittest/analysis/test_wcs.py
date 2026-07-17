@@ -6,9 +6,8 @@ import jax.numpy as jnp
 import numpy as np
 from pytest import approx, mark, raises
 
-from warpfield import Detector, Exposure, Optics, Pointing, Telescope
+from warpfield import Detector, Exposure, Pointing, Telescope
 from warpfield.calibration import ScaleCalibration
-from warpfield.distortion import IdentityDistortion
 from warpfield.projection import (
     EquidistantProjection,
     GnomonicProjection,
@@ -17,16 +16,11 @@ from warpfield.wcs import generate_wcs
 
 
 def generate_telescope(projection):
-    optics = Optics(
-        projection,
-        IdentityDistortion(),
-        plate_scale=[2.0, 3.0],
-    )
     detectors = (
         Detector(20.0, [1.0, -2.0], [0.01, 0.02]),
         Detector(-15.0, [-1.5, 0.5], [0.02, 0.015]),
     )
-    return Telescope(optics, detectors)
+    return Telescope(projection, [2.0, 3.0], detectors)
 
 
 def generate_exposure():

@@ -87,7 +87,7 @@ def generate(src, env, ref, params={}):
             'pq', GnomonicProjection()(ax, dx, tx, rax, dex, sx))
         xy = numpyro.deterministic(
             'xy', pq + LegendreDistortion(
-                opt_A, opt_B, plane_scale)(pq))
+                opt_A, opt_B)(pq / plane_scale))
         ij = numpyro.deterministic(
             'ij', _apply_detectors(detectors, xy, didx))
 

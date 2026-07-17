@@ -15,7 +15,7 @@ import astropy.units as u
 def test_get_jasmine():
     jasmine = get_jasmine()
 
-    assert isinstance(jasmine, Simulator)
+    assert type(jasmine) is Telescope
     assert len(jasmine.detectors) == 4
     assert jasmine.optics.plate_scale == approx(
         plate_scale(4.86 * u.m)
@@ -45,10 +45,10 @@ def test_get_jasmine():
         ]))
 
 
-def test_get_jasmine_telescope():
-    jasmine = get_jasmine(simulator=False)
+def test_get_jasmine_simulator():
+    jasmine = get_jasmine(simulator=True)
 
-    assert type(jasmine) is Telescope
+    assert isinstance(jasmine, Simulator)
     assert len(jasmine.detectors) == 4
 
 

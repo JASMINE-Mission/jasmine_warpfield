@@ -7,7 +7,6 @@ import numpy as np
 
 from ..detector import Detector
 from ..distortion import Distortion, IdentityDistortion
-from ..optics import Optics
 from ..projection import GnomonicProjection
 from ..simulator import Simulator
 from ..telescope import Telescope
@@ -17,11 +16,11 @@ from ..utils import plate_scale
 __all__ = ['get_jasmine']
 
 
-def get_jasmine(distortion=None, simulator=True):
+def get_jasmine(distortion=None, simulator=False):
     ''' Return a Telescope configured for the nominal JASMINE focal plane
 
-    A masked ``Simulator`` is returned by default. Set ``simulator=False`` to
-    return the corresponding unmasked ``Telescope``.
+    An unmasked ``Telescope`` is returned by default. Set ``simulator=True`` to
+    return the corresponding masked ``Simulator``.
     '''
     if distortion is None:
         distortion = IdentityDistortion()
@@ -45,12 +44,6 @@ def get_jasmine(distortion=None, simulator=True):
     ).to_value(u.mm)
     imaging_radius = float(np.sqrt(2) * imaging_half_width)
 
-    optics = Optics(
-        projection=GnomonicProjection(),
-        distortion=distortion,
-        plate_scale=plate_scale(focal_length),
-        imaging_radius=imaging_radius,
-    )
     offsets = (
         (-half_step, -half_step),
         (+half_step, -half_step),
@@ -71,4 +64,10 @@ def get_jasmine(distortion=None, simulator=True):
         for rotation, offset in zip(rotations, offsets)
     )
     telescope_type = Simulator if simulator else Telescope
-    return telescope_type(optics, detectors)
+    return telescope_type(
+        projection=GnomonicProjection(),
+        distortion=distortion,
+        plate_scale=plate_scale(focal_length),
+        detectors=detectors,
+        imaging_radius=imaging_radius,
+    )

@@ -11,13 +11,11 @@ from warpfield import (
     Detector,
     Exposure,
     Measurement,
-    Optics,
     Pointing,
     SourceCatalog,
     Telescope,
 )
 from warpfield.calibration import ScaleCalibration
-from warpfield.distortion import IdentityDistortion
 from warpfield.projection import GnomonicProjection
 
 
@@ -33,15 +31,13 @@ def generate_astrometry():
     )
     calibration = ScaleCalibration(jnp.log(jnp.array([1.0, 1.1])))
     exposure = Exposure(pointing, calibration)
-    optics = Optics(
-        GnomonicProjection(), IdentityDistortion(), plate_scale=[2.0, 3.0])
     detectors = (
         Detector(0.0, [0.0, 0.0], [1.0, 1.0]),
         Detector(90.0, [1.0, 2.0], [0.5, 2.0]),
     )
     return Astrometry(
         source,
-        Telescope(optics, detectors),
+        Telescope(GnomonicProjection(), [2.0, 3.0], detectors),
         exposure,
     )
 

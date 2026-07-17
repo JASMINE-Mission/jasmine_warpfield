@@ -9,29 +9,26 @@ from warpfield import (
     Detector,
     Exposure,
     Measurement,
-    Optics,
     Pointing,
     Simulator,
     SourceCatalog,
     Telescope,
 )
 from warpfield.calibration import IdentityCalibration
-from warpfield.distortion import IdentityDistortion
 from warpfield.projection import GnomonicProjection
 
 
 def generate_simulator(detectors=None, imaging_radius=None):
-    optics = Optics(
-        GnomonicProjection(),
-        IdentityDistortion(),
-        plate_scale=[1.0, 1.0],
-        imaging_radius=imaging_radius,
-    )
     if detectors is None:
         detectors = (
             Detector(0.0, [0.0, 0.0], [1.0, 1.0], shape=(2, 4)),
         )
-    return Simulator(optics, detectors)
+    return Simulator(
+        GnomonicProjection(),
+        [1.0, 1.0],
+        detectors,
+        imaging_radius=imaging_radius,
+    )
 
 
 def test_simulator_masks():

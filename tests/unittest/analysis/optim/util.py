@@ -8,13 +8,11 @@ from warpfield import (
     Detector,
     Exposure,
     Measurement,
-    Optics,
     Pointing,
     SourceCatalog,
     Telescope,
 )
 from warpfield.calibration import IdentityCalibration
-from warpfield.distortion import IdentityDistortion
 from warpfield.projection import GnomonicProjection
 
 
@@ -25,12 +23,10 @@ def generate_problem():
     source = SourceCatalog([0.1], [0.2])
     pointing = Pointing([0.0], [0.0], [0.0])
     exposure = Exposure(pointing, IdentityCalibration())
-    optics = Optics(
-        GnomonicProjection(), IdentityDistortion(), plate_scale=[1.0, 1.0])
     detector = Detector(0.0, [0.0, 0.0], [1.0, 1.0])
     astrometry = Astrometry(
         source,
-        Telescope(optics, (detector,)),
+        Telescope(GnomonicProjection(), [1.0, 1.0], (detector,)),
         exposure,
     )
 

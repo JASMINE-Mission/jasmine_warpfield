@@ -6,12 +6,10 @@ from dataclasses import dataclass
 
 import equinox as eqx
 import jax.numpy as jnp
-import numpy as np
 
-from .detector import Detector
+from .detector import Detector, _focal_plane_corners
 from .exposure import Exposure
 from .measurement import Measurement
-from .optics import Optics
 from .source import SourceCatalog
 from .telescope import Telescope
 
@@ -44,41 +42,19 @@ def _generate_detector_mask(detector):
         raise TypeError('`detector` should be a Detector instance.')
 
     mask = _DetectorMask(detector.shape)
-    half = np.asarray(detector.shape, dtype=float) / 2
-    corners = np.array([
-        [-half[0], -half[1]],
-        [+half[0], -half[1]],
-        [+half[0], +half[1]],
-        [-half[0], +half[1]],
-    ])
-
-    angle = -np.deg2rad(float(detector.rotation))
-    rotation = np.array([
-        [np.cos(angle), -np.sin(angle)],
-        [np.sin(angle), +np.cos(angle)],
-    ])
-    scaled = corners * np.asarray(detector.pixel_scale)
-    focal_plane = np.asarray(detector.offset) + (rotation @ scaled.T).T
-    return mask, focal_plane
+    return mask, _focal_plane_corners(detector)
 
 
 def _generate_masks(optics, detectors):
     ''' Generate detector masks and their enclosing focal-plane mask '''
-    if not isinstance(optics, Optics):
-        raise TypeError('`optics` should be an Optics instance.')
-
     detector_masks = []
-    focal_plane_corners = []
     for detector in detectors:
-        mask, corners = _generate_detector_mask(detector)
+        mask, _ = _generate_detector_mask(detector)
         detector_masks.append(mask)
-        focal_plane_corners.append(corners)
-
-    corners = np.concatenate(focal_plane_corners)
-    radius = float(np.sqrt(np.sum(corners**2, axis=1)).max())
-    if optics.imaging_radius is not None:
-        radius = optics.imaging_radius
-    return _CircularMask(radius), tuple(detector_masks)
+    return (
+        _CircularMask(optics.imaging_radius),
+        tuple(detector_masks),
+    )
 
 
 class Simulator(Telescope):
@@ -94,8 +70,16 @@ class Simulator(Telescope):
     fov_mask: _CircularMask = eqx.field(static=True)
     detector_masks: tuple[_DetectorMask, ...] = eqx.field(static=True)
 
-    def __init__(self, optics, detectors):
-        super().__init__(optics, detectors)
+    def __init__(
+            self, projection, plate_scale, detectors, *,
+            distortion=None, imaging_radius=None):
+        super().__init__(
+            projection,
+            plate_scale,
+            detectors,
+            distortion=distortion,
+            imaging_radius=imaging_radius,
+        )
         fov_mask, detector_masks = _generate_masks(
             self.optics,
             self.detectors,

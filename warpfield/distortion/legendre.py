@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 ''' Distortion function using the Legendre polynomials '''
 
-import equinox as eqx
 from jax import Array
 from jax.lax import scan
 import jax.numpy as jnp
@@ -146,39 +145,29 @@ class LegendreDistortion(Distortion):
     Attributes:
         coeff_x: Coefficients for x-axis displacements with shape ``(18,)``.
         coeff_y: Coefficients for y-axis displacements with shape ``(18,)``.
-        plane_scale: Scale used to normalize focal-plane coordinates.
     '''
 
     coeff_x: Array
     coeff_y: Array
-    plane_scale: float = eqx.field(static=True)
 
-    def __init__(self, coeff_x, coeff_y, plane_scale):
+    def __init__(self, coeff_x, coeff_y):
         coeff_x = jnp.asarray(coeff_x, dtype=float)
         coeff_y = jnp.asarray(coeff_y, dtype=float)
-        plane_scale = float(plane_scale)
 
         if coeff_x.shape != (18,):
             raise ValueError('`coeff_x` should have shape (18,).')
         if coeff_y.shape != (18,):
             raise ValueError('`coeff_y` should have shape (18,).')
-        if not np.isfinite(plane_scale) or plane_scale <= 0:
-            raise ValueError('`plane_scale` should be finite and positive.')
 
         self.coeff_x = coeff_x
         self.coeff_y = coeff_y
-        self.plane_scale = plane_scale
 
     def __call__(self, xy):
-        ''' Calculate coordinate displacements on the focal plane '''
+        ''' Calculate displacements from normalized focal-plane coordinates '''
         xy = jnp.asarray(xy)
         if xy.ndim != 2 or xy.shape[1] != 2:
             raise ValueError('`xy` should have shape (N_coordinate, 2).')
-        return _distortion(
-            self.coeff_x,
-            self.coeff_y,
-            xy / self.plane_scale,
-        )
+        return _distortion(self.coeff_x, self.coeff_y, xy)
 
 
 if __name__ == '__main__':

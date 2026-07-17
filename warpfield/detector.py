@@ -5,6 +5,7 @@
 import equinox as eqx
 from jax import Array
 import jax.numpy as jnp
+import numpy as np
 import zodiax as zdx
 
 from .distortion import Distortion, IdentityDistortion
@@ -12,6 +13,32 @@ from .utils import _affine_transform
 
 
 __all__ = ['Detector']
+
+
+def _focal_plane_corners(detector):
+    ''' Return detector corners in focal-plane millimeters '''
+    half = np.asarray(detector.shape, dtype=float) / 2
+    corners = np.array([
+        [-half[0], -half[1]],
+        [+half[0], -half[1]],
+        [+half[0], +half[1]],
+        [-half[0], +half[1]],
+    ])
+    angle = -np.deg2rad(float(detector.rotation))
+    rotation = np.array([
+        [np.cos(angle), -np.sin(angle)],
+        [np.sin(angle), +np.cos(angle)],
+    ])
+    scaled = corners * np.asarray(detector.pixel_scale)
+    return np.asarray(detector.offset) + (rotation @ scaled.T).T
+
+
+def _calculate_imaging_radius(detectors):
+    ''' Return the radius of the circle enclosing all detector corners '''
+    corners = np.concatenate([
+        _focal_plane_corners(detector) for detector in detectors
+    ])
+    return float(np.sqrt(np.sum(corners**2, axis=1)).max())
 
 
 class Detector(zdx.Base):
