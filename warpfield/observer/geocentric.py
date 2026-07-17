@@ -6,13 +6,14 @@ from astropy.coordinates import FunctionTransformWithFiniteDifference
 from astropy.coordinates import BaseRADecFrame, CartesianRepresentation
 from astropy.coordinates import GCRS, ICRS
 from astropy.coordinates import frame_transform_graph
+from astropy.coordinates import get_body_barycentric_posvel
 from astropy.time import Time
 import astropy.units as u
 
 from .base import Observer
 
 
-__all__ = ['GeoCentric']
+__all__ = ['GeoCentric', 'GeoCentricN']
 
 
 class GeoCentric(BaseRADecFrame, Observer):
@@ -41,6 +42,24 @@ class GeoCentric(BaseRADecFrame, Observer):
     def obsgeovel(self):
         ''' Return the observer velocity relative to the geocenter '''
         return CartesianRepresentation([0.0, 0.0, 0.0] * u.m / u.s)
+
+
+class GeoCentricN(GeoCentric):
+    ''' Geocentric observer without annual aberration
+
+    The suffix N denotes removal of the Earth's barycentric orbital velocity.
+    The observer remains at the geocenter, so its total barycentric velocity
+    is zero.
+    '''
+
+    @property
+    def obsgeovel(self):
+        ''' Return the velocity that cancels the Earth's orbital motion '''
+        _, earth_velocity = get_body_barycentric_posvel(
+            'earth',
+            self.obstime,
+        )
+        return -earth_velocity
 
 
 def _as_gcrs(frame, data=None):
@@ -88,6 +107,47 @@ def _geocentric_to_icrs(geocentric_coordinate, icrs_frame):
 def _geocentric_to_geocentric(
         geocentric_coordinate, geocentric_frame):
     ''' Transform between geocentric frames with different attributes '''
+    source = _as_gcrs(
+        geocentric_coordinate,
+        geocentric_coordinate.data,
+    )
+    coordinate = source.transform_to(_as_gcrs(geocentric_frame))
+    return geocentric_frame.realize_frame(coordinate.data)
+
+
+@frame_transform_graph.transform(
+    FunctionTransformWithFiniteDifference,
+    ICRS,
+    GeoCentricN,
+)
+def _icrs_to_geocentric_n(icrs_coordinate, geocentric_frame):
+    ''' Transform ICRS coordinates without annual aberration '''
+    coordinate = icrs_coordinate.transform_to(_as_gcrs(geocentric_frame))
+    return geocentric_frame.realize_frame(coordinate.data)
+
+
+@frame_transform_graph.transform(
+    FunctionTransformWithFiniteDifference,
+    GeoCentricN,
+    ICRS,
+)
+def _geocentric_n_to_icrs(geocentric_coordinate, icrs_frame):
+    ''' Transform annual-aberration-free coordinates back to ICRS '''
+    coordinate = _as_gcrs(
+        geocentric_coordinate,
+        geocentric_coordinate.data,
+    )
+    return coordinate.transform_to(icrs_frame)
+
+
+@frame_transform_graph.transform(
+    FunctionTransformWithFiniteDifference,
+    GeoCentricN,
+    GeoCentricN,
+)
+def _geocentric_n_to_geocentric_n(
+        geocentric_coordinate, geocentric_frame):
+    ''' Transform between annual-aberration-free geocentric frames '''
     source = _as_gcrs(
         geocentric_coordinate,
         geocentric_coordinate.data,

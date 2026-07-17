@@ -15,7 +15,7 @@ import numpy as np
 from .geocentric import GeoCentric, _as_gcrs
 
 
-__all__ = ['SSOObserver']
+__all__ = ['SSOObserver', 'SSOObserverN']
 
 
 _EARTH_J2 = 1.08262668e-3
@@ -193,6 +193,24 @@ class SSOObserver(GeoCentric):
         return earth_velocity + self.obsgeovel
 
 
+class SSOObserverN(SSOObserver):
+    ''' Sun-synchronous observer without annual aberration
+
+    The suffix N denotes removal of the Earth's barycentric orbital velocity.
+    The satellite's velocity relative to the geocenter is retained.
+    '''
+
+    @property
+    def obsgeovel(self):
+        ''' Return orbital velocity minus the Earth's orbital velocity '''
+        local_velocity = super().obsgeovel
+        _, earth_velocity = get_body_barycentric_posvel(
+            'earth',
+            self.obstime,
+        )
+        return local_velocity - earth_velocity
+
+
 @frame_transform_graph.transform(
     FunctionTransformWithFiniteDifference,
     ICRS,
@@ -226,6 +244,47 @@ def _sso_observer_to_icrs(observer_coordinate, icrs_frame):
 def _sso_observer_to_sso_observer(
         observer_coordinate, observer_frame):
     ''' Transform between SSO observer frames '''
+    source = _as_gcrs(
+        observer_coordinate,
+        observer_coordinate.data,
+    )
+    coordinate = source.transform_to(_as_gcrs(observer_frame))
+    return observer_frame.realize_frame(coordinate.data)
+
+
+@frame_transform_graph.transform(
+    FunctionTransformWithFiniteDifference,
+    ICRS,
+    SSOObserverN,
+)
+def _icrs_to_sso_observer_n(icrs_coordinate, observer_frame):
+    ''' Transform ICRS coordinates without annual aberration '''
+    coordinate = icrs_coordinate.transform_to(_as_gcrs(observer_frame))
+    return observer_frame.realize_frame(coordinate.data)
+
+
+@frame_transform_graph.transform(
+    FunctionTransformWithFiniteDifference,
+    SSOObserverN,
+    ICRS,
+)
+def _sso_observer_n_to_icrs(observer_coordinate, icrs_frame):
+    ''' Transform annual-aberration-free SSO coordinates back to ICRS '''
+    coordinate = _as_gcrs(
+        observer_coordinate,
+        observer_coordinate.data,
+    )
+    return coordinate.transform_to(icrs_frame)
+
+
+@frame_transform_graph.transform(
+    FunctionTransformWithFiniteDifference,
+    SSOObserverN,
+    SSOObserverN,
+)
+def _sso_observer_n_to_sso_observer_n(
+        observer_coordinate, observer_frame):
+    ''' Transform between annual-aberration-free SSO frames '''
     source = _as_gcrs(
         observer_coordinate,
         observer_coordinate.data,

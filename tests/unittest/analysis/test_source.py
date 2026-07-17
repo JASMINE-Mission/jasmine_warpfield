@@ -9,7 +9,7 @@ from astropy.table import QTable, Table
 from astropy.time import Time
 import astropy.units as u
 import numpy as np
-from pytest import approx, raises
+from pytest import approx, mark, raises
 import zodiax as zdx
 
 from warpfield import AstrometricCatalog, SourceCatalog
@@ -17,8 +17,11 @@ from warpfield.observer import (
     BaryCentric,
     BCRSObserver,
     GeoCentric,
-    GeoCentricInertial,
+    GeoCentricN,
+    Observatory,
+    ObservatoryN,
     SSOObserver,
+    SSOObserverN,
 )
 
 
@@ -166,7 +169,7 @@ def test_astrometric_catalog_propagate_barycentric():
     assert source.dec == approx(expected.dec.degree)
 
 
-def test_astrometric_catalog_propagate_geocentric_inertial():
+def test_astrometric_catalog_propagate_geocentric_n():
     catalog = AstrometricCatalog(
         ra=[10.0, 20.0] * u.deg,
         dec=[-5.0, 15.0] * u.deg,
@@ -175,7 +178,7 @@ def test_astrometric_catalog_propagate_geocentric_inertial():
         parallax=[5.0, 10.0] * u.mas,
         epoch=Time('2016-01-01'),
     )
-    observer = GeoCentricInertial(Time('2025-01-01'))
+    observer = GeoCentricN(Time('2025-01-01'))
     _, earth_velocity = get_body_barycentric_posvel(
         'earth',
         observer.obstime,
@@ -235,6 +238,63 @@ def test_astrometric_catalog_propagate_sso_observer():
         phase=0.25,
         altitude=600 * u.km,
         ltan=6 * u.hourangle,
+    )
+
+    source = catalog.propagate(observer)
+    expected = catalog.skycoord.apply_space_motion(
+        new_obstime=observer.obstime,
+    ).transform_to(GCRS(
+        obstime=observer.obstime,
+        obsgeoloc=observer.obsgeoloc,
+        obsgeovel=observer.obsgeovel,
+    ))
+
+    assert source.ra == approx(expected.ra.degree)
+    assert source.dec == approx(expected.dec.degree)
+
+
+@mark.parametrize('frame', [Observatory, ObservatoryN])
+def test_astrometric_catalog_propagate_observatory(frame):
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+    )
+    observer = frame(
+        Time('2025-01-01'),
+        139 * u.deg,
+        35 * u.deg,
+        100 * u.m,
+    )
+
+    source = catalog.propagate(observer)
+    expected = catalog.skycoord.apply_space_motion(
+        new_obstime=observer.obstime,
+    ).transform_to(GCRS(
+        obstime=observer.obstime,
+        obsgeoloc=observer.obsgeoloc,
+        obsgeovel=observer.obsgeovel,
+    ))
+
+    assert source.ra == approx(expected.ra.degree)
+    assert source.dec == approx(expected.dec.degree)
+
+
+def test_astrometric_catalog_propagate_sso_observer_n():
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+    )
+    observer = SSOObserverN(
+        Time('2025-01-01'),
+        phase=0.25,
     )
 
     source = catalog.propagate(observer)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from astropy.coordinates import BaseCoordinateFrame, BaseRADecFrame
+from astropy.coordinates import EarthLocation
 from astropy.coordinates import GCRS, ICRS, SkyCoord
 from astropy.coordinates import get_body_barycentric_posvel
 from astropy.time import Time
@@ -13,9 +14,12 @@ from warpfield.observer import (
     BaryCentric,
     BCRSObserver,
     GeoCentric,
-    GeoCentricInertial,
+    GeoCentricN,
+    Observatory,
+    ObservatoryN,
     Observer,
     SSOObserver,
+    SSOObserverN,
 )
 
 
@@ -172,9 +176,9 @@ def test_geocentric_roundtrip():
     assert roundtrip.dec.degree == approx(coordinate.dec.degree, abs=1e-10)
 
 
-def test_geocentric_inertial_cancels_earth_velocity():
+def test_geocentric_n_cancels_earth_velocity():
     epoch = Time('2025-01-01')
-    observer = GeoCentricInertial(epoch)
+    observer = GeoCentricN(epoch)
     _, earth_velocity = get_body_barycentric_posvel('earth', epoch)
 
     assert isinstance(observer, Observer)
@@ -186,8 +190,8 @@ def test_geocentric_inertial_cancels_earth_velocity():
         -earth_velocity.xyz.to_value(u.m / u.s))
 
 
-def test_geocentric_inertial_tracks_obstime():
-    observer = GeoCentricInertial(Time('2025-01-01'))
+def test_geocentric_n_tracks_obstime():
+    observer = GeoCentricN(Time('2025-01-01'))
     replicated = observer.replicate_without_data(
         obstime=Time('2025-07-01'),
     )
@@ -202,7 +206,7 @@ def test_geocentric_inertial_tracks_obstime():
         observer.obsgeovel.xyz.to_value(u.m / u.s))
 
 
-def test_geocentric_inertial_matches_configured_gcrs():
+def test_geocentric_n_matches_configured_gcrs():
     epoch = Time('2025-01-01')
     _, earth_velocity = get_body_barycentric_posvel('earth', epoch)
     coordinate = SkyCoord(
@@ -216,7 +220,92 @@ def test_geocentric_inertial_matches_configured_gcrs():
         obstime=epoch,
         obsgeovel=-earth_velocity,
     ))
-    actual = coordinate.transform_to(GeoCentricInertial(epoch))
+    actual = coordinate.transform_to(GeoCentricN(epoch))
+
+    assert actual.ra.degree == approx(expected.ra.degree)
+    assert actual.dec.degree == approx(expected.dec.degree)
+    assert actual.distance.to_value(u.pc) == approx(
+        expected.distance.to_value(u.pc))
+
+
+def test_observatory_requires_geodetic_location():
+    epoch = Time('2025-01-01')
+
+    with raises(TypeError, match='longitude.*latitude.*altitude'):
+        Observatory(epoch)
+    with raises(TypeError, match='altitude'):
+        Observatory(epoch, 139 * u.deg, 35 * u.deg)
+
+
+def test_observatory_matches_earth_location():
+    epoch = Time('2025-01-01')
+    observer = Observatory(
+        epoch,
+        139 * u.deg,
+        35 * u.deg,
+        100 * u.m,
+    )
+    location = EarthLocation.from_geodetic(
+        139 * u.deg,
+        35 * u.deg,
+        100 * u.m,
+    )
+    expected_location, expected_velocity = location.get_gcrs_posvel(epoch)
+
+    assert observer.obsgeoloc.xyz.to_value(u.m) == approx(
+        expected_location.xyz.to_value(u.m))
+    assert observer.obsgeovel.xyz.to_value(u.m / u.s) == approx(
+        expected_velocity.xyz.to_value(u.m / u.s))
+
+
+def test_observatory_n_cancels_earth_velocity():
+    epoch = Time('2025-01-01')
+    observer = Observatory(
+        epoch,
+        139 * u.deg,
+        35 * u.deg,
+        100 * u.m,
+    )
+    observer_n = ObservatoryN(
+        epoch,
+        139 * u.deg,
+        35 * u.deg,
+        100 * u.m,
+    )
+    _, earth_velocity = get_body_barycentric_posvel('earth', epoch)
+
+    assert observer_n.obsgeoloc.xyz.to_value(u.m) == approx(
+        observer.obsgeoloc.xyz.to_value(u.m))
+    assert observer_n.obsgeovel.xyz.to_value(u.m / u.s) == approx(
+        (
+            observer.obsgeovel - earth_velocity
+        ).xyz.to_value(u.m / u.s))
+    assert observer_n.obsbaryvel.xyz.to_value(u.m / u.s) == approx(
+        observer.obsgeovel.xyz.to_value(u.m / u.s))
+
+
+@mark.parametrize('frame', [Observatory, ObservatoryN])
+def test_observatory_matches_configured_gcrs(frame):
+    epoch = Time('2025-01-01')
+    observer = frame(
+        epoch,
+        139 * u.deg,
+        35 * u.deg,
+        100 * u.m,
+    )
+    coordinate = SkyCoord(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        distance=[10.0, 20.0] * u.pc,
+        frame=ICRS(),
+    )
+
+    expected = coordinate.transform_to(GCRS(
+        obstime=epoch,
+        obsgeoloc=observer.obsgeoloc,
+        obsgeovel=observer.obsgeovel,
+    ))
+    actual = coordinate.transform_to(observer)
 
     assert actual.ra.degree == approx(expected.ra.degree)
     assert actual.dec.degree == approx(expected.dec.degree)
@@ -304,6 +393,45 @@ def test_sso_observer_matches_configured_gcrs():
         expected.distance.to_value(u.pc))
 
 
+def test_sso_observer_n_cancels_earth_velocity():
+    epoch = Time('2025-01-01')
+    observer = SSOObserver(epoch, phase=0.25)
+    observer_n = SSOObserverN(epoch, phase=0.25)
+    _, earth_velocity = get_body_barycentric_posvel('earth', epoch)
+
+    assert observer_n.obsgeoloc.xyz.to_value(u.m) == approx(
+        observer.obsgeoloc.xyz.to_value(u.m))
+    assert observer_n.obsgeovel.xyz.to_value(u.m / u.s) == approx(
+        (
+            observer.obsgeovel - earth_velocity
+        ).xyz.to_value(u.m / u.s))
+    assert observer_n.obsbaryvel.xyz.to_value(u.m / u.s) == approx(
+        observer.obsgeovel.xyz.to_value(u.m / u.s))
+
+
+def test_sso_observer_n_matches_configured_gcrs():
+    epoch = Time('2025-01-01')
+    observer = SSOObserverN(epoch, phase=0.25)
+    coordinate = SkyCoord(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        distance=[10.0, 20.0] * u.pc,
+        frame=ICRS(),
+    )
+
+    expected = coordinate.transform_to(GCRS(
+        obstime=epoch,
+        obsgeoloc=observer.obsgeoloc,
+        obsgeovel=observer.obsgeovel,
+    ))
+    actual = coordinate.transform_to(observer)
+
+    assert actual.ra.degree == approx(expected.ra.degree)
+    assert actual.dec.degree == approx(expected.dec.degree)
+    assert actual.distance.to_value(u.pc) == approx(
+        expected.distance.to_value(u.pc))
+
+
 def test_sso_observer_validation():
     epoch = Time('2025-01-01')
 
@@ -318,8 +446,9 @@ def test_sso_observer_validation():
 @mark.parametrize('frame', [
     BaryCentric,
     GeoCentric,
-    GeoCentricInertial,
+    GeoCentricN,
     SSOObserver,
+    SSOObserverN,
 ])
 def test_observer_requires_obstime(frame):
     with raises(TypeError, match='obstime.*required'):
@@ -328,7 +457,7 @@ def test_observer_requires_obstime(frame):
 
 @mark.parametrize('frame', [
     GeoCentric,
-    GeoCentricInertial,
+    GeoCentricN,
 ])
 @mark.parametrize('attribute', [
     'obsgeoloc',
