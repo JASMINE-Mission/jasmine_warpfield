@@ -33,6 +33,18 @@ def test_equidistant_conversion_lat():
         assert X == approx(0.0)
 
 
+def test_equidistant_conversion_at_pole():
+    X, Y = _equidistant_conversion(
+        0.0,
+        jnp.pi / 2,
+        0.1,
+        jnp.pi / 2 - 0.1,
+    )
+    assert jnp.isfinite(X)
+    assert jnp.isfinite(Y)
+    assert jnp.hypot(X, Y) == approx(0.1 * 180.0 / jnp.pi)
+
+
 def test_equidistant_rotate():
     def equidistant_rotate(pa):
         a0 = 266.415  # Right Ascension of the Galactic Center

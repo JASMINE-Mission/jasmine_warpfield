@@ -44,14 +44,12 @@ def _equidistant_rsint(tel_ra, tel_dec, ra, dec):
 
 
 def _equidistant_rcost(tel_ra, tel_dec, ra, dec):
-    ''' Calculate the projected coordinate y
-
-    Note that this function does not work when the telescope is pointed
-    around the celestial poles where cos(tel_dec) is extremely small.
-    '''
+    ''' Calculate the projected coordinate y '''
     rho = _sptrig_cosr(tel_ra, tel_dec, ra, dec)
     return _equidistant_rsinr(rho) \
-        * (jnp.sin(dec) - rho * jnp.sin(tel_dec)) / jnp.cos(tel_dec)
+        * (jnp.sin(dec) * jnp.cos(tel_dec)
+            - jnp.sin(tel_dec) * jnp.cos(dec)
+            * jnp.cos(ra - tel_ra))
 
 
 _equidistant_conversion = \
