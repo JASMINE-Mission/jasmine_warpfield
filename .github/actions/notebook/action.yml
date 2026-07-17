@@ -13,6 +13,15 @@ runs:
 
     - name: Execute Jupyter notebook
       run: |
-        cd notebook;
-        bash ./update.sh
+        set -e
+        cd notebook
+        for notebook in *.ipynb
+        do
+          echo updating "$notebook"
+          jupyter nbconvert \
+            --to notebook \
+            --inplace \
+            --execute \
+            "$notebook"
+        done
       shell: bash
