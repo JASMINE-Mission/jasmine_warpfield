@@ -9,8 +9,8 @@ import numpy as np
 from pytest import approx, raises
 
 from warpfield import AstrometricCatalog
-from warpfield.catalog import compile_from_gaia, query_gaia
-from warpfield.catalog import gaia
+from warpfield.query import compile_from_gaia, query_gaia
+from warpfield.query import gaia
 
 
 def _gaia_table():

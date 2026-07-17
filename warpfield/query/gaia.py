@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Gaia catalog adapter '''
+''' Gaia archive query and catalog adapter '''
 
 import re
 
