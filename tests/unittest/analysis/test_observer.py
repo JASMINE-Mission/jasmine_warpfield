@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from astropy.coordinates import BaseCoordinateFrame, GCRS, ICRS, SkyCoord
+from astropy.coordinates import BaseCoordinateFrame, BaseRADecFrame
+from astropy.coordinates import GCRS, ICRS, SkyCoord
 from astropy.coordinates import get_body_barycentric_posvel
 from astropy.time import Time
 import astropy.units as u
@@ -127,7 +128,8 @@ def test_geocentric_is_observer_frame():
 
     assert isinstance(observer, Observer)
     assert isinstance(observer, BaseCoordinateFrame)
-    assert isinstance(observer, GCRS)
+    assert isinstance(observer, BaseRADecFrame)
+    assert not isinstance(observer, GCRS)
     assert observer.obstime == epoch
     assert observer.obsgeoloc.xyz.to_value(u.m) == approx([0.0, 0.0, 0.0])
     assert observer.obsgeovel.xyz.to_value(u.m / u.s) == approx(
@@ -136,8 +138,6 @@ def test_geocentric_is_observer_frame():
 
 def test_geocentric_matches_astropy_gcrs():
     epoch = Time('2025-01-01')
-    position = [100.0, 200.0, 300.0] * u.km
-    velocity = [1.0, 2.0, 3.0] * u.km / u.s
     coordinate = SkyCoord(
         ra=[10.0, 20.0] * u.deg,
         dec=[-5.0, 15.0] * u.deg,
@@ -145,16 +145,8 @@ def test_geocentric_matches_astropy_gcrs():
         frame=ICRS(),
     )
 
-    expected = coordinate.transform_to(GCRS(
-        obstime=epoch,
-        obsgeoloc=position,
-        obsgeovel=velocity,
-    ))
-    actual = coordinate.transform_to(GeoCentric(
-        epoch,
-        obsgeoloc=position,
-        obsgeovel=velocity,
-    ))
+    expected = coordinate.transform_to(GCRS(obstime=epoch))
+    actual = coordinate.transform_to(GeoCentric(epoch))
 
     assert actual.ra.degree == approx(expected.ra.degree)
     assert actual.dec.degree == approx(expected.dec.degree)

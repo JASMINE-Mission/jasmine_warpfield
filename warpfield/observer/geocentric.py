@@ -3,9 +3,11 @@
 ''' Geocentric observer frame '''
 
 from astropy.coordinates import FunctionTransformWithFiniteDifference
+from astropy.coordinates import BaseRADecFrame, CartesianRepresentation
 from astropy.coordinates import GCRS, ICRS
 from astropy.coordinates import frame_transform_graph
 from astropy.time import Time
+import astropy.units as u
 
 from .base import Observer
 
@@ -13,12 +15,12 @@ from .base import Observer
 __all__ = ['GeoCentric']
 
 
-class GeoCentric(GCRS, Observer):
+class GeoCentric(BaseRADecFrame, Observer):
     ''' Geocentric observer frame aligned with the ICRS axes
 
-    The observer is located at the geocenter by default. Astropy combines
-    ``obsgeoloc`` and ``obsgeovel`` with the barycentric state of the Earth
-    when transforming ICRS coordinates into this frame.
+    The observer has zero position and velocity relative to the geocenter.
+    Astropy combines this state with the barycentric state of the Earth when
+    transforming ICRS coordinates into this frame.
     '''
 
     def __init__(self, *args, **kwargs):
@@ -29,6 +31,16 @@ class GeoCentric(GCRS, Observer):
             kwargs['obstime'] = args[0]
             args = ()
         super().__init__(*args, **kwargs)
+
+    @property
+    def obsgeoloc(self):
+        ''' Return the observer location relative to the geocenter '''
+        return CartesianRepresentation([0.0, 0.0, 0.0] * u.m)
+
+    @property
+    def obsgeovel(self):
+        ''' Return the observer velocity relative to the geocenter '''
+        return CartesianRepresentation([0.0, 0.0, 0.0] * u.m / u.s)
 
 
 def _as_gcrs(frame, data=None):
