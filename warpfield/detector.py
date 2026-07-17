@@ -44,9 +44,14 @@ def _calculate_imaging_radius(detectors):
 class Detector(zdx.Base):
     ''' Geometry of one detector represented as a PyTree
 
+    Detector coordinates use the lower-left corner before rotation as
+    ``(0, 0)`` and the upper-right boundary as ``shape``. The focal-plane
+    ``offset`` remains the detector center and therefore the rotation center.
+
     Attributes:
         rotation: Rotation angle in degrees represented as a scalar.
-        offset: Focal-plane offset in mm with shape ``(2,)``.
+        offset: Focal-plane position of the detector center in mm with
+            shape ``(2,)``.
         pixel_scale: Physical pixel size in mm/pixel with shape ``(2,)``.
         shape: Detector dimensions in pixels as ``(NAXIS1, NAXIS2)``.
         distortion: Displacement model in normalized detector coordinates.
@@ -93,9 +98,10 @@ class Detector(zdx.Base):
 
     def distort(self, xy):
         ''' Apply displacements in normalized detector coordinates '''
-        scale = jnp.asarray(self.shape, dtype=xy.dtype) / 2
-        normalized = xy / scale
-        return (normalized + self.distortion(normalized)) * scale
+        half_size = jnp.asarray(self.shape, dtype=xy.dtype) / 2
+        normalized = xy / half_size
+        displacement = self.distortion(normalized) * half_size
+        return xy + displacement + half_size
 
     def __call__(self, xy):
         ''' Transform focal-plane coordinates onto this detector '''

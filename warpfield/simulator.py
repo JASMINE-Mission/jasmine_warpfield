@@ -23,7 +23,12 @@ class _CircularMask:
 
     def __call__(self, xy):
         xy = jnp.asarray(xy)
-        return jnp.sum(xy**2, axis=1) <= self.radius**2
+        radius_squared = jnp.asarray(self.radius, dtype=xy.dtype)**2
+        tolerance = (
+            4 * jnp.finfo(xy.dtype).eps
+            * jnp.maximum(1, radius_squared)
+        )
+        return jnp.sum(xy**2, axis=1) <= radius_squared + tolerance
 
 
 @dataclass(frozen=True)
@@ -33,7 +38,7 @@ class _DetectorMask:
     def __call__(self, xy):
         xy = jnp.asarray(xy)
         limit = jnp.asarray(self.shape, dtype=xy.dtype) / 2
-        return jnp.all((-limit <= xy) & (xy <= limit), axis=1)
+        return jnp.all((0 <= xy) & (xy <= 2 * limit), axis=1)
 
 
 def _generate_detector_mask(detector):

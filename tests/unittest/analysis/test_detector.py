@@ -46,10 +46,24 @@ def test_detector_transform():
         jnp.full(3, detector.rotation),
         jnp.tile(detector.offset, (3, 1)),
         jnp.tile(detector.pixel_scale, (3, 1)),
-    )
+    ) + jnp.asarray(detector.shape) / 2
 
     assert detector(xy) == approx(expected)
     assert eqx.filter_jit(detector)(xy) == approx(expected)
+
+
+def test_detector_origin_and_center():
+    detector = Detector(
+        rotation=0.0,
+        offset=[0.0, 0.0],
+        pixel_scale=[0.5, 2.0],
+        shape=(8, 4),
+    )
+
+    assert detector(jnp.array([[-2.0, -4.0]])) == approx(
+        jnp.array([[0.0, 0.0]]))
+    assert detector(jnp.array([[0.0, 0.0]])) == approx(
+        jnp.array([[4.0, 2.0]]))
 
 
 def test_detector_gradient():
@@ -76,7 +90,7 @@ def test_detector_distortion_in_normalized_coordinates():
     )
 
     assert detector(jnp.array([[10.0, 20.0]])) == approx(
-        jnp.array([[20.0, 40.0]]))
+        jnp.array([[70.0, 140.0]]))
 
 
 def test_apply_detector_distortions():
@@ -98,7 +112,7 @@ def test_apply_detector_distortions():
         jnp.array([0, 1]),
     )
 
-    assert actual == approx(jnp.array([[10.0, 20.0], [20.0, 40.0]]))
+    assert actual == approx(jnp.array([[60.0, 120.0], [70.0, 140.0]]))
 
 
 def test_detector_zodiax_update():

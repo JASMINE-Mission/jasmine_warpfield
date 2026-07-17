@@ -47,7 +47,8 @@ def _get_gnomonic(distortion, simulator):
 def get_gnomonic(simulator=False):
     ''' Return a simple distortion-free gnomonic system
 
-    The centered 4096 x 4096 detector has 10 um pixels. The angular scale is
-    1 arcsec/pixel, represented internally as 36 mm/degree.
+    The centered 4096 x 4096 detector has 10 um pixels. Its pixel coordinates
+    use the lower-left corner as ``(0, 0)``. The angular scale is 1
+    arcsec/pixel, represented internally as 36 mm/degree.
     '''
     return _get_gnomonic(IdentityDistortion(), simulator)

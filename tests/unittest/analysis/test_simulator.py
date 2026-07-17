@@ -37,9 +37,9 @@ def test_simulator_masks():
     assert isinstance(simulator, Telescope)
     assert simulator.fov_radius == approx(jnp.sqrt(5.0))
     assert simulator.detector_masks[0](jnp.array([
-        [-1.0, -2.0],
-        [+1.0, +2.0],
-        [+1.1, 0.0],
+        [0.0, 0.0],
+        [2.0, 4.0],
+        [2.1, 0.0],
     ])).tolist() == [True, True, False]
     assert simulator.fov_mask(jnp.array([
         [0.0, 0.0],
@@ -91,7 +91,7 @@ def test_simulator_observe():
     assert isinstance(measurement, Measurement)
     assert len(measurement) == 2
     assert measurement.xy == approx(
-        jnp.array([[0.0, 0.0], [-0.5000127, 0.0]]))
+        jnp.array([[1.0, 1.0], [0.4999873, 1.0]]))
     assert measurement.source_index.tolist() == [0, 1]
     assert measurement.exposure_index.tolist() == [0, 0]
     assert measurement.detector_index.tolist() == [0, 0]

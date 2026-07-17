@@ -39,7 +39,7 @@ def _generate_one_wcs(pointing, scale, detector, projection_code):
 
     optical_center = (
         rotation @ (-offset)
-    ) / pixel_scale
+    ) / pixel_scale + np.asarray(detector.shape) / 2
     focal_to_plane = (
         _rotation_matrix(float(pointing.position_angle[0]))
         @ np.diag(1 / scale)

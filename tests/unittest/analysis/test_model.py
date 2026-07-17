@@ -49,7 +49,7 @@ def test_get_gnomonic_angular_scale():
     )
 
     assert detector_xy == approx(
-        np.array([[-1.0, 0.0]]),
+        np.array([[2047.0, 2048.0]]),
         abs=1e-7,
     )
 
