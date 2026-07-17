@@ -4,7 +4,7 @@
 
 import jax
 
-from .source import AstrometricCatalog, SourceCatalog
+from .catalog import AstrometricCatalog, SourceCatalog
 from .pointing import Pointing
 from .detector import Detector
 from .exposure import Exposure

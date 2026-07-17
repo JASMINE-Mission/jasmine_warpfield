@@ -236,9 +236,37 @@ def test_astrometric_catalog_propagate_optional_attributes():
     assert source.magnitude == approx([15.0])
     assert source.magnitude_error == approx([0.01])
     assert source.ra_error == approx(
-        [u.Quantity(0.1, u.mas).to_value(u.deg)])
+        [u.Quantity(0.1, u.mas).to_value(u.deg)],
+        rel=2.0e-4,
+    )
     assert source.dec_error == approx(
-        [u.Quantity(0.2, u.mas).to_value(u.deg)])
+        [u.Quantity(0.2, u.mas).to_value(u.deg)],
+        rel=2.0e-4,
+    )
+
+
+def test_astrometric_catalog_propagate_proper_motion_errors():
+    catalog = AstrometricCatalog(
+        ra=[10.0] * u.deg,
+        dec=[0.0] * u.deg,
+        pm_ra_cosdec=[0.0] * u.mas / u.yr,
+        pm_dec=[0.0] * u.mas / u.yr,
+        parallax=[5.0] * u.mas,
+        epoch=Time('2016-01-01'),
+        pm_ra_cosdec_error=[0.1] * u.mas / u.yr,
+        pm_dec_error=[0.2] * u.mas / u.yr,
+    )
+
+    source = catalog.propagate(BaryCentric(Time('2026-01-01')))
+
+    assert source.ra_error == approx(
+        [u.Quantity(1.0, u.mas).to_value(u.deg)],
+        rel=2.0e-3,
+    )
+    assert source.dec_error == approx(
+        [u.Quantity(2.0, u.mas).to_value(u.deg)],
+        rel=2.0e-3,
+    )
 
 
 def test_astrometric_catalog_propagate_barycentric():

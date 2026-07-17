@@ -11,7 +11,7 @@ import astropy.units as u
 from astroquery.gaia import Gaia
 import numpy as np
 
-from ..source import AstrometricCatalog
+from ..catalog import AstrometricCatalog
 
 
 __all__ = ['compile_from_gaia', 'query_gaia']

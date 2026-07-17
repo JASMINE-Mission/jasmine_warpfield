@@ -14,7 +14,7 @@ import numpy as np
 from .detector import Detector, _focal_plane_corners
 from .exposure import Exposure
 from .measurement import Measurement
-from .source import SourceCatalog
+from .catalog import SourceCatalog
 from .telescope import Telescope
 
 

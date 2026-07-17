@@ -6,7 +6,7 @@ import zodiax as zdx
 
 from .exposure import Exposure
 from .measurement import Measurement
-from .source import SourceCatalog
+from .catalog import SourceCatalog
 from .telescope import Telescope
 
 
