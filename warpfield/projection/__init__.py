@@ -3,12 +3,14 @@
 ''' Projection of the spherical coordinate onto the focal plane '''
 
 from .base import Projection
-from .gnomonic import GnomonicProjection
 from .equidistant import EquidistantProjection
+from .gnomonic import GnomonicProjection
+from .orthographic import OrthographicProjection
 
 
 __all__ = [
-    'Projection',
-    'GnomonicProjection',
     'EquidistantProjection',
+    'GnomonicProjection',
+    'OrthographicProjection',
+    'Projection',
 ]
