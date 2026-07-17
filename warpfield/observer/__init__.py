@@ -7,6 +7,7 @@ from .base import Observer
 from .bcrs_obsrever import BCRSObserver
 from .geocentric import GeoCentric
 from .geocentric_inertial import GeoCentricInertial
+from .sso_observer import SSOObserver
 
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     'GeoCentric',
     'GeoCentricInertial',
     'Observer',
+    'SSOObserver',
 ]

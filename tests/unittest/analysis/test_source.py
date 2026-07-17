@@ -3,7 +3,8 @@
 
 import jax
 import jax.numpy as jnp
-from astropy.coordinates import GCRS
+from astropy.coordinates import GCRS, ICRS
+from astropy.coordinates import get_body_barycentric_posvel
 from astropy.table import QTable, Table
 from astropy.time import Time
 import astropy.units as u
@@ -12,7 +13,13 @@ from pytest import approx, raises
 import zodiax as zdx
 
 from warpfield import AstrometricCatalog, SourceCatalog
-from warpfield.observer import GeoCentric
+from warpfield.observer import (
+    BaryCentric,
+    BCRSObserver,
+    GeoCentric,
+    GeoCentricInertial,
+    SSOObserver,
+)
 
 
 def test_source_catalog():
@@ -135,6 +142,110 @@ def test_astrometric_catalog_propagate():
     ).transform_to(GCRS(obstime=observer.obstime))
 
     assert isinstance(source, SourceCatalog)
+    assert source.ra == approx(expected.ra.degree)
+    assert source.dec == approx(expected.dec.degree)
+
+
+def test_astrometric_catalog_propagate_barycentric():
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+    )
+    observer = BaryCentric(Time('2025-01-01'))
+
+    source = catalog.propagate(observer)
+    expected = catalog.skycoord.apply_space_motion(
+        new_obstime=observer.obstime,
+    ).transform_to(ICRS())
+
+    assert source.ra == approx(expected.ra.degree)
+    assert source.dec == approx(expected.dec.degree)
+
+
+def test_astrometric_catalog_propagate_geocentric_inertial():
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+    )
+    observer = GeoCentricInertial(Time('2025-01-01'))
+    _, earth_velocity = get_body_barycentric_posvel(
+        'earth',
+        observer.obstime,
+    )
+
+    source = catalog.propagate(observer)
+    expected = catalog.skycoord.apply_space_motion(
+        new_obstime=observer.obstime,
+    ).transform_to(GCRS(
+        obstime=observer.obstime,
+        obsgeovel=-earth_velocity,
+    ))
+
+    assert source.ra == approx(expected.ra.degree)
+    assert source.dec == approx(expected.dec.degree)
+
+
+def test_astrometric_catalog_propagate_bcrs_observer():
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+    )
+    observer = BCRSObserver(
+        Time('2025-01-01'),
+        [1.0, 2.0, 3.0] * u.au,
+        [10.0, 20.0, 30.0] * u.km / u.s,
+    )
+
+    source = catalog.propagate(observer)
+    expected = catalog.skycoord.apply_space_motion(
+        new_obstime=observer.obstime,
+    ).transform_to(GCRS(
+        obstime=observer.obstime,
+        obsgeoloc=observer.obsgeoloc,
+        obsgeovel=observer.obsgeovel,
+    ))
+
+    assert source.ra == approx(expected.ra.degree)
+    assert source.dec == approx(expected.dec.degree)
+
+
+def test_astrometric_catalog_propagate_sso_observer():
+    catalog = AstrometricCatalog(
+        ra=[10.0, 20.0] * u.deg,
+        dec=[-5.0, 15.0] * u.deg,
+        pm_ra_cosdec=[1.0, 2.0] * u.mas / u.yr,
+        pm_dec=[3.0, 4.0] * u.mas / u.yr,
+        parallax=[5.0, 10.0] * u.mas,
+        epoch=Time('2016-01-01'),
+    )
+    observer = SSOObserver(
+        Time('2025-01-01'),
+        phase=0.25,
+        altitude=600 * u.km,
+        ltan=6 * u.hourangle,
+    )
+
+    source = catalog.propagate(observer)
+    expected = catalog.skycoord.apply_space_motion(
+        new_obstime=observer.obstime,
+    ).transform_to(GCRS(
+        obstime=observer.obstime,
+        obsgeoloc=observer.obsgeoloc,
+        obsgeovel=observer.obsgeovel,
+    ))
+
     assert source.ra == approx(expected.ra.degree)
     assert source.dec == approx(expected.dec.degree)
 
