@@ -9,4 +9,6 @@
 *.pkl
 *.fits
 *.fits.gz
+
+*.pyc
 __pycache__

@@ -1,0 +1,10 @@
+extend = "../pyproject.toml"
+indent-width = 2
+
+[lint]
+extend-ignore = [
+  'E401', # multiple imports on one line
+  "E402", # module import not at top of file
+  'E731', # Do not assign a `lambda` expression
+  'E741', # Ambiguous variable name
+]

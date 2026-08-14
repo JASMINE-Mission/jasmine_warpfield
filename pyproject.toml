@@ -64,7 +64,7 @@ readme = { file = 'README.md', content-type = 'text/markdown' }
 
 
 [tool.ruff]
-exclude = ['**/test', '**/.skelton.py', 'notebook']
+exclude = ['**/scripts', '**/tests']
 line-length = 79
 indent-width = 4
 
@@ -83,6 +83,6 @@ ignore = [
 unfixable = ['ALL']
 
 [tool.ruff.format]
-quote-style = 'preserve'
+quote-style = 'single'
 line-ending = 'lf'
 preview = true
