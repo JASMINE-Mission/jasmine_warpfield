@@ -1,6 +1,6 @@
-[![unittest](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/unittest.yml/badge.svg)](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/unittest.yml)
-[![validation](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/validation.yml/badge.svg?branch=develop)](https://github.com/JASMINE-Mission/jasmine_warpfield/actions/workflows/validation.yml)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/JASMINE-Mission/jasmine_warpfield)
+[![unittest](https://github.com/astronasutarou/warpfield/actions/workflows/unittest.yml/badge.svg)](https://github.com/astronasutarou/warpfield/actions/workflows/unittest.yml)
+[![validation](https://github.com/astronasutarou/warpfield/actions/workflows/validation.yml/badge.svg?branch=develop)](https://github.com/astronasutarou/warpfield/actions/workflows/validation.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/astronasutarou/warpfield)
 
 # warpfield: Plate Analysis demonstration code
 
@@ -14,7 +14,7 @@ An experimental code to demonstrate Plate Analysis, an algorithm for precise rel
 The package is available using the command below:
 
 ```console
-pip install git+https://github.com/JASMINE-Mission/jasmine_warpfield.git
+pip install git+https://github.com/astronasutarou/warpfield.git
 ```
 
 Otherwise clone this repository and try the command below:
@@ -23,7 +23,7 @@ Otherwise clone this repository and try the command below:
 pip install .
 ```
 
-The module `jasmine_warpfield` will be installed in your system. A simple example is described below.
+The module `warpfield` will be installed in your system. A simple example is described below.
 
 ```python
 from astropy.coordinates import SkyCoord, Angle
