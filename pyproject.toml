@@ -52,8 +52,8 @@ test = [
 ]
 
 [project.urls]
-homepage = 'https://github.com/JASMINE-Mission/jasmine_warpfield'
-repository = 'https://github.com/JASMINE-Mission/jasmine_warpfield'
+homepage = 'https://github.com/astronasutarou/warpfield'
+repository = 'https://github.com/astronasutarou/warpfield'
 
 [tool.setuptools.packages.find]
 include = ['warpfield*']
