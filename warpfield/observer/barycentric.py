@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Barycentric observer frame '''
+"""Barycentric observer frame"""
 
 from astropy.coordinates import FunctionTransformWithFiniteDifference
 from astropy.coordinates import ICRS
@@ -14,17 +14,18 @@ __all__ = ['BaryCentric']
 
 
 class BaryCentric(ICRS, Observer):
-    ''' Barycentric observer frame aligned with the ICRS axes
+    """Barycentric observer frame aligned with the ICRS axes
 
     This frame is an ICRS alias with an ``obstime`` attribute so that it can
     be used through the common Observer interface.
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         if (
-                len(args) == 1
-                and isinstance(args[0], Time)
-                and 'obstime' not in kwargs):
+            len(args) == 1
+            and isinstance(args[0], Time)
+            and 'obstime' not in kwargs
+        ):
             kwargs['obstime'] = args[0]
             args = ()
         super().__init__(*args, **kwargs)
@@ -36,7 +37,7 @@ class BaryCentric(ICRS, Observer):
     BaryCentric,
 )
 def _icrs_to_barycentric(icrs_coordinate, barycentric_frame):
-    ''' Realize ICRS coordinates in the barycentric observer frame '''
+    """Realize ICRS coordinates in the barycentric observer frame"""
     return barycentric_frame.realize_frame(icrs_coordinate.data)
 
 
@@ -46,7 +47,7 @@ def _icrs_to_barycentric(icrs_coordinate, barycentric_frame):
     ICRS,
 )
 def _barycentric_to_icrs(barycentric_coordinate, icrs_frame):
-    ''' Realize barycentric observer coordinates in ICRS '''
+    """Realize barycentric observer coordinates in ICRS"""
     return icrs_frame.realize_frame(barycentric_coordinate.data)
 
 
@@ -55,7 +56,6 @@ def _barycentric_to_icrs(barycentric_coordinate, icrs_frame):
     BaryCentric,
     BaryCentric,
 )
-def _barycentric_to_barycentric(
-        barycentric_coordinate, barycentric_frame):
-    ''' Transform between barycentric frames with different obstimes '''
+def _barycentric_to_barycentric(barycentric_coordinate, barycentric_frame):
+    """Transform between barycentric frames with different obstimes"""
     return barycentric_frame.realize_frame(barycentric_coordinate.data)

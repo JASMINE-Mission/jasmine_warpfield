@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Telescope simulator with focal-plane and detector masks '''
+"""Telescope simulator with focal-plane and detector masks"""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -22,37 +22,37 @@ __all__ = ['ErrorGenerator', 'Simulator', 'UniformError']
 
 
 class ErrorGenerator(ABC):
-    ''' Interface for simulated measurement errors and uncertainties '''
+    """Interface for simulated measurement errors and uncertainties"""
 
     @abstractmethod
     def __call__(self, source, seed, shape):
-        ''' Generate one error realization with the requested shape '''
+        """Generate one error realization with the requested shape"""
         raise NotImplementedError
 
     @abstractmethod
     def uncertainty(self, source, shape):
-        ''' Return standard uncertainties with the requested shape '''
+        """Return standard uncertainties with the requested shape"""
         raise NotImplementedError
 
 
 @dataclass(frozen=True)
 class UniformError(ErrorGenerator):
-    ''' Homoscedastic normally distributed measurement errors '''
+    """Homoscedastic normally distributed measurement errors"""
 
     standard_deviation: float
 
     def __post_init__(self):
-        if (
-                isinstance(self.standard_deviation, bool)
-                or not isinstance(self.standard_deviation, Real)):
+        if isinstance(self.standard_deviation, bool) or not isinstance(
+            self.standard_deviation, Real
+        ):
             raise TypeError(
-                '`standard_deviation` should be a non-negative float.')
+                '`standard_deviation` should be a non-negative float.'
+            )
         standard_deviation = float(self.standard_deviation)
-        if (
-                not np.isfinite(standard_deviation)
-                or standard_deviation < 0):
+        if not np.isfinite(standard_deviation) or standard_deviation < 0:
             raise ValueError(
-                '`standard_deviation` should be finite and non-negative.')
+                '`standard_deviation` should be finite and non-negative.'
+            )
         object.__setattr__(
             self,
             'standard_deviation',
@@ -60,7 +60,7 @@ class UniformError(ErrorGenerator):
         )
 
     def __call__(self, source, seed, shape):
-        ''' Generate independent normally distributed errors '''
+        """Generate independent normally distributed errors"""
         del source
         return np.random.default_rng(seed).normal(
             loc=0.0,
@@ -69,13 +69,13 @@ class UniformError(ErrorGenerator):
         )
 
     def uncertainty(self, source, shape):
-        ''' Return the common Gaussian standard deviation '''
+        """Return the common Gaussian standard deviation"""
         del source
         return np.full(shape, self.standard_deviation, dtype=float)
 
 
 def _validate_seed(seed):
-    ''' Validate and normalize a random-number seed '''
+    """Validate and normalize a random-number seed"""
     if seed is None:
         return None
     if isinstance(seed, bool):
@@ -92,13 +92,13 @@ def _validate_seed(seed):
 
 
 def _normalize_error(error):
-    ''' Normalize an error specification to an ErrorGenerator '''
+    """Normalize an error specification to an ErrorGenerator"""
     if error is None:
         return None
     if isinstance(error, bool):
         raise TypeError(
-            '`error` should be a non-negative float, '
-            'ErrorGenerator, or None.')
+            '`error` should be a non-negative float, ErrorGenerator, or None.'
+        )
     if isinstance(error, Real):
         try:
             return UniformError(error)
@@ -109,11 +109,12 @@ def _normalize_error(error):
     if isinstance(error, ErrorGenerator):
         return error
     raise TypeError(
-        '`error` should be a non-negative float, ErrorGenerator, or None.')
+        '`error` should be a non-negative float, ErrorGenerator, or None.'
+    )
 
 
 def _generate_errors(generator, source, seed, shape):
-    ''' Generate and validate measurement errors and uncertainties '''
+    """Generate and validate measurement errors and uncertainties"""
     error = np.asarray(generator(source, seed, shape), dtype=float)
     uncertainty = np.asarray(
         generator.uncertainty(source, shape),
@@ -122,18 +123,19 @@ def _generate_errors(generator, source, seed, shape):
     if error.shape != shape:
         raise ValueError(
             'Generated errors should have shape '
-            f'{shape}, but received {error.shape}.')
+            f'{shape}, but received {error.shape}.'
+        )
     if uncertainty.shape != shape:
         raise ValueError(
             'Generated uncertainties should have shape '
-            f'{shape}, but received {uncertainty.shape}.')
+            f'{shape}, but received {uncertainty.shape}.'
+        )
     if not np.all(np.isfinite(error)):
         raise ValueError('Generated errors should be finite.')
-    if (
-            not np.all(np.isfinite(uncertainty))
-            or np.any(uncertainty < 0)):
+    if not np.all(np.isfinite(uncertainty)) or np.any(uncertainty < 0):
         raise ValueError(
-            'Generated uncertainties should be finite and non-negative.')
+            'Generated uncertainties should be finite and non-negative.'
+        )
     return error, uncertainty
 
 
@@ -143,10 +145,9 @@ class _CircularMask:
 
     def __call__(self, xy):
         xy = jnp.asarray(xy)
-        radius_squared = jnp.asarray(self.radius, dtype=xy.dtype)**2
+        radius_squared = jnp.asarray(self.radius, dtype=xy.dtype) ** 2
         tolerance = (
-            4 * jnp.finfo(xy.dtype).eps
-            * jnp.maximum(1, radius_squared)
+            4 * jnp.finfo(xy.dtype).eps * jnp.maximum(1, radius_squared)
         )
         return jnp.sum(xy**2, axis=1) <= radius_squared + tolerance
 
@@ -162,7 +163,7 @@ class _DetectorMask:
 
 
 def _generate_detector_mask(detector):
-    ''' Generate a detector mask and its focal-plane corner coordinates '''
+    """Generate a detector mask and its focal-plane corner coordinates"""
     if not isinstance(detector, Detector):
         raise TypeError('`detector` should be a Detector instance.')
 
@@ -171,7 +172,7 @@ def _generate_detector_mask(detector):
 
 
 def _generate_masks(optics, detectors):
-    ''' Generate detector masks and their enclosing focal-plane mask '''
+    """Generate detector masks and their enclosing focal-plane mask"""
     detector_masks = []
     for detector in detectors:
         mask, _ = _generate_detector_mask(detector)
@@ -183,21 +184,27 @@ def _generate_masks(optics, detectors):
 
 
 class Simulator(Telescope):
-    ''' Telescope variant that generates masked ideal measurements
+    """Telescope variant that generates masked ideal measurements
 
     Attributes:
         optics: Projection and focal-plane distortion model.
         detectors: Detector geometry models.
         fov_mask: Circular focal-plane mask enclosing all detectors.
         detector_masks: Rectangular masks in detector coordinates.
-    '''
+    """
 
     fov_mask: _CircularMask = eqx.field(static=True)
     detector_masks: tuple[_DetectorMask, ...] = eqx.field(static=True)
 
     def __init__(
-            self, projection, plate_scale, detectors, *,
-            distortion=None, imaging_radius=None):
+        self,
+        projection,
+        plate_scale,
+        detectors,
+        *,
+        distortion=None,
+        imaging_radius=None,
+    ):
         super().__init__(
             projection,
             plate_scale,
@@ -215,17 +222,17 @@ class Simulator(Telescope):
 
     @property
     def fov_radius(self):
-        ''' Radius of the circular focal-plane mask in mm '''
+        """Radius of the circular focal-plane mask in mm"""
         return self.fov_mask.radius
 
     def observe(self, source, exposure, *, error=None, seed=0):
-        ''' Generate measurements inside the configured masks
+        """Generate measurements inside the configured masks
 
         ``error`` may be a non-negative Gaussian standard deviation in pixels
         or an ErrorGenerator. Generated errors are added to ideal detector
         coordinates, and their standard uncertainties are stored in the
         returned Measurement.
-        '''
+        """
         if not isinstance(source, SourceCatalog):
             raise TypeError('`source` should be a SourceCatalog instance.')
         if not isinstance(exposure, Exposure):
@@ -242,8 +249,7 @@ class Simulator(Telescope):
         source_index = source_index.ravel()
 
         ra, dec = source.take(source_index)
-        tel_ra, tel_dec, tel_pa, scale_factor = \
-            exposure.take(exposure_index)
+        tel_ra, tel_dec, tel_pa, scale_factor = exposure.take(exposure_index)
         focal_plane = self.focal_plane(
             tel_ra,
             tel_dec,
@@ -262,8 +268,9 @@ class Simulator(Telescope):
         source_indices = []
         exposure_indices = []
         detector_indices = []
-        for index, (detector, mask) in enumerate(zip(
-                self.detectors, self.detector_masks)):
+        for index, (detector, mask) in enumerate(
+            zip(self.detectors, self.detector_masks)
+        ):
             detector_xy = detector(focal_plane)
             within_detector = mask(detector_xy)
             size = int(jnp.sum(within_detector))

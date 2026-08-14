@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Definitions of specific astrometric system models '''
+"""Definitions of specific astrometric system models"""
 
 from .gnomonic import get_gnomonic
 from .jasmine import get_jasmine

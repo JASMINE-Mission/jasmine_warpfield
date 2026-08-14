@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Base class for observer-centered celestial coordinate frames '''
+"""Base class for observer-centered celestial coordinate frames"""
 
 from astropy.coordinates import BaseCoordinateFrame, TimeAttribute
 
@@ -9,7 +9,7 @@ __all__ = ['Observer']
 
 
 class Observer(BaseCoordinateFrame):
-    ''' Base class for observer-centered coordinate frames '''
+    """Base class for observer-centered coordinate frames"""
 
     obstime = TimeAttribute(default=None)
 

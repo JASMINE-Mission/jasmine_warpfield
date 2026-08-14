@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Astrometric measurements for differentiable analysis '''
+"""Astrometric measurements for differentiable analysis"""
 
 from astropy.table import QTable
 import astropy.units as u
@@ -14,7 +14,7 @@ __all__ = ['Measurement']
 
 
 class Measurement(zdx.Base):
-    ''' Detector measurements and their parameter associations
+    """Detector measurements and their parameter associations
 
     Attributes:
         xy: Measured detector coordinates with shape
@@ -25,7 +25,7 @@ class Measurement(zdx.Base):
         detector_index: Detector indices with shape ``(N_measurement,)``.
         uncertainty: Optional coordinate uncertainties with shape
             ``(N_measurement, 2)``.
-    '''
+    """
 
     xy: Array
     source_index: Array
@@ -34,26 +34,33 @@ class Measurement(zdx.Base):
     uncertainty: Array | None
 
     def __init__(
-            self, xy, source_index, exposure_index, detector_index,
-            uncertainty=None):
+        self,
+        xy,
+        source_index,
+        exposure_index,
+        detector_index,
+        uncertainty=None,
+    ):
         xy = jnp.asarray(xy, dtype=float)
 
         if xy.ndim != 2 or xy.shape[1] != 2:
             raise ValueError('`xy` should have shape (N_measurement, 2).')
 
         size = xy.shape[0]
-        source_index = self._validate_index(
-            source_index, 'source_index', size)
+        source_index = self._validate_index(source_index, 'source_index', size)
         exposure_index = self._validate_index(
-            exposure_index, 'exposure_index', size)
+            exposure_index, 'exposure_index', size
+        )
         detector_index = self._validate_index(
-            detector_index, 'detector_index', size)
+            detector_index, 'detector_index', size
+        )
 
         if uncertainty is not None:
             uncertainty = jnp.asarray(uncertainty, dtype=float)
             if uncertainty.shape != xy.shape:
                 raise ValueError(
-                    '`uncertainty` should have shape (N_measurement, 2).')
+                    '`uncertainty` should have shape (N_measurement, 2).'
+                )
 
         self.xy = xy
         self.source_index = source_index
@@ -78,7 +85,7 @@ class Measurement(zdx.Base):
         return self.xy.shape[0]
 
     def to_qtable(self):
-        ''' Convert measurements into a unit-aware QTable '''
+        """Convert measurements into a unit-aware QTable"""
         table = QTable({
             'measurement_id': np.arange(len(self), dtype=int),
             'x': np.asarray(self.xy[:, 0]) * u.pix,
@@ -94,39 +101,49 @@ class Measurement(zdx.Base):
 
     @classmethod
     def from_qtable(cls, table):
-        ''' Construct measurements from a unit-aware QTable '''
+        """Construct measurements from a unit-aware QTable"""
         if not isinstance(table, QTable):
             raise TypeError('`table` should be a QTable instance.')
         required = ('x', 'y', 'source_id', 'exposure_id', 'detector_id')
         missing = [name for name in required if name not in table.colnames]
         if missing:
             raise ValueError(
-                '`table` is missing required columns: '
-                + ', '.join(missing))
+                '`table` is missing required columns: ' + ', '.join(missing)
+            )
         try:
-            xy = np.stack([
-                u.Quantity(table[name]).to_value(u.pix)
-                for name in ('x', 'y')
-            ], axis=1)
+            xy = np.stack(
+                [
+                    u.Quantity(table[name]).to_value(u.pix)
+                    for name in ('x', 'y')
+                ],
+                axis=1,
+            )
         except u.UnitConversionError as error:
             raise ValueError(
-                'Measurement coordinates should have pixel units.') from error
+                'Measurement coordinates should have pixel units.'
+            ) from error
 
         error_columns = [
-            name in table.colnames for name in ('x_error', 'y_error')]
+            name in table.colnames for name in ('x_error', 'y_error')
+        ]
         if any(error_columns) and not all(error_columns):
             raise ValueError(
-                '`table` should contain both x_error and y_error.')
+                '`table` should contain both x_error and y_error.'
+            )
         uncertainty = None
         if all(error_columns):
             try:
-                uncertainty = np.stack([
-                    u.Quantity(table[name]).to_value(u.pix)
-                    for name in ('x_error', 'y_error')
-                ], axis=1)
+                uncertainty = np.stack(
+                    [
+                        u.Quantity(table[name]).to_value(u.pix)
+                        for name in ('x_error', 'y_error')
+                    ],
+                    axis=1,
+                )
             except u.UnitConversionError as error:
                 raise ValueError(
-                    'Measurement errors should have pixel units.') from error
+                    'Measurement errors should have pixel units.'
+                ) from error
 
         return cls(
             xy=xy,

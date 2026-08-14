@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Identity distortion model '''
+"""Identity distortion model"""
 
 import jax.numpy as jnp
 
@@ -11,7 +11,7 @@ __all__ = ['IdentityDistortion']
 
 
 class IdentityDistortion(Distortion):
-    ''' Distortion model that returns zero coordinate displacements '''
+    """Distortion model that returns zero coordinate displacements"""
 
     def __call__(self, xy):
         xy = jnp.asarray(xy)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Differentiable astrometric coordinate prediction '''
+"""Differentiable astrometric coordinate prediction"""
 
 import zodiax as zdx
 
@@ -14,13 +14,13 @@ __all__ = ['Astrometry']
 
 
 class Astrometry(zdx.Base):
-    ''' Composition of source, telescope, and exposure parameters
+    """Composition of source, telescope, and exposure parameters
 
     Attributes:
         source: Celestial source parameters.
         telescope: Telescope parameters and coordinate transformations.
         exposure: Pointing and calibration parameters for each exposure.
-    '''
+    """
 
     source: SourceCatalog
     telescope: Telescope
@@ -41,16 +41,16 @@ class Astrometry(zdx.Base):
     @staticmethod
     def _validate_measurement(measurement):
         if not isinstance(measurement, Measurement):
-            raise TypeError(
-                '`measurement` should be a Measurement instance.')
+            raise TypeError('`measurement` should be a Measurement instance.')
         return measurement
 
     def __call__(self, measurement):
-        ''' Predict detector coordinates for the measurements '''
+        """Predict detector coordinates for the measurements"""
         measurement = self._validate_measurement(measurement)
         ra, dec = self.source.take(measurement.source_index)
         tel_ra, tel_dec, tel_pa, scale_factor = self.exposure.take(
-            measurement.exposure_index)
+            measurement.exposure_index
+        )
         return self.telescope(
             tel_ra,
             tel_dec,
@@ -62,6 +62,6 @@ class Astrometry(zdx.Base):
         )
 
     def residual(self, measurement):
-        ''' Return observed minus predicted detector coordinates '''
+        """Return observed minus predicted detector coordinates"""
         measurement = self._validate_measurement(measurement)
         return measurement.xy - self(measurement)

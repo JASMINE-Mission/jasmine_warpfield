@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Observer-centered celestial coordinate frames '''
+"""Observer-centered celestial coordinate frames"""
 
 from .barycentric import BaryCentric
 from .base import Observer

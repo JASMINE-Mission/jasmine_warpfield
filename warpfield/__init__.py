@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Differentiable astrometric analysis with JAX '''
+"""Differentiable astrometric analysis with JAX"""
 
 import jax
 

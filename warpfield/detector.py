@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Detector geometry for astrometric analysis '''
+"""Detector geometry for astrometric analysis"""
 
 import equinox as eqx
 from jax import Array
@@ -16,7 +16,7 @@ __all__ = ['Detector']
 
 
 def _focal_plane_corners(detector):
-    ''' Return detector corners in focal-plane millimeters '''
+    """Return detector corners in focal-plane millimeters"""
     half = np.asarray(detector.shape, dtype=float) / 2
     corners = np.array([
         [-half[0], -half[1]],
@@ -34,7 +34,7 @@ def _focal_plane_corners(detector):
 
 
 def _calculate_imaging_radius(detectors):
-    ''' Return the radius of the circle enclosing all detector corners '''
+    """Return the radius of the circle enclosing all detector corners"""
     corners = np.concatenate([
         _focal_plane_corners(detector) for detector in detectors
     ])
@@ -42,7 +42,7 @@ def _calculate_imaging_radius(detectors):
 
 
 class Detector(zdx.Base):
-    ''' Geometry of one detector represented as a PyTree
+    """Geometry of one detector represented as a PyTree
 
     Detector coordinates use the lower-left corner before rotation as
     ``(0, 0)`` and the upper-right boundary as ``shape``. The focal-plane
@@ -55,7 +55,7 @@ class Detector(zdx.Base):
         pixel_scale: Physical pixel size in mm/pixel with shape ``(2,)``.
         shape: Detector dimensions in pixels as ``(NAXIS1, NAXIS2)``.
         distortion: Displacement model in normalized detector coordinates.
-    '''
+    """
 
     rotation: Array
     offset: Array
@@ -64,8 +64,13 @@ class Detector(zdx.Base):
     distortion: Distortion
 
     def __init__(
-            self, rotation, offset, pixel_scale, shape=(1024, 1024),
-            distortion=None):
+        self,
+        rotation,
+        offset,
+        pixel_scale,
+        shape=(1024, 1024),
+        distortion=None,
+    ):
         rotation = jnp.asarray(rotation, dtype=float)
         offset = jnp.asarray(offset, dtype=float)
         pixel_scale = jnp.asarray(pixel_scale, dtype=float)
@@ -77,11 +82,13 @@ class Detector(zdx.Base):
         if pixel_scale.shape != (2,):
             raise ValueError('`pixel_scale` should have shape (2,).')
         if (
-                not isinstance(shape, tuple)
-                or len(shape) != 2
-                or not all(
-                    isinstance(size, int) and not isinstance(size, bool)
-                    for size in shape)):
+            not isinstance(shape, tuple)
+            or len(shape) != 2
+            or not all(
+                isinstance(size, int) and not isinstance(size, bool)
+                for size in shape
+            )
+        ):
             raise TypeError('`shape` should be a tuple of two integers.')
         if any(size <= 0 for size in shape):
             raise ValueError('Detector dimensions should be positive.')
@@ -97,14 +104,14 @@ class Detector(zdx.Base):
         self.distortion = distortion
 
     def distort(self, xy):
-        ''' Apply displacements in normalized detector coordinates '''
+        """Apply displacements in normalized detector coordinates"""
         half_size = jnp.asarray(self.shape, dtype=xy.dtype) / 2
         normalized = xy / half_size
         displacement = self.distortion(normalized) * half_size
         return xy + displacement + half_size
 
     def __call__(self, xy):
-        ''' Transform focal-plane coordinates onto this detector '''
+        """Transform focal-plane coordinates onto this detector"""
         xy = jnp.asarray(xy)
 
         if xy.ndim != 2 or xy.shape[1] != 2:
@@ -119,25 +126,24 @@ class Detector(zdx.Base):
 
 
 def _apply_detectors(detectors, xy, detector_index):
-    ''' Transform coordinates using the selected detectors '''
+    """Transform coordinates using the selected detectors"""
     xy = jnp.asarray(xy)
     detector_index = jnp.asarray(detector_index)
 
     if xy.ndim != 2 or xy.shape[1] != 2:
         raise ValueError('`xy` should have shape (N_observation, 2).')
     if detector_index.ndim != 1:
-        raise ValueError(
-            '`detector_index` should be a one-dimensional array.')
+        raise ValueError('`detector_index` should be a one-dimensional array.')
     if detector_index.shape[0] != xy.shape[0]:
         raise ValueError(
-            '`xy` and `detector_index` should have the same length.')
+            '`xy` and `detector_index` should have the same length.'
+        )
     if not jnp.issubdtype(detector_index.dtype, jnp.integer):
         raise ValueError('`detector_index` should contain integers.')
 
     rotation = jnp.stack([detector.rotation for detector in detectors])
     offset = jnp.stack([detector.offset for detector in detectors])
-    pixel_scale = jnp.stack([
-        detector.pixel_scale for detector in detectors])
+    pixel_scale = jnp.stack([detector.pixel_scale for detector in detectors])
     pixel_xy = _affine_transform(
         xy,
         rotation[detector_index],
@@ -145,5 +151,6 @@ def _apply_detectors(detectors, xy, detector_index):
         pixel_scale[detector_index],
     )
     distorted = jnp.stack([
-        detector.distort(pixel_xy) for detector in detectors])
+        detector.distort(pixel_xy) for detector in detectors
+    ])
     return distorted[detector_index, jnp.arange(xy.shape[0])]

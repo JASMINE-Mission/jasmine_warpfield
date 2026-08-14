@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Nominal JASMINE system model '''
+"""Nominal JASMINE system model"""
 
 import astropy.units as u
 import numpy as np
@@ -17,11 +17,11 @@ __all__ = ['get_jasmine']
 
 
 def get_jasmine(distortion=None, simulator=False):
-    ''' Return a Telescope configured for the nominal JASMINE focal plane
+    """Return a Telescope configured for the nominal JASMINE focal plane
 
     An unmasked ``Telescope`` is returned by default. Set ``simulator=True`` to
     return the corresponding masked ``Simulator``.
-    '''
+    """
     if distortion is None:
         distortion = IdentityDistortion()
     if not isinstance(distortion, Distortion):
@@ -34,13 +34,11 @@ def get_jasmine(distortion=None, simulator=False):
     sensor_gap = 3.0 * u.mm
     focal_length = 4.86 * u.m
 
-    half_step = (
-        detector_shape[0] * pixel_size / 2
-        + sensor_gap / 2
-    ).to_value(u.mm)
+    half_step = (detector_shape[0] * pixel_size / 2 + sensor_gap / 2).to_value(
+        u.mm
+    )
     imaging_half_width = (
-        detector_shape[0] * pixel_size
-        + sensor_gap / 2
+        detector_shape[0] * pixel_size + sensor_gap / 2
     ).to_value(u.mm)
     imaging_radius = float(np.sqrt(2) * imaging_half_width)
 

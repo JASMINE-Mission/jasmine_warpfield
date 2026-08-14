@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Source catalog containers '''
+"""Source catalog containers"""
 
 from .astrometric import AstrometricCatalog
 from .source import SourceCatalog

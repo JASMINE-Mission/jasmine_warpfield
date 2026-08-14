@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Apparent source catalog for astrometric analysis '''
+"""Apparent source catalog for astrometric analysis"""
 
 from astropy.table import QTable
 import astropy.units as u
@@ -14,7 +14,7 @@ __all__ = ['SourceCatalog']
 
 
 def _optional_array(value, name, shape, *, non_negative=False):
-    ''' Validate one optional array-valued catalog attribute '''
+    """Validate one optional array-valued catalog attribute"""
     if value is None:
         return None
     value = jnp.asarray(value, dtype=float)
@@ -29,12 +29,12 @@ def _optional_array(value, name, shape, *, non_negative=False):
 
 
 def _select_optional(value, index):
-    ''' Select an optional catalog attribute '''
+    """Select an optional catalog attribute"""
     return None if value is None else value[index]
 
 
 class SourceCatalog(zdx.Base):
-    ''' Celestial source positions represented as a PyTree
+    """Celestial source positions represented as a PyTree
 
     Attributes:
         ra: Right ascensions in degrees with shape ``(N_source,)``.
@@ -43,7 +43,7 @@ class SourceCatalog(zdx.Base):
         magnitude_error: Optional magnitude uncertainties in magnitudes.
         ra_error: Optional right-ascension uncertainties in degrees.
         dec_error: Optional declination uncertainties in degrees.
-    '''
+    """
 
     ra: Array
     dec: Array
@@ -53,8 +53,15 @@ class SourceCatalog(zdx.Base):
     dec_error: Array | None
 
     def __init__(
-            self, ra, dec, *, magnitude=None, magnitude_error=None,
-            ra_error=None, dec_error=None):
+        self,
+        ra,
+        dec,
+        *,
+        magnitude=None,
+        magnitude_error=None,
+        ra_error=None,
+        dec_error=None,
+    ):
         ra = jnp.asarray(ra, dtype=float)
         dec = jnp.asarray(dec, dtype=float)
 
@@ -73,9 +80,11 @@ class SourceCatalog(zdx.Base):
             non_negative=True,
         )
         ra_error = _optional_array(
-            ra_error, 'ra_error', ra.shape, non_negative=True)
+            ra_error, 'ra_error', ra.shape, non_negative=True
+        )
         dec_error = _optional_array(
-            dec_error, 'dec_error', ra.shape, non_negative=True)
+            dec_error, 'dec_error', ra.shape, non_negative=True
+        )
 
         self.ra = ra
         self.dec = dec
@@ -88,7 +97,7 @@ class SourceCatalog(zdx.Base):
         return self.ra.shape[0]
 
     def __getitem__(self, index):
-        ''' Select sources while preserving the catalog dimension '''
+        """Select sources while preserving the catalog dimension"""
         index = np.atleast_1d(np.arange(len(self))[index])
         return SourceCatalog(
             self.ra[index],
@@ -100,12 +109,12 @@ class SourceCatalog(zdx.Base):
         )
 
     def __iter__(self):
-        ''' Iterate over single-source catalogs '''
+        """Iterate over single-source catalogs"""
         for index in range(len(self)):
             yield self[index]
 
     def to_qtable(self):
-        ''' Convert catalog attributes into a unit-aware QTable '''
+        """Convert catalog attributes into a unit-aware QTable"""
         table = QTable({
             'source_id': np.arange(len(self), dtype=int),
             'ra': np.asarray(self.ra) * u.deg,
@@ -125,21 +134,23 @@ class SourceCatalog(zdx.Base):
 
     @classmethod
     def from_qtable(cls, table):
-        ''' Construct a catalog from a unit-aware QTable '''
+        """Construct a catalog from a unit-aware QTable"""
         if not isinstance(table, QTable):
             raise TypeError('`table` should be a QTable instance.')
         missing = [
-            name for name in ('ra', 'dec') if name not in table.colnames]
+            name for name in ('ra', 'dec') if name not in table.colnames
+        ]
         if missing:
             raise ValueError(
-                '`table` is missing required columns: '
-                + ', '.join(missing))
+                '`table` is missing required columns: ' + ', '.join(missing)
+            )
         try:
             ra = u.Quantity(table['ra']).to_value(u.deg)
             dec = u.Quantity(table['dec']).to_value(u.deg)
         except u.UnitConversionError as error:
             raise ValueError(
-                '`ra` and `dec` should have angular units.') from error
+                '`ra` and `dec` should have angular units.'
+            ) from error
 
         optional = {}
         units = {
@@ -152,7 +163,8 @@ class SourceCatalog(zdx.Base):
             for name, unit in units.items():
                 optional[name] = (
                     u.Quantity(table[name]).to_value(unit)
-                    if name in table.colnames else None
+                    if name in table.colnames
+                    else None
                 )
         except u.UnitConversionError as error:
             raise ValueError(
@@ -161,5 +173,5 @@ class SourceCatalog(zdx.Base):
         return cls(ra, dec, **optional)
 
     def take(self, index):
-        ''' Select source positions using an integer index array '''
+        """Select source positions using an integer index array"""
         return self.ra[index], self.dec[index]

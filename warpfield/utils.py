@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Numerical utilities for astrometric analysis '''
+"""Numerical utilities for astrometric analysis"""
 
 from astropy.units import Quantity
 import astropy.units as u
@@ -13,7 +13,7 @@ __all__ = ['plate_scale']
 
 
 def plate_scale(focal_length):
-    ''' Calculate an isotropic focal-plane scale from a focal length
+    """Calculate an isotropic focal-plane scale from a focal length
 
     Arguments:
         focal_length: Scalar Astropy length Quantity.
@@ -21,7 +21,7 @@ def plate_scale(focal_length):
     Returns:
         Plate scales along both focal-plane axes in mm/degree with shape
         ``(2,)``.
-    '''
+    """
     if not isinstance(focal_length, Quantity):
         raise TypeError('`focal_length` should be an Astropy Quantity.')
     try:
@@ -38,12 +38,12 @@ def plate_scale(focal_length):
 
 
 def _degree_to_radian(theta):
-    ''' Convert degrees to radians '''
+    """Convert degrees to radians"""
     return theta * jnp.pi / 180.0
 
 
 def _rotation_matrix(theta):
-    ''' Calculate a two-dimensional rotation matrix '''
+    """Calculate a two-dimensional rotation matrix"""
     values = [
         jnp.cos(theta),
         -jnp.sin(theta),
@@ -54,7 +54,7 @@ def _rotation_matrix(theta):
 
 
 def _affine_transform_one(xy, rotation, offset, pixel_scale):
-    ''' Transform one focal-plane coordinate into detector coordinates '''
+    """Transform one focal-plane coordinate into detector coordinates"""
     rotation = _degree_to_radian(rotation)
     return _rotation_matrix(rotation) @ (xy - offset).T / pixel_scale
 

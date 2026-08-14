@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' NumPyro adapter for probabilistic astrometric inference '''
+"""NumPyro adapter for probabilistic astrometric inference"""
 
 from collections.abc import Mapping
 
@@ -21,18 +21,19 @@ def _prepare_uncertainty(measurement, uncertainty):
         uncertainty = measurement.uncertainty
     if uncertainty is None:
         raise ValueError(
-            'Measurement uncertainty or `uncertainty` should be provided.')
+            'Measurement uncertainty or `uncertainty` should be provided.'
+        )
     uncertainty = jnp.asarray(uncertainty, dtype=float)
     try:
         return jnp.broadcast_to(uncertainty, measurement.xy.shape)
     except ValueError as error:
         raise ValueError(
-            '`uncertainty` should be broadcastable to measurement.xy.') \
-            from error
+            '`uncertainty` should be broadcastable to measurement.xy.'
+        ) from error
 
 
 def build_model(astrometry, measurement, priors, uncertainty=None):
-    ''' Build a NumPyro model using an Astrometry forward calculation '''
+    """Build a NumPyro model using an Astrometry forward calculation"""
     if not isinstance(astrometry, Astrometry):
         raise TypeError('`astrometry` should be an Astrometry instance.')
     if not isinstance(measurement, Measurement):
@@ -46,12 +47,10 @@ def build_model(astrometry, measurement, priors, uncertainty=None):
 
     def model():
         parameters = {
-            path: numpyro.sample(path, prior)
-            for path, prior in priors.items()
+            path: numpyro.sample(path, prior) for path, prior in priors.items()
         }
         current = set_parameters(astrometry, parameters)
-        predicted = numpyro.deterministic(
-            'predicted_xy', current(measurement))
+        predicted = numpyro.deterministic('predicted_xy', current(measurement))
 
         with numpyro.plate('measurement_plate', len(measurement)):
             numpyro.sample(
@@ -64,6 +63,6 @@ def build_model(astrometry, measurement, priors, uncertainty=None):
 
 
 def apply_sample(astrometry, sample, paths):
-    ''' Apply one posterior sample to an Astrometry PyTree '''
+    """Apply one posterior sample to an Astrometry PyTree"""
     parameters = {path: sample[path] for path in paths}
     return set_parameters(astrometry, parameters)

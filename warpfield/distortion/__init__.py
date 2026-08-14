@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Distortion functions '''
+"""Distortion functions"""
 
 from .base import Distortion
 from .identity import IdentityDistortion

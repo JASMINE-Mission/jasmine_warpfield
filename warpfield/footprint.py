@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Nominal detector footprints in focal-plane and celestial coordinates '''
+"""Nominal detector footprints in focal-plane and celestial coordinates"""
 
 from operator import index as integer_index
 
@@ -20,7 +20,7 @@ __all__ = ['celestial_footprints', 'focalplane_footprints']
 
 
 def _rectangle_boundary(shape, samples_per_edge):
-    ''' Generate a closed, counterclockwise detector boundary '''
+    """Generate a closed, counterclockwise detector boundary"""
     half = np.asarray(shape, dtype=float) / 2
     corners = np.array([
         [-half[0], -half[1]],
@@ -31,14 +31,12 @@ def _rectangle_boundary(shape, samples_per_edge):
     fraction = np.arange(samples_per_edge) / samples_per_edge
     edges = []
     for start, stop in zip(corners, np.roll(corners, -1, axis=0)):
-        edges.append(
-            start + fraction[:, None] * (stop - start)
-        )
+        edges.append(start + fraction[:, None] * (stop - start))
     return np.vstack([*edges, corners[0]])
 
 
 def _validate_samples_per_edge(samples_per_edge):
-    ''' Validate and normalize the number of boundary samples '''
+    """Validate and normalize the number of boundary samples"""
     if isinstance(samples_per_edge, bool):
         raise TypeError('`samples_per_edge` should be a positive integer.')
     try:
@@ -53,21 +51,22 @@ def _validate_samples_per_edge(samples_per_edge):
 
 
 def _detectors_from(detectors):
-    ''' Normalize supported detector containers to a detector tuple '''
+    """Normalize supported detector containers to a detector tuple"""
     if isinstance(detectors, Telescope):
         return detectors.detectors
     if isinstance(detectors, Detector):
         return (detectors,)
-    if (
-            isinstance(detectors, tuple)
-            and all(isinstance(detector, Detector) for detector in detectors)):
+    if isinstance(detectors, tuple) and all(
+        isinstance(detector, Detector) for detector in detectors
+    ):
         return detectors
     raise TypeError(
-        '`detectors` should be a Telescope, Detector, or tuple of Detector.')
+        '`detectors` should be a Telescope, Detector, or tuple of Detector.'
+    )
 
 
 def _focalplane_footprint(detector, samples_per_edge):
-    ''' Return one nominal detector boundary in focal-plane coordinates '''
+    """Return one nominal detector boundary in focal-plane coordinates"""
     pixel_xy = _rectangle_boundary(detector.shape, samples_per_edge)
     angle = -np.deg2rad(float(detector.rotation))
     rotation = np.array([
@@ -79,12 +78,12 @@ def _focalplane_footprint(detector, samples_per_edge):
 
 
 def focalplane_footprints(detectors, *, samples_per_edge=1):
-    ''' Return nominal detector boundaries in focal-plane mm coordinates
+    """Return nominal detector boundaries in focal-plane mm coordinates
 
     Detector distortion is intentionally excluded because computing the
     distorted boundaries requires its inverse transformation. The returned
     tuple follows the input detector order.
-    '''
+    """
     detectors = _detectors_from(detectors)
     samples_per_edge = _validate_samples_per_edge(samples_per_edge)
     return tuple(
@@ -94,7 +93,7 @@ def focalplane_footprints(detectors, *, samples_per_edge=1):
 
 
 def _clip_footprint(xy, radius, samples_per_edge):
-    ''' Clip a focal-plane footprint to a circular imaging region '''
+    """Clip a focal-plane footprint to a circular imaging region"""
     circle = Point(0.0, 0.0).buffer(
         radius,
         quad_segs=max(8, samples_per_edge),
@@ -106,7 +105,7 @@ def _clip_footprint(xy, radius, samples_per_edge):
 
 
 def _inverse_projection(projection, xy, scale, pointing):
-    ''' Convert nominal focal-plane coordinates into ICRS coordinates '''
+    """Convert nominal focal-plane coordinates into ICRS coordinates"""
     scaled = xy / scale
     angle = np.deg2rad(float(pointing.position_angle[0]))
     rotation = np.array([
@@ -122,7 +121,8 @@ def _inverse_projection(projection, xy, scale, pointing):
         separation = np.deg2rad(radius)
     else:
         raise TypeError(
-            'Unsupported Projection type for footprint conversion.')
+            'Unsupported Projection type for footprint conversion.'
+        )
 
     position_angle = np.arctan2(-plane[:, 0], plane[:, 1])
     center = SkyCoord(
@@ -137,23 +137,25 @@ def _inverse_projection(projection, xy, scale, pointing):
 
 
 def celestial_footprints(
-        telescope, pointing, *, frame='icrs', samples_per_edge=16,
-        limit=True):
-    ''' Return nominal sky footprints for one selected pointing
+    telescope, pointing, *, frame='icrs', samples_per_edge=16, limit=True
+):
+    """Return nominal sky footprints for one selected pointing
 
     Optical and detector distortions are intentionally excluded. The returned
     tuple follows the detector order in ``telescope.detectors``.
-    '''
+    """
     if not isinstance(telescope, Telescope):
         raise TypeError('`telescope` should be a Telescope instance.')
     if isinstance(pointing, Exposure):
         pointing = pointing.pointing
     elif not isinstance(pointing, Pointing):
         raise TypeError(
-            '`pointing` should be a Pointing or Exposure instance.')
+            '`pointing` should be a Pointing or Exposure instance.'
+        )
     if len(pointing) != 1:
         raise ValueError(
-            '`pointing` should contain exactly one selected pointing.')
+            '`pointing` should contain exactly one selected pointing.'
+        )
     if frame not in ('icrs', 'galactic'):
         raise ValueError('`frame` should be either "icrs" or "galactic".')
     if not isinstance(limit, bool):
@@ -162,8 +164,7 @@ def celestial_footprints(
     samples_per_edge = _validate_samples_per_edge(samples_per_edge)
     scale = np.asarray(telescope.optics.plate_scale)
     if not np.isfinite(scale).all() or np.any(scale == 0):
-        raise ValueError(
-            'The plate scale should be finite and nonzero.')
+        raise ValueError('The plate scale should be finite and nonzero.')
 
     footprints = []
     focalplane = focalplane_footprints(

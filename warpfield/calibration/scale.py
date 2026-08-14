@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Exposure-dependent plate-scale calibration '''
+"""Exposure-dependent plate-scale calibration"""
 
 from jax import Array
 import jax.numpy as jnp
@@ -12,12 +12,12 @@ __all__ = ['ScaleCalibration']
 
 
 class ScaleCalibration(Calibration):
-    ''' Isotropic plate-scale variations for each exposure
+    """Isotropic plate-scale variations for each exposure
 
     Attributes:
         coefficient: Logarithmic scale factors with shape ``(N_exposure,)``.
             A value of zero leaves the nominal plate scale unchanged.
-    '''
+    """
 
     coefficient: Array
 
@@ -25,11 +25,12 @@ class ScaleCalibration(Calibration):
         coefficient = jnp.asarray(coefficient, dtype=float)
         if coefficient.ndim != 1:
             raise ValueError(
-                '`coefficient` should be a one-dimensional array.')
+                '`coefficient` should be a one-dimensional array.'
+            )
         self.coefficient = coefficient
 
     def __getitem__(self, index):
-        ''' Select coefficients while preserving the collection dimension '''
+        """Select coefficients while preserving the collection dimension"""
         return ScaleCalibration(jnp.atleast_1d(self.coefficient[index]))
 
     @property

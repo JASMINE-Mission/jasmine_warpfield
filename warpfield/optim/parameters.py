@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Zodiax parameter selection helpers '''
+"""Zodiax parameter selection helpers"""
 
 from collections.abc import Mapping
 
@@ -11,7 +11,7 @@ __all__ = ['get_parameters', 'set_parameters']
 
 
 def get_parameters(tree, paths):
-    ''' Extract selected PyTree leaves as a path-keyed dictionary '''
+    """Extract selected PyTree leaves as a path-keyed dictionary"""
     if not isinstance(tree, zdx.Base):
         raise TypeError('`tree` should be a zodiax Base instance.')
     if isinstance(paths, str):
@@ -24,7 +24,7 @@ def get_parameters(tree, paths):
 
 
 def set_parameters(tree, parameters):
-    ''' Return a PyTree with the selected leaves replaced '''
+    """Return a PyTree with the selected leaves replaced"""
     if not isinstance(tree, zdx.Base):
         raise TypeError('`tree` should be a zodiax Base instance.')
     if not isinstance(parameters, Mapping):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Distortion function defined by the SIP convention '''
+"""Distortion function defined by the SIP convention"""
 
 from jax.lax import scan
 from jax import Array
@@ -14,7 +14,7 @@ __all__ = ['SIPDistortion']
 
 
 def _polymap(coeff, xy):
-    ''' Calculate a two-dimensional polynomical expansion
+    """Calculate a two-dimensional polynomical expansion
 
     Arguments:
         coeff: Coefficients of a polynomial expansion.
@@ -22,10 +22,10 @@ def _polymap(coeff, xy):
 
     Returns:
         A (N,2) list of converted coordinates.
-    '''
+    """
 
     def inner(order, coeff):
-        ''' Inner function to calculate a polynomical expansion
+        """Inner function to calculate a polynomical expansion
 
         Arguments:
             order: A (m,n) integer power index pair.
@@ -33,16 +33,16 @@ def _polymap(coeff, xy):
 
         Returns:
             A list of calclated cordinates (p * x**m * y**n).
-        '''
+        """
         m, n = order
-        return [m - 1, n + 1], coeff * xy[:, 0]**m * xy[:, 1]**n
+        return [m - 1, n + 1], coeff * xy[:, 0] ** m * xy[:, 1] ** n
 
     _, pq = scan(inner, [len(coeff) - 1, 0], coeff)
     return pq.sum(axis=0)
 
 
 def _distortion(sip_a, sip_b, xy):
-    ''' Calculate displacements using the SIP coefficients
+    """Calculate displacements using the SIP coefficients
 
     The SIP coefficients sip_a and sip_b should contains 18 coefficients.
     The coefficients do not contain the Affine-transformation term.
@@ -59,26 +59,36 @@ def _distortion(sip_a, sip_b, xy):
 
     Returns:
         Coordinate displacements on the focal plane.
-    '''
+    """
     scale = np.exp(
-        -np.log(10) * 4 *
-        np.array([2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]))
+        -np.log(10)
+        * 4
+        * np.array([2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5])
+    )
     sip_a *= scale
     sip_b *= scale
-    dx = _polymap(sip_a[0:3], xy) + _polymap(sip_a[3:7], xy) \
-        + _polymap(sip_a[7:12], xy) + _polymap(sip_a[12:18], xy)
-    dy = _polymap(sip_b[0:3], xy) + _polymap(sip_b[3:7], xy) \
-        + _polymap(sip_b[7:12], xy) + _polymap(sip_b[12:18], xy)
+    dx = (
+        _polymap(sip_a[0:3], xy)
+        + _polymap(sip_a[3:7], xy)
+        + _polymap(sip_a[7:12], xy)
+        + _polymap(sip_a[12:18], xy)
+    )
+    dy = (
+        _polymap(sip_b[0:3], xy)
+        + _polymap(sip_b[3:7], xy)
+        + _polymap(sip_b[7:12], xy)
+        + _polymap(sip_b[12:18], xy)
+    )
     return jnp.stack([dx, dy]).T
 
 
 class SIPDistortion(Distortion):
-    ''' Fifth-order SIP distortion represented as a PyTree
+    """Fifth-order SIP distortion represented as a PyTree
 
     Attributes:
         coeff_x: Coefficients for x-axis displacements with shape ``(18,)``.
         coeff_y: Coefficients for y-axis displacements with shape ``(18,)``.
-    '''
+    """
 
     coeff_x: Array
     coeff_y: Array
@@ -96,7 +106,7 @@ class SIPDistortion(Distortion):
         self.coeff_y = coeff_y
 
     def __call__(self, xy):
-        ''' Calculate coordinate displacements on the focal plane '''
+        """Calculate coordinate displacements on the focal plane"""
         xy = jnp.asarray(xy)
         if xy.ndim != 2 or xy.shape[1] != 2:
             raise ValueError('`xy` should have shape (N_coordinate, 2).')
@@ -111,11 +121,17 @@ if __name__ == '__main__':
     coeff = jnp.array([0.0, 0.0, 0.4])
 
     print('\nBenchmark of the polynomial map:\n')
-    print('  execution time: {:.6f}'.format(
-        timeit(lambda: _polymap(coeff, xy), number=25) / 25))
+    print(
+        '  execution time: {:.6f}'.format(
+            timeit(lambda: _polymap(coeff, xy), number=25) / 25
+        )
+    )
 
     print('\nBenchmark of the distortion function:\n')
     coeff_a = jnp.zeros(18)
     coeff_b = jnp.zeros(18)
-    print('  execution time: {:.6f}'.format(
-        timeit(lambda: _distortion(coeff_a, coeff_b, xy), number=100)))
+    print(
+        '  execution time: {:.6f}'.format(
+            timeit(lambda: _distortion(coeff_a, coeff_b, xy), number=100)
+        )
+    )

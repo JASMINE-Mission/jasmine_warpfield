@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Identity exposure calibration '''
+"""Identity exposure calibration"""
 
 import jax.numpy as jnp
 
@@ -11,7 +11,7 @@ __all__ = ['IdentityCalibration']
 
 
 class IdentityCalibration(Calibration):
-    ''' Calibration that leaves the nominal plate scale unchanged '''
+    """Calibration that leaves the nominal plate scale unchanged"""
 
     def __getitem__(self, index):
         return self

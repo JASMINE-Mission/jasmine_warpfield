@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Simple gnomonic system with SIP distortion '''
+"""Simple gnomonic system with SIP distortion"""
 
 import numpy as np
 
@@ -12,10 +12,10 @@ __all__ = ['get_simple_sip']
 
 
 def get_simple_sip(coeff_x=None, coeff_y=None, simulator=False):
-    ''' Return the simple gnomonic system with SIP distortion
+    """Return the simple gnomonic system with SIP distortion
 
     Coefficient arrays have shape ``(18,)`` and default to zero.
-    '''
+    """
     if coeff_x is None:
         coeff_x = np.zeros(18)
     if coeff_y is None:

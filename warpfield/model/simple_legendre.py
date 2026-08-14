@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-''' Simple gnomonic system with Legendre distortion '''
+"""Simple gnomonic system with Legendre distortion"""
 
 import numpy as np
 
@@ -12,10 +12,10 @@ __all__ = ['get_simple_legendre']
 
 
 def get_simple_legendre(coeff_x=None, coeff_y=None, simulator=False):
-    ''' Return the simple gnomonic system with Legendre distortion
+    """Return the simple gnomonic system with Legendre distortion
 
     Coefficient arrays have shape ``(18,)`` and default to zero.
-    '''
+    """
     if coeff_x is None:
         coeff_x = np.zeros(18)
     if coeff_y is None:
