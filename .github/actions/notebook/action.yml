@@ -13,6 +13,38 @@ runs:
 
     - name: Execute Jupyter notebook
       run: |
-        cd notebook;
-        bash ./update.sh
+        set -u
+        shopt -s nullglob
+        cd notebook
+
+        failed=()
+
+        for notebook in *.ipynb
+        do
+          echo "Executing $notebook"
+
+          if jupyter nbconvert \
+            --to notebook \
+            --inplace \
+            --execute \
+            "$notebook"
+          then
+            echo "Passed: $notebook"
+          else
+            echo "::error file=notebook/$notebook::Notebook execution failed"
+            failed+=("$notebook")
+          fi
+        done
+
+        if (( ${#failed[@]} > 0 ))
+        then
+          {
+            echo "## Failed notebooks"
+            printf -- '- `%s`\n' "${failed[@]}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Failed notebooks:"
+          printf '  %s\n' "${failed[@]}"
+          exit 1
+        fi
       shell: bash

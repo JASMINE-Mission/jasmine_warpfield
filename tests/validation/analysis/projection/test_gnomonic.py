@@ -5,7 +5,7 @@ from hypothesis import given, assume, settings
 
 from .util import WCSProjection, longitude, latitude
 from .util import suppress_too_much_filter
-from warpfield.analysis.projection.gnomonic import *
+from warpfield.projection.gnomonic import _gnomonic_conversion
 
 
 class Gnomonic(WCSProjection):
@@ -21,7 +21,7 @@ def test_gnomonic_conversion(tel_ra, tel_dec, ra, dec):
     assume(0.0001 < telescope.separation(ra, dec) < 60.0)
 
     X, Y = telescope.convert(ra, dec)
-    x, y = gnomonic_conversion(tel_ra, tel_dec, ra, dec)
+    x, y = _gnomonic_conversion(tel_ra, tel_dec, ra, dec)
 
     assert x == approx(X)
     assert y == approx(Y)

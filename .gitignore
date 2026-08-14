@@ -5,7 +5,10 @@
 .hypothesis
 .ipynb_checkpoints
 .pytest_cache
+*.ecsv
 *.pkl
 *.fits
 *.fits.gz
+
+*.pyc
 __pycache__

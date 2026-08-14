@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import equinox as eqx
+import jax.numpy as jnp
+from pytest import approx, raises
+
+from warpfield import Detector, Telescope
+from warpfield.distortion import IdentityDistortion, LegendreDistortion
+from warpfield.projection import GnomonicProjection
+
+
+def generate_telescope():
+    distortion = LegendreDistortion(
+        coeff_x=jnp.linspace(0.0, 0.1, 18),
+        coeff_y=jnp.linspace(0.1, 0.0, 18),
+    )
+    detectors = (
+        Detector(0.0, [0.0, 0.0], [1.0, 1.0]),
+        Detector(90.0, [1.0, 2.0], [0.5, 2.0]),
+    )
+    return Telescope(
+        GnomonicProjection(),
+        [2.0, 3.0],
+        detectors,
+        distortion=distortion,
+        imaging_radius=10.0,
+    )
+
+
+def generate_coordinates():
+    return (
+        jnp.array([266.4, 266.5, 266.4]),
+        jnp.array([-29.0, -29.1, -29.0]),
+        jnp.array([0.0, 5.0, 0.0]),
+        jnp.array([266.5, 266.4, 266.6]),
+        jnp.array([-28.9, -29.2, -29.0]),
+        jnp.array([[1.0], [1.1], [0.9]]),
+    )
+
+
+def test_telescope_pipeline():
+    telescope = generate_telescope()
+    coordinates = generate_coordinates()
+    detector_index = jnp.array([0, 1, 1])
+    ideal = telescope.optics.projection(
+        *coordinates[:-1],
+        telescope.optics.plate_scale * coordinates[-1],
+    )
+    focal = ideal + telescope.optics.distortion(
+        ideal / telescope.optics.imaging_radius)
+    expected = jnp.concatenate([
+        telescope.detectors[0](focal[:1]),
+        telescope.detectors[1](focal[1:]),
+    ])
+
+    assert telescope.focal_plane(*coordinates) == approx(focal)
+    assert telescope(*coordinates, detector_index) == approx(expected)
+    assert eqx.filter_jit(telescope)(
+        *coordinates, detector_index) == approx(expected)
+
+
+def test_telescope_defaults():
+    detectors = (
+        Detector(
+            90.0, [3.0, 4.0], [0.5, 1.0], shape=(2, 4)),
+    )
+    telescope = Telescope(
+        GnomonicProjection(),
+        [2.0, 3.0],
+        detectors,
+    )
+
+    assert isinstance(telescope.optics.distortion, IdentityDistortion)
+    assert telescope.optics.imaging_radius == approx(
+        jnp.linalg.norm(jnp.array([5.0, 4.5]))
+    )
+
+
+def test_telescope_zodiax_update():
+    telescope = generate_telescope()
+    path = 'optics.plate_scale'
+    updated = telescope.set(path, jnp.array([3.0, 4.0]))
+
+    assert telescope.get(path) == approx([2.0, 3.0])
+    assert updated.get(path) == approx([3.0, 4.0])
+
+    path = 'detectors.1.offset'
+    updated = telescope.set(path, jnp.zeros(2))
+
+    assert telescope.get(path) == approx([1.0, 2.0])
+    assert updated.get(path) == approx(jnp.zeros(2))
+
+
+def test_telescope_gradient():
+    telescope = generate_telescope()
+    coordinates = generate_coordinates()
+    detector_index = jnp.array([0, 1, 0])
+
+    def loss(model):
+        value = model(*coordinates, detector_index)
+        return jnp.sum(value**2)
+
+    gradient = eqx.filter_grad(loss)(telescope)
+
+    assert jnp.isfinite(gradient.optics.plate_scale).all()
+    assert jnp.isfinite(gradient.optics.distortion.coeff_x).all()
+    assert jnp.isfinite(gradient.detectors[0].offset).all()
+    assert jnp.isfinite(gradient.detectors[1].offset).all()
+
+
+def test_telescope_validation():
+    telescope = generate_telescope()
+    coordinates = generate_coordinates()
+
+    with raises(ValueError, match='same shape'):
+        telescope.focal_plane(*coordinates[:3], [1.0], *coordinates[4:])
+    with raises(TypeError, match='Projection'):
+        Telescope(object(), [1.0, 1.0], telescope.detectors)
+    with raises(TypeError, match='tuple'):
+        Telescope(GnomonicProjection(), [1.0, 1.0], [])
+    with raises(ValueError, match='at least one'):
+        Telescope(GnomonicProjection(), [1.0, 1.0], ())
+    with raises(TypeError, match='only Detector'):
+        Telescope(GnomonicProjection(), [1.0, 1.0], (object(),))
+    with raises(TypeError, match='Distortion'):
+        Telescope(
+            GnomonicProjection(),
+            [1.0, 1.0],
+            telescope.detectors,
+            distortion=object(),
+        )

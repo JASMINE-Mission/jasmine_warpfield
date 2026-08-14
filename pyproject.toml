@@ -3,9 +3,9 @@ requires = ['setuptools>=75.0', 'wheel>=0.44']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'jasmine_warpfield'
+name = 'warpfield'
 description = 'An experimental code to simulate a warped focal plane'
-requires-python = '>=3.9'
+requires-python = '>=3.10'
 license = {file = 'LICENSE'}
 
 authors = [
@@ -18,7 +18,10 @@ classifiers = [
   'License :: OSI Approved :: MIT License',
   'Operating System :: POSIX :: Linux',
   'Programming Language :: Python :: 3',
-  'Programming Language :: Python :: 3.7',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3.13',
   'Topic :: Scientific/Engineering :: Astronomy'
 ]
 
@@ -33,20 +36,24 @@ dependencies = [
   'astroquery>=0.4',
   'matplotlib>=3.9',
   'shapely>=2.0',
-  'jax>=0.4.33',
-  'jaxlib>=0.4.33'
+  'jax>=0.4.38',
+  'jaxlib>=0.4.38',
+  'equinox>=0.13',
+  'zodiax>=0.5',
+  'numpyro>=0.15',
+  'optax>=0.2'
 ]
 
 [project.optional-dependencies]
 test = [
   'pytest>=8.3',
-  'pytest-cov>=5.0',
-  'hypothesis>=6.54'
+  'hypothesis>=6.54',
+  'ruff>=0.12'
 ]
 
 [project.urls]
-homepage = 'https://github.com/JASMINE-Mission/jasmine_warpfield'
-repository = 'https://github.com/JASMINE-Mission/jasmine_warpfield'
+homepage = 'https://github.com/astronasutarou/warpfield'
+repository = 'https://github.com/astronasutarou/warpfield'
 
 [tool.setuptools.packages.find]
 include = ['warpfield*']
@@ -57,7 +64,7 @@ readme = { file = 'README.md', content-type = 'text/markdown' }
 
 
 [tool.ruff]
-exclude = ['**/test', 'notebook']
+exclude = ['**/scripts', '**/tests']
 line-length = 79
 indent-width = 4
 
@@ -76,6 +83,6 @@ ignore = [
 unfixable = ['ALL']
 
 [tool.ruff.format]
-quote-style = 'preserve'
+quote-style = 'single'
 line-ending = 'lf'
 preview = true
