@@ -3,7 +3,7 @@ requires = ['setuptools>=75.0', 'wheel>=0.44']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'jasmine_warpfield'
+name = 'warpfield'
 description = 'An experimental code to simulate a warped focal plane'
 requires-python = '>=3.10'
 license = {file = 'LICENSE'}
